@@ -15,9 +15,10 @@ export type BgMode = 'solid' | 'gradient' | 'env-blur' | 'transparent';
 export type MockupState = {
   // --- Camera ---
   azimuth: number; // deg, orbit around Y
-  polar: number; // deg, tilt (the "iso" angle)
-  distance: number; // camera dolly
-  focalLength: number; // mm-ish; maps to FOV. long = ~20-30deg iso sweet spot
+  polar: number; // deg, grazing "rake" tilt
+  distance: number; // zoom multiplier on the auto-fit (<1 crops in)
+  focalLength: number; // mm-ish; maps to FOV
+  roll: number; // deg, editorial roll around the view axis
 
   // --- Geometry ---
   cornerRadius: number; // device corner roundness
@@ -73,10 +74,11 @@ export type MockupState = {
 export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   // Camera — diagonal iso-ish tilt, long lens for minimal convergence.
   // `distance` is a zoom multiplier on the auto-fit (1 = device fills frame).
-  azimuth: 24,
-  polar: 62,
-  distance: 1.2,
-  focalLength: 55,
+  azimuth: 6,
+  polar: 73,
+  distance: 0.43,
+  focalLength: 42,
+  roll: -4,
 
   // Geometry
   cornerRadius: 0.12,
@@ -84,7 +86,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   thickness: 0.18,
 
   // Screen material
-  screenBrightness: 0.7,
+  screenBrightness: 1.0,
   glassRoughness: 0.12,
   reflectionIntensity: 0.9,
   pixelTexture: 0.0,

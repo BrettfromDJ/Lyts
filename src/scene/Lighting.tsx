@@ -1,6 +1,5 @@
-import { Environment, Lightformer, ContactShadows } from '@react-three/drei';
+import { Environment, Lightformer } from '@react-three/drei';
 import { useMockupStore } from '../store/useMockupStore';
-import { laptopMetrics } from '../lib/deviceDims';
 import * as THREE from 'three';
 
 /**
@@ -41,11 +40,6 @@ export function Lighting() {
   const rimColor = useMockupStore((s) => s.rimColor);
   const rimIntensity = useMockupStore((s) => s.rimIntensity);
 
-  const screenAspect = useMockupStore((s) => s.screenAspect);
-  const shadowSoftness = useMockupStore((s) => s.shadowSoftness);
-  const shadowOpacity = useMockupStore((s) => s.shadowOpacity);
-
-  const groundY = laptopMetrics(screenAspect).baseBottomY;
   const mood = MOODS[hdriPreset] ?? MOODS.studio;
   const rot: [number, number, number] = [0, THREE.MathUtils.degToRad(hdriRotation), 0];
 
@@ -108,16 +102,6 @@ export function Lighting() {
       <directionalLight color={fillColor} intensity={fillIntensity} position={[-6, 3, 4]} />
       <directionalLight color={rimColor} intensity={rimIntensity} position={[-3, 5, -6]} />
       <ambientLight intensity={0.12} />
-
-      <ContactShadows
-        position={[0, groundY - 0.001, 0]}
-        scale={7}
-        far={5}
-        resolution={1024}
-        blur={shadowSoftness}
-        opacity={shadowOpacity}
-        color="#000000"
-      />
     </>
   );
 }

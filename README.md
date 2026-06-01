@@ -27,10 +27,11 @@ npm run lint
 
 ## What's implemented
 
-**Phase 1 — photoreal still.** Upload (drag/drop/click) → screenshot mapped onto
-a beveled `RoundedBox` with a stacked screen + glass layer → perspective camera
-at an iso angle → procedural studio HDRI (Lightformers, offline-safe) +
-key/fill/rim + contact shadow → ACES filmic tonemapping with correct sRGB.
+**Phase 1 — photoreal still.** Upload (drag/drop/click) → screenshot rendered as
+a flat surface raked at a grazing angle (no device body) → perspective camera
+with an editorial roll → procedural studio HDRI (Lightformers, offline-safe) →
+ACES filmic tonemapping with correct sRGB. The post-stack DOF leaves a
+cinematic band of focus across the receding surface.
 
 **Phase 2 — full post stack + custom UI.** `EffectComposer` with DepthOfField,
 Bloom, BrightnessContrast, ChromaticAberration, Vignette, and a per-frame-ready
@@ -64,7 +65,7 @@ change.
 ```
 src/
   store/   useMockupStore.ts (spine) · presets.ts
-  scene/   Scene · CameraRig · DeviceMesh · Lighting · Effects
+  scene/   Scene · CameraRig · DeviceMesh (screenshot surface) · Lighting · Effects
   ui/      ControlPanel · Uploader · ExportBar
   lib/     useScreenTexture · exportImage · textures · sceneRef · license
 ```

@@ -147,19 +147,16 @@ export function ControlPanel() {
 
       <Group title="Camera" id="camera" openIds={openIds} toggle={toggle}>
         <Slider field="azimuth" label="Orbit" min={-180} max={180} step={1} />
-        <Slider field="polar" label="Tilt (iso)" min={10} max={88} step={1} />
-        <Slider field="distance" label="Zoom (dolly)" min={0.7} max={3} step={0.02} />
+        <Slider field="polar" label="Rake (tilt)" min={20} max={86} step={1} />
+        <Slider field="roll" label="Roll" min={-20} max={20} step={0.5} />
+        <Slider field="distance" label="Zoom" min={0.35} max={2} step={0.01} />
         <Slider field="focalLength" label="Focal length (mm)" min={24} max={135} step={1} />
-      </Group>
-
-      <Group title="Geometry" id="geometry" openIds={openIds} toggle={toggle}>
-        <Slider field="cornerRadius" label="Corner radius" min={0} max={0.12} />
       </Group>
 
       <Group title="Screen" id="screen" openIds={openIds} toggle={toggle}>
         <Slider field="screenBrightness" label="Brightness" min={0} max={2} />
-        <Slider field="glassRoughness" label="Glass roughness" min={0} max={0.5} />
-        <Slider field="reflectionIntensity" label="Reflections" min={0} max={3} />
+        <Slider field="glassRoughness" label="Sheen roughness" min={0} max={0.5} />
+        <Slider field="reflectionIntensity" label="Sheen" min={0} max={3} />
       </Group>
 
       <Group title="Lighting" id="lighting" openIds={openIds} toggle={toggle}>
@@ -183,8 +180,6 @@ export function ControlPanel() {
         <Slider field="fillIntensity" label="Fill intensity" min={0} max={2} />
         <ColorRow field="rimColor" label="Rim" />
         <Slider field="rimIntensity" label="Rim intensity" min={0} max={4} />
-        <Slider field="shadowSoftness" label="Shadow softness" min={0} max={6} />
-        <Slider field="shadowOpacity" label="Shadow opacity" min={0} max={1} />
       </Group>
 
       <Group title="Post" id="post" openIds={openIds} toggle={toggle}>
