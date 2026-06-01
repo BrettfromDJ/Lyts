@@ -29,15 +29,20 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
     return;
   }
 
+  // Even disc sampling via the golden angle (no radial spokes), plus a small
+  // per-pixel rotation so any residual structure becomes noise the grain hides.
+  const int SAMPLES = 64;
+  const float GA = 2.39996323;
+  float jitter = fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453) * 6.28318;
   vec3 acc = vec3(0.0);
-  for (int i = 0; i < 28; i++) {
-    float t = (float(i) + 0.5) / 28.0;
-    float a = t * 6.28318 * 4.0;
+  for (int i = 0; i < SAMPLES; i++) {
+    float t = (float(i) + 0.5) / float(SAMPLES);
     float r = sqrt(t) * radius;
+    float a = jitter + float(i) * GA;
     vec2 off = vec2(cos(a) * r / uAspect, sin(a) * r);
     acc += texture2D(inputBuffer, uv + off).rgb;
   }
-  outputColor = vec4(acc / 28.0, inputColor.a);
+  outputColor = vec4(acc / float(SAMPLES), inputColor.a);
 }
 `;
 
