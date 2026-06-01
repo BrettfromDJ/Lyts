@@ -2,7 +2,6 @@ import { useEffect, useMemo } from 'react';
 import type { ReactElement } from 'react';
 import {
   EffectComposer,
-  TiltShift,
   Bloom,
   Vignette,
   ChromaticAberration,
@@ -10,12 +9,13 @@ import {
   ToneMapping,
   SMAA,
 } from '@react-three/postprocessing';
-import { KernelSize, ToneMappingMode, BlendFunction } from 'postprocessing';
+import { ToneMappingMode, BlendFunction } from 'postprocessing';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useMockupStore } from '../store/useMockupStore';
 import type { CrtBlend } from '../store/useMockupStore';
 import { Exposure } from './ExposureEffect';
+import { Focus } from './FocusEffect';
 import { Grain } from './GrainEffect';
 import { CRT } from './CRTEffect';
 
@@ -28,25 +28,16 @@ const CRT_BLEND: Record<CrtBlend, BlendFunction> = {
   add: BlendFunction.ADD,
 };
 
-const KERNELS = [
-  KernelSize.VERY_SMALL,
-  KernelSize.SMALL,
-  KernelSize.MEDIUM,
-  KernelSize.LARGE,
-  KernelSize.VERY_LARGE,
-  KernelSize.HUGE,
-];
-
 /**
  * The DSLR layer (spec §5 Phase 2 + §6.8). Pipeline order:
- *   Exposure (linear multiply) -> TiltShift focus/blur -> Bloom (HDR)
+ *   Exposure (linear multiply) -> Focus blur -> Bloom (HDR)
  *   -> ToneMapping (ACES) -> contrast / CA / vignette (LDR) -> Grain (last).
  *
  * Tone-mapping is an explicit pass because the EffectComposer disables the
  * renderer's tone-mapping; that's also why Exposure is its own pass.
  *
- * Focus is a tilt-shift band: position (offset), size (focusArea), falloff
- * (feather) and angle (rotation) — one Blur control replaces aperture+bokeh.
+ * Focus is a custom tilt-shift band: position, size, falloff and angle define a
+ * sharp strip; everything outside blurs by Blur. One Blur control, no bokeh.
  */
 export function Effects() {
   const invalidate = useThree((s) => s.invalidate);
@@ -78,8 +69,6 @@ export function Effects() {
     () => new THREE.Vector2(chromaticAberration, chromaticAberration),
     [chromaticAberration],
   );
-
-  const kernel = KERNELS[Math.round(THREE.MathUtils.clamp(blur, 0, 1) * 5)];
 
   // frameloop="demand": make sure post-only param changes request a frame.
   useEffect(() => {
@@ -113,13 +102,12 @@ export function Effects() {
     <EffectComposer multisampling={0}>
       <Exposure exposure={exposure} />
       <SMAA />
-      <TiltShift
-        offset={(focusDistance - 0.5) * 1.2}
-        rotation={THREE.MathUtils.degToRad(focusAngle)}
-        focusArea={focusSize}
-        feather={focusFalloff}
-        kernelSize={kernel}
-        resolutionScale={0.5}
+      <Focus
+        position={focusDistance - 0.5}
+        size={focusSize * 0.5}
+        feather={focusFalloff * 0.5}
+        angle={THREE.MathUtils.degToRad(focusAngle)}
+        blur={blur * 0.06}
       />
       <Bloom intensity={bloom} luminanceThreshold={0.78} luminanceSmoothing={0.3} mipmapBlur />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
