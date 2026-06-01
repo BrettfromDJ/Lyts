@@ -55,5 +55,5 @@ export function CameraRig() {
     invalidate();
   }, [x, y, z, fov, rollRad, invalidate]);
 
-  return <PerspectiveCamera ref={camRef} makeDefault near={0.1} far={100} />;
+  return <PerspectiveCamera ref={camRef} makeDefault near={0.05} far={2000} />;
 }

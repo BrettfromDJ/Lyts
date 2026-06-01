@@ -147,10 +147,10 @@ export function ControlPanel() {
 
       <Group title="Camera" id="camera" openIds={openIds} toggle={toggle}>
         <Slider field="azimuth" label="Orbit" min={-180} max={180} step={1} />
-        <Slider field="polar" label="Rake (tilt)" min={20} max={86} step={1} />
-        <Slider field="roll" label="Roll" min={-20} max={20} step={0.5} />
-        <Slider field="distance" label="Zoom" min={0.35} max={2} step={0.01} />
-        <Slider field="focalLength" label="Focal length (mm)" min={24} max={135} step={1} />
+        <Slider field="polar" label="Rake (tilt)" min={8} max={88} step={1} />
+        <Slider field="roll" label="Roll" min={-45} max={45} step={0.5} />
+        <Slider field="distance" label="Zoom" min={0.1} max={12} step={0.01} />
+        <Slider field="focalLength" label="Focal length (mm)" min={18} max={300} step={1} />
       </Group>
 
       <Group title="Screen" id="screen" openIds={openIds} toggle={toggle}>

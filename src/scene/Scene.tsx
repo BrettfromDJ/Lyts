@@ -63,6 +63,74 @@ function SceneCapture() {
   return null;
 }
 
+/**
+ * Drag the canvas to orbit (azimuth/polar), scroll to zoom (distance). Writes
+ * straight to the store so the Camera sliders stay in sync — no OrbitControls,
+ * the angle is still a real parameter, just also pointer-driven.
+ */
+function PointerCamera() {
+  const gl = useThree((s) => s.gl);
+  useEffect(() => {
+    const el = gl.domElement;
+    let dragging = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    const onDown = (e: PointerEvent) => {
+      dragging = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      el.setPointerCapture(e.pointerId);
+      el.style.cursor = 'grabbing';
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!dragging) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      const s = useMockupStore.getState();
+      let az = s.azimuth + dx * 0.3;
+      az = ((((az + 180) % 360) + 360) % 360) - 180; // wrap to [-180, 180]
+      s.set({
+        azimuth: az,
+        polar: THREE.MathUtils.clamp(s.polar - dy * 0.3, 8, 88),
+      });
+    };
+    const onUp = (e: PointerEvent) => {
+      dragging = false;
+      try {
+        el.releasePointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+      el.style.cursor = 'grab';
+    };
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const s = useMockupStore.getState();
+      const next = THREE.MathUtils.clamp(s.distance * (1 + e.deltaY * 0.0012), 0.1, 12);
+      s.set({ distance: next });
+    };
+
+    el.style.cursor = 'grab';
+    el.addEventListener('pointerdown', onDown);
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerup', onUp);
+    el.addEventListener('pointerleave', onUp);
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      el.removeEventListener('pointerdown', onDown);
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerup', onUp);
+      el.removeEventListener('pointerleave', onUp);
+      el.removeEventListener('wheel', onWheel);
+      el.style.cursor = '';
+    };
+  }, [gl]);
+  return null;
+}
+
 export function Scene() {
   return (
     <Canvas
@@ -79,6 +147,7 @@ export function Scene() {
       camera={{ fov: 28, position: [4, 4, 6] }}
     >
       <SceneCapture />
+      <PointerCamera />
       <ExposureSync />
       <Background />
       <CameraRig />
