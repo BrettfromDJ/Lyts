@@ -95,8 +95,8 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
 
   // Screen material
   screenBrightness: 1.0,
-  glassRoughness: 0.12,
-  reflectionIntensity: 0.9,
+  glassRoughness: 0.09,
+  reflectionIntensity: 1.15,
   pixelTexture: 0.0,
 
   // Lighting
@@ -113,13 +113,13 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
 
   // Post
   exposure: 1.0,
-  contrast: 1.05,
+  contrast: 1.12,
   focusDistance: 0.5,
   aperture: 2.8,
-  bokehScale: 4,
-  bloom: 0.4,
-  vignette: 0.35,
-  chromaticAberration: 0.0008,
+  bokehScale: 5,
+  bloom: 0.5,
+  vignette: 0.42,
+  chromaticAberration: 0.0009,
   grain: 0.08,
 
   // Background
