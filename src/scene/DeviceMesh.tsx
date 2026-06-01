@@ -3,15 +3,21 @@ import { RoundedBox } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useMockupStore } from '../store/useMockupStore';
-import { makePixelGridTexture } from '../lib/textures';
-import { deviceFootprint } from '../lib/deviceDims';
+import {
+  laptopMetrics,
+  BASE_T,
+  SCREEN_T,
+} from '../lib/deviceDims';
 
 /**
- * Three stacked elements — this layering is the "real screen" trick (spec §4.3):
- *   1. Body   — beveled RoundedBox, dark, low roughness, high envMapIntensity.
- *   2. Screen — the screenshot as map + modest emissiveMap (let Bloom glow it).
- *   3. Glass  — a near-clear layer fractionally above; catches HDRI reflections
- *               so it reads "screen behind glass", not "sticker on a plane".
+ * An open laptop with the screenshot on the DISPLAY (not the lid):
+ *   - Base (keyboard deck) lying flat, with subtle trackpad + keyboard hints.
+ *   - Screen lid hinged at the back, leaning back past vertical.
+ *   - Screenshot inset within a dark bezel on the lid's front face, with a
+ *     near-clear glass layer over it for reflections.
+ *
+ * The whole laptop is centred at the origin so the camera auto-fit / DOF
+ * (which target the origin) frame it correctly.
  */
 export function DeviceMesh() {
   const gl = useThree((s) => s.gl);
@@ -19,22 +25,17 @@ export function DeviceMesh() {
 
   const screenshot = useMockupStore((s) => s.screenshot);
   const screenAspect = useMockupStore((s) => s.screenAspect);
-  const cornerRadius = useMockupStore((s) => s.cornerRadius);
-  const bevel = useMockupStore((s) => s.bevel);
-  const thickness = useMockupStore((s) => s.thickness);
   const screenBrightness = useMockupStore((s) => s.screenBrightness);
   const glassRoughness = useMockupStore((s) => s.glassRoughness);
   const reflectionIntensity = useMockupStore((s) => s.reflectionIntensity);
-  const pixelTexture = useMockupStore((s) => s.pixelTexture);
+  const cornerRadius = useMockupStore((s) => s.cornerRadius);
 
-  // Size the slab to the screenshot aspect (shared with the camera auto-fit).
-  const { w, d } = useMemo(() => deviceFootprint(screenAspect), [screenAspect]);
+  const m = useMemo(() => laptopMetrics(screenAspect), [screenAspect]);
 
-  // Raise texture anisotropy to the GPU max now that the renderer exists, and
-  // force the screen material to RECOMPILE. The material first builds while
-  // screenshot is null (no emissiveMap/map define in the shader); when the
-  // texture arrives, three.js needs needsUpdate=true or it keeps emitting the
-  // flat emissive colour and the screenshot never appears.
+  const screenRef = useRef<THREE.MeshStandardMaterial>(null);
+
+  // Recompile the screen material when the screenshot arrives (it first builds
+  // with no map/emissiveMap define) and refresh the texture on the GPU.
   useEffect(() => {
     if (screenshot) {
       screenshot.anisotropy = gl.capabilities.getMaxAnisotropy();
@@ -44,90 +45,96 @@ export function DeviceMesh() {
     invalidate();
   }, [screenshot, gl, invalidate]);
 
-  const pixelGrid = useMemo(() => makePixelGridTexture(), []);
-  useEffect(() => {
-    const reps = Math.round((screenAspect >= 1 ? w : d) * 64);
-    pixelGrid.repeat.set(reps, reps);
-  }, [pixelGrid, w, d, screenAspect]);
-
-  const bezel = 0.06;
-  const radius = Math.min(cornerRadius + bevel, Math.min(w, d) / 2 - 0.001);
-
-  const screenRef = useRef<THREE.MeshStandardMaterial>(null);
+  const lidRadius = Math.min(cornerRadius, m.lidH / 2 - 0.001, 0.12);
+  const baseRadius = Math.min(cornerRadius, BASE_T / 2 - 0.001, 0.05);
 
   return (
-    <group>
-      {/* 1. Body */}
+    <group position={[0, -m.centerY, -m.centerZ]}>
+      {/* --- Base / keyboard deck --- */}
       <RoundedBox
-        args={[w, thickness, d]}
-        radius={Math.min(radius, thickness / 2)}
-        smoothness={8}
-        creaseAngle={0.5}
+        args={[m.baseW, BASE_T, m.baseD]}
+        radius={baseRadius}
+        smoothness={5}
+        position={[0, BASE_T / 2, 0]}
         castShadow
         receiveShadow
       >
         <meshPhysicalMaterial
-          color="#0b0c10"
-          metalness={0.55}
-          roughness={0.35}
-          clearcoat={1}
-          clearcoatRoughness={THREE.MathUtils.clamp(0.25 - bevel * 4, 0.02, 0.4)}
-          envMapIntensity={reflectionIntensity}
+          color="#aeb4bd"
+          metalness={0.6}
+          roughness={0.55}
+          clearcoat={0.3}
+          clearcoatRoughness={0.5}
+          envMapIntensity={reflectionIntensity * 0.8}
         />
       </RoundedBox>
 
-      {/* 2. Screen — sits just above the body face, inset by the bezel */}
-      <mesh
-        position={[0, thickness / 2 + 0.002, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        receiveShadow
-      >
-        <planeGeometry args={[w - bezel, d - bezel]} />
-        <meshStandardMaterial
-          ref={screenRef}
-          map={screenshot ?? null}
-          emissiveMap={screenshot ?? null}
-          emissive={screenshot ? '#ffffff' : '#0a0c12'}
-          emissiveIntensity={screenshot ? screenBrightness : 0}
-          color={screenshot ? '#000000' : '#11141c'}
-          roughness={1}
-          metalness={0}
-          toneMapped
-        />
+      {/* keyboard area hint (recessed dark deck) */}
+      <mesh position={[0, BASE_T + 0.001, -m.baseD * 0.16]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[m.baseW * 0.86, m.baseD * 0.5]} />
+        <meshStandardMaterial color="#14161b" roughness={0.8} metalness={0.2} />
+      </mesh>
+      {/* trackpad hint */}
+      <mesh position={[0, BASE_T + 0.002, m.baseD * 0.26]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[m.baseW * 0.34, m.baseD * 0.32]} />
+        <meshStandardMaterial color="#9aa0a9" roughness={0.65} metalness={0.3} />
       </mesh>
 
-      {/* optional faint pixel grid */}
-      {pixelTexture > 0 && (
-        <mesh position={[0, thickness / 2 + 0.004, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[w - bezel, d - bezel]} />
-          <meshBasicMaterial
-            map={pixelGrid}
-            transparent
-            opacity={pixelTexture * 0.5}
-            depthWrite={false}
-            blending={THREE.AdditiveBlending}
+      {/* --- Screen, hinged at the back of the base, leaning back --- */}
+      <group position={[0, BASE_T, -m.baseD / 2]} rotation={[-m.open, 0, 0]}>
+        {/* lid + bezel */}
+        <RoundedBox
+          args={[m.lidW, m.lidH, SCREEN_T]}
+          radius={lidRadius}
+          smoothness={5}
+          position={[0, m.lidH / 2, -SCREEN_T / 2]}
+          castShadow
+          receiveShadow
+        >
+          <meshPhysicalMaterial
+            color="#0b0c10"
+            metalness={0.5}
+            roughness={0.45}
+            clearcoat={0.8}
+            clearcoatRoughness={0.35}
+            envMapIntensity={reflectionIntensity * 0.8}
+          />
+        </RoundedBox>
+
+        {/* the screenshot on the display */}
+        <mesh position={[0, m.lidH / 2, 0.002]}>
+          <planeGeometry args={[m.screenW, m.screenH]} />
+          <meshStandardMaterial
+            ref={screenRef}
+            map={screenshot ?? null}
+            emissiveMap={screenshot ?? null}
+            emissive={screenshot ? '#ffffff' : '#0a0c12'}
+            emissiveIntensity={screenshot ? screenBrightness : 0}
+            color={screenshot ? '#000000' : '#11141c'}
+            roughness={1}
+            metalness={0}
+            toneMapped
           />
         </mesh>
-      )}
 
-      {/* 3. Glass — near-clear, strong reflections (the secret) */}
-      <mesh position={[0, thickness / 2 + 0.006, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[w - bezel * 0.5, d - bezel * 0.5]} />
-        <meshPhysicalMaterial
-          color="#ffffff"
-          metalness={0}
-          roughness={glassRoughness}
-          transparent
-          opacity={0.05}
-          transmission={0}
-          clearcoat={1}
-          clearcoatRoughness={glassRoughness}
-          ior={1.5}
-          envMapIntensity={reflectionIntensity * 0.6}
-          depthWrite={false}
-          side={THREE.FrontSide}
-        />
-      </mesh>
+        {/* near-clear glass for reflections */}
+        <mesh position={[0, m.lidH / 2, 0.006]}>
+          <planeGeometry args={[m.screenW, m.screenH]} />
+          <meshPhysicalMaterial
+            color="#ffffff"
+            metalness={0}
+            roughness={glassRoughness}
+            transparent
+            opacity={0.05}
+            clearcoat={1}
+            clearcoatRoughness={glassRoughness}
+            ior={1.5}
+            envMapIntensity={reflectionIntensity * 0.6}
+            depthWrite={false}
+            side={THREE.FrontSide}
+          />
+        </mesh>
+      </group>
     </group>
   );
 }

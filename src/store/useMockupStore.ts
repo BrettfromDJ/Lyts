@@ -73,9 +73,9 @@ export type MockupState = {
 export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   // Camera — diagonal iso-ish tilt, long lens for minimal convergence.
   // `distance` is a zoom multiplier on the auto-fit (1 = device fills frame).
-  azimuth: 35,
-  polar: 48,
-  distance: 1.1,
+  azimuth: 24,
+  polar: 62,
+  distance: 1.2,
   focalLength: 55,
 
   // Geometry
@@ -93,7 +93,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   hdriPreset: 'studio',
   hdriRotation: 0,
   keyColor: '#ffffff',
-  keyIntensity: 1.4,
+  keyIntensity: 1.1,
   fillColor: '#aac4ff',
   fillIntensity: 0.5,
   rimColor: '#ffffff',

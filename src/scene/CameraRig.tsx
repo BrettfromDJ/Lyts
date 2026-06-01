@@ -3,7 +3,7 @@ import { PerspectiveCamera } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useMockupStore } from '../store/useMockupStore';
-import { deviceRadius } from '../lib/deviceDims';
+import { laptopMetrics } from '../lib/deviceDims';
 
 const SENSOR_HEIGHT = 24; // full-frame, mm
 
@@ -27,14 +27,12 @@ export function CameraRig() {
   const distance = useMockupStore((s) => s.distance); // zoom multiplier on the auto-fit
   const focalLength = useMockupStore((s) => s.focalLength);
   const screenAspect = useMockupStore((s) => s.screenAspect);
-  const thickness = useMockupStore((s) => s.thickness);
-
   const fov = focalToFov(focalLength);
 
   // Auto-frame: dolly so the device fits the vertical FOV, then apply the
   // user's `distance` as a zoom multiplier. Keeps framing correct across any
   // focal length / screenshot aspect instead of hard-coding distances.
-  const radius = deviceRadius(screenAspect, thickness);
+  const radius = laptopMetrics(screenAspect).radius;
   const fitDistance = radius / Math.sin(THREE.MathUtils.degToRad(fov) / 2);
   const dist = fitDistance * distance;
 

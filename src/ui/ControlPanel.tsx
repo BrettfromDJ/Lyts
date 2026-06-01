@@ -153,16 +153,13 @@ export function ControlPanel() {
       </Group>
 
       <Group title="Geometry" id="geometry" openIds={openIds} toggle={toggle}>
-        <Slider field="cornerRadius" label="Corner radius" min={0} max={0.5} />
-        <Slider field="bevel" label="Bevel" min={0} max={0.08} step={0.002} />
-        <Slider field="thickness" label="Thickness" min={0.05} max={0.6} />
+        <Slider field="cornerRadius" label="Corner radius" min={0} max={0.12} />
       </Group>
 
       <Group title="Screen" id="screen" openIds={openIds} toggle={toggle}>
         <Slider field="screenBrightness" label="Brightness" min={0} max={2} />
         <Slider field="glassRoughness" label="Glass roughness" min={0} max={0.5} />
         <Slider field="reflectionIntensity" label="Reflections" min={0} max={3} />
-        <Slider field="pixelTexture" label="Pixel grid" min={0} max={1} />
       </Group>
 
       <Group title="Lighting" id="lighting" openIds={openIds} toggle={toggle}>
