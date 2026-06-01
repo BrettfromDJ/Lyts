@@ -52,11 +52,17 @@ function SceneCapture() {
   return null;
 }
 
+function clamp(v: number, lo: number, hi: number) {
+  return Math.max(lo, Math.min(hi, v));
+}
+
 /**
- * Drag the canvas to orbit (azimuth/polar), Shift+drag to pan (move the look-at
- * target so you can slide the image around when zoomed in), scroll to zoom.
- * Writes straight to the store so the Camera sliders stay in sync — no
- * OrbitControls, the angle is still a real parameter, just also pointer-driven.
+ * Pointer shortcuts on the canvas (no OrbitControls — values still live in the
+ * store so presets/export capture them):
+ *   drag           -> orbit (azimuth / polar)
+ *   Shift + drag    -> pan (move the look-at target)
+ *   Alt/⌥ + drag    -> perspective (tilt the screen plane)
+ *   scroll          -> zoom
  */
 function PointerCamera() {
   const gl = useThree((s) => s.gl);
@@ -67,12 +73,15 @@ function PointerCamera() {
     let lastX = 0;
     let lastY = 0;
 
+    const cursorFor = (e: { shiftKey: boolean; altKey: boolean }) =>
+      e.shiftKey ? 'move' : e.altKey ? 'cell' : 'grabbing';
+
     const onDown = (e: PointerEvent) => {
       dragging = true;
       lastX = e.clientX;
       lastY = e.clientY;
       el.setPointerCapture(e.pointerId);
-      el.style.cursor = e.shiftKey ? 'move' : 'grabbing';
+      el.style.cursor = cursorFor(e);
     };
     const onMove = (e: PointerEvent) => {
       if (!dragging) return;
@@ -81,6 +90,16 @@ function PointerCamera() {
       lastX = e.clientX;
       lastY = e.clientY;
       const s = useMockupStore.getState();
+
+      if (e.altKey) {
+        // Perspective: tilt the screen plane (one edge away from the camera).
+        s.set({
+          tiltZ: clamp(s.tiltZ + dx * 0.12, -45, 45),
+          tiltX: clamp(s.tiltX + dy * 0.12, -45, 45),
+        });
+        el.style.cursor = 'cell';
+        return;
+      }
 
       if (e.shiftKey) {
         // Pan: shift the look-at target in the camera's screen plane, scaled by

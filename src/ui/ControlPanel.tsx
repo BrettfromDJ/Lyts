@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useMockupStore, DEFAULTS } from '../store/useMockupStore';
 import type { MockupState, BgMode } from '../store/useMockupStore';
 import { PRESETS } from '../store/presets';
-import { XYPad } from './XYPad';
 
 /* ---- tiny store-bound primitives -------------------------------------- */
 
@@ -149,26 +148,6 @@ export function ControlPanel() {
       </Group>
 
       <Group title="Camera" id="camera" openIds={openIds} toggle={toggle}>
-        <XYPad
-          label="Camera — drag to orbit + rake"
-          xField="azimuth"
-          yField="polar"
-          xMin={-180}
-          xMax={180}
-          yMin={8}
-          yMax={88}
-          invertY
-        />
-        <XYPad
-          label="Perspective — tilt the screen"
-          xField="tiltZ"
-          yField="tiltX"
-          xMin={-35}
-          xMax={35}
-          yMin={-35}
-          yMax={35}
-          invertY
-        />
         <Slider field="roll" label="Roll" min={-45} max={45} step={0.5} />
         <Slider field="zoom" label="Zoom" min={0.2} max={10} step={0.01} />
         <Slider field="focalLength" label="Focal length (mm)" min={18} max={300} step={1} />
@@ -189,7 +168,9 @@ export function ControlPanel() {
         >
           Reset view
         </button>
-        <p className="ctl-hint">Drag to orbit · Shift+drag to pan · scroll to zoom</p>
+        <p className="ctl-hint">
+          Drag · orbit · Shift+drag · pan · ⌥+drag · perspective · scroll · zoom
+        </p>
       </Group>
 
       <Group title="Animate" id="animate" openIds={openIds} toggle={toggle}>
