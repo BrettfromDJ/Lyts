@@ -15,6 +15,7 @@ import { deviceFootprint } from '../lib/deviceDims';
  */
 export function DeviceMesh() {
   const gl = useThree((s) => s.gl);
+  const invalidate = useThree((s) => s.invalidate);
 
   const screenshot = useMockupStore((s) => s.screenshot);
   const screenAspect = useMockupStore((s) => s.screenAspect);
@@ -29,13 +30,19 @@ export function DeviceMesh() {
   // Size the slab to the screenshot aspect (shared with the camera auto-fit).
   const { w, d } = useMemo(() => deviceFootprint(screenAspect), [screenAspect]);
 
-  // Raise texture anisotropy to the GPU max now that the renderer exists.
+  // Raise texture anisotropy to the GPU max now that the renderer exists, and
+  // force the screen material to RECOMPILE. The material first builds while
+  // screenshot is null (no emissiveMap/map define in the shader); when the
+  // texture arrives, three.js needs needsUpdate=true or it keeps emitting the
+  // flat emissive colour and the screenshot never appears.
   useEffect(() => {
     if (screenshot) {
       screenshot.anisotropy = gl.capabilities.getMaxAnisotropy();
       screenshot.needsUpdate = true;
     }
-  }, [screenshot, gl]);
+    if (screenRef.current) screenRef.current.needsUpdate = true;
+    invalidate();
+  }, [screenshot, gl, invalidate]);
 
   const pixelGrid = useMemo(() => makePixelGridTexture(), []);
   useEffect(() => {

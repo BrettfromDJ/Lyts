@@ -61,7 +61,7 @@ export function Effects() {
     () => [0, 0, (focusDistance - 0.5) * MAX_DIM],
     [focusDistance],
   );
-  const focusRange = THREE.MathUtils.clamp(aperture * 0.025, 0.02, 0.4);
+  const focusRange = THREE.MathUtils.clamp(aperture * 0.045, 0.04, 0.5);
 
   // frameloop="demand": make sure post-only param changes request a frame.
   useEffect(() => {

@@ -66,7 +66,7 @@ export const PRESETS: NamedPreset[] = [
       exposure: 0.92,
       contrast: 1.18,
       aperture: 2.2,
-      bokehScale: 6,
+      bokehScale: 3,
     },
   },
   {
@@ -122,7 +122,7 @@ export const PRESETS: NamedPreset[] = [
       exposure: 1.05,
       contrast: 1.08,
       aperture: 2.0,
-      bokehScale: 6,
+      bokehScale: 3,
     },
   },
   {
@@ -151,7 +151,7 @@ export const PRESETS: NamedPreset[] = [
       exposure: 1.0,
       contrast: 1.12,
       aperture: 2.4,
-      bokehScale: 7,
+      bokehScale: 4,
     },
   },
 ];
