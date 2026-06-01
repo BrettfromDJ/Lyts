@@ -26,66 +26,53 @@ export async function exportStill(
   opts: ExportOptions,
 ): Promise<void> {
   const { scale, format, transparent, watermark } = opts;
-
-  // --- snapshot renderer state ---
-  const prevSize = new THREE.Vector2();
-  gl.getSize(prevSize);
-  const prevPixelRatio = gl.getPixelRatio();
-  const prevClearAlpha = gl.getClearAlpha();
-
-  const w = Math.round(prevSize.x);
-  const h = Math.round(prevSize.y);
-
   const composer = sceneRef.composer;
 
+  // IMPORTANT: do NOT resize the renderer/composer here. Bumping the composer to
+  // a supersampled size reallocates every HDR pass target (bloom mips, focus…)
+  // and can exhaust GPU memory -> WebGL context loss, which wipes the scene's
+  // textures (the mockup goes blank/reverts). Instead render the current frame
+  // through the post stack at the live size and scale the bitmap in 2D.
+  const prevClearAlpha = gl.getClearAlpha();
+  const dpr = gl.getPixelRatio() || 1;
+
   try {
-    gl.setPixelRatio(1);
-    gl.setSize(w * scale, h * scale, false);
     if (transparent) gl.setClearAlpha(0);
+    if (composer) composer.render();
+    else gl.render(scene, camera);
 
-    // Render through the post stack (focus/bloom/tone-mapping/grain) so the
-    // export matches the preview. Fall back to a raw render if unavailable.
-    if (composer) {
-      composer.setSize(w * scale, h * scale, false);
-      composer.render();
-    } else {
-      gl.render(scene, camera);
-    }
-
-    // Pull the WebGL canvas into a 2D canvas so we can composite + re-encode.
     const srcCanvas = gl.domElement;
+    // 1x = CSS-pixel size (the live buffer is CSS * dpr). At 2x with dpr 2 this
+    // is a 1:1 copy; higher scales upsample the composited bitmap.
+    const outW = Math.max(1, Math.round((srcCanvas.width / dpr) * scale));
+    const outH = Math.max(1, Math.round((srcCanvas.height / dpr) * scale));
     const out = document.createElement('canvas');
-    out.width = srcCanvas.width;
-    out.height = srcCanvas.height;
+    out.width = outW;
+    out.height = outH;
     const ctx = out.getContext('2d')!;
 
     if (!transparent || format === 'jpg') {
       // JPG has no alpha; fill so transparent edges don't go black.
       ctx.fillStyle = '#0b0d12';
-      ctx.fillRect(0, 0, out.width, out.height);
+      ctx.fillRect(0, 0, outW, outH);
     }
-    ctx.drawImage(srcCanvas, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(srcCanvas, 0, 0, outW, outH);
 
-    if (watermark) drawWatermark(ctx, out.width, out.height);
+    if (watermark) drawWatermark(ctx, outW, outH);
 
     const mime = format === 'png' ? 'image/png' : 'image/jpeg';
     const quality = format === 'jpg' ? 0.95 : undefined;
-    const blob: Blob | null = await new Promise((res) =>
-      out.toBlob(res, mime, quality),
-    );
+    const blob: Blob | null = await new Promise((res) => out.toBlob(res, mime, quality));
     if (!blob) throw new Error('Export failed: empty blob');
 
     triggerDownload(blob, opts.filename ?? `mockup-${Date.now()}.${format}`);
   } finally {
-    // --- restore exactly ---
-    gl.setPixelRatio(prevPixelRatio);
-    gl.setSize(w, h, false);
-    gl.setClearAlpha(prevClearAlpha);
-    if (composer) {
-      composer.setSize(w, h, false);
-      composer.render();
-    } else {
-      gl.render(scene, camera);
+    if (transparent) {
+      gl.setClearAlpha(prevClearAlpha);
+      if (composer) composer.render();
+      else gl.render(scene, camera);
     }
   }
 }
