@@ -250,11 +250,10 @@ export function ControlPanel() {
       </Group>
 
       <Group title="Focus" id="focus" openIds={openIds} toggle={toggle}>
-        <Slider field="focusDistance" label="Position" min={0} max={1} />
-        <Slider field="focusSize" label="Size" min={0.05} max={1} />
-        <Slider field="focusFalloff" label="Falloff" min={0} max={1} />
-        <Slider field="focusAngle" label="Angle" min={-45} max={45} step={0.5} />
-        <Slider field="blur" label="Blur" min={0} max={1} />
+        <Slider field="focusDistance" label="Position (near → far)" min={0} max={1} />
+        <Slider field="focusSize" label="In-focus range" min={0.05} max={1.5} />
+        <Slider field="blur" label="Blur (bokeh)" min={0} max={1} />
+        <p className="ctl-hint">Depth-of-field — the sharp zone follows the surface.</p>
       </Group>
 
       <Group title="Post" id="post" openIds={openIds} toggle={toggle}>

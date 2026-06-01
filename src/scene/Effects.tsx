@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import {
   EffectComposer,
+  DepthOfField,
   Bloom,
   Vignette,
   ChromaticAberration,
@@ -12,20 +13,21 @@ import { ToneMappingMode } from 'postprocessing';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useMockupStore } from '../store/useMockupStore';
+import { surfaceMetrics } from '../lib/deviceDims';
 import { Exposure } from './ExposureEffect';
-import { Focus } from './FocusEffect';
 import { Grain } from './GrainEffect';
 
 /**
  * The DSLR layer (spec §5 Phase 2 + §6.8). Pipeline order:
- *   Exposure (linear multiply) -> Focus blur -> Bloom (HDR)
+ *   Exposure (linear multiply) -> Depth of field -> Bloom (HDR)
  *   -> ToneMapping (ACES) -> contrast / CA / vignette (LDR) -> Grain (last).
  *
  * Tone-mapping is an explicit pass because the EffectComposer disables the
  * renderer's tone-mapping; that's also why Exposure is its own pass.
  *
- * Focus is a custom tilt-shift band: position, size, falloff and angle define a
- * sharp strip; everything outside blurs by Blur. One Blur control, no bokeh.
+ * Focus is true depth-of-field: it auto-focuses on a world point on the surface
+ * (so the sharp zone follows the perspective), Position sweeps that point along
+ * the surface's depth, Size is the in-focus range, Blur is the bokeh scale.
  */
 export function Effects() {
   const invalidate = useThree((s) => s.invalidate);
@@ -33,9 +35,11 @@ export function Effects() {
   const exposure = useMockupStore((s) => s.exposure);
   const focusDistance = useMockupStore((s) => s.focusDistance);
   const focusSize = useMockupStore((s) => s.focusSize);
-  const focusFalloff = useMockupStore((s) => s.focusFalloff);
-  const focusAngle = useMockupStore((s) => s.focusAngle);
   const blur = useMockupStore((s) => s.blur);
+  const screenAspect = useMockupStore((s) => s.screenAspect);
+  const targetX = useMockupStore((s) => s.targetX);
+  const targetY = useMockupStore((s) => s.targetY);
+  const targetZ = useMockupStore((s) => s.targetZ);
   const bloom = useMockupStore((s) => s.bloom);
   const vignette = useMockupStore((s) => s.vignette);
   const chromaticAberration = useMockupStore((s) => s.chromaticAberration);
@@ -47,6 +51,15 @@ export function Effects() {
     [chromaticAberration],
   );
 
+  // Focus point: surface centre (+ pan), swept along the depth axis by Position.
+  const surfaceH = surfaceMetrics(screenAspect).h;
+  const focusTarget = useMemo<[number, number, number]>(
+    () => [targetX, targetY, targetZ + (focusDistance - 0.5) * surfaceH],
+    [targetX, targetY, targetZ, focusDistance, surfaceH],
+  );
+  const focusRange = Math.max(focusSize * surfaceH, 0.02);
+  const bokehScale = blur * 8;
+
   // frameloop="demand": make sure post-only param changes request a frame.
   useEffect(() => {
     invalidate();
@@ -55,8 +68,6 @@ export function Effects() {
     exposure,
     focusDistance,
     focusSize,
-    focusFalloff,
-    focusAngle,
     blur,
     bloom,
     vignette,
@@ -69,12 +80,11 @@ export function Effects() {
     <EffectComposer multisampling={0}>
       <Exposure exposure={exposure} />
       <SMAA />
-      <Focus
-        position={focusDistance - 0.5}
-        size={focusSize * 0.5}
-        feather={focusFalloff * 0.5}
-        angle={THREE.MathUtils.degToRad(focusAngle)}
-        blur={blur * 0.035}
+      <DepthOfField
+        target={focusTarget}
+        focusRange={focusRange}
+        bokehScale={bokehScale}
+        resolutionScale={0.5}
       />
       <Bloom intensity={bloom} luminanceThreshold={0.78} luminanceSmoothing={0.3} mipmapBlur />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
