@@ -299,6 +299,16 @@
 .export-btn.video.locked {
   opacity: 0.75;
 }
+.reset-view {
+  width: 100%;
+  margin-top: 2px;
+}
+.ctl-hint {
+  margin: 6px 0 0;
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
 .play-btn {
   width: 100%;
   background: var(--panel-2);

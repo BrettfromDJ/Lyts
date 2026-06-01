@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMockupStore } from '../store/useMockupStore';
+import { useMockupStore, DEFAULTS } from '../store/useMockupStore';
 import type { MockupState, BgMode } from '../store/useMockupStore';
 import { PRESETS } from '../store/presets';
 
@@ -153,6 +153,24 @@ export function ControlPanel() {
         <Slider field="roll" label="Roll" min={-45} max={45} step={0.5} />
         <Slider field="zoom" label="Zoom" min={0.2} max={10} step={0.01} />
         <Slider field="focalLength" label="Focal length (mm)" min={18} max={300} step={1} />
+        <button
+          className="ghost reset-view"
+          onClick={() =>
+            set({
+              azimuth: DEFAULTS.azimuth,
+              polar: DEFAULTS.polar,
+              zoom: DEFAULTS.zoom,
+              roll: DEFAULTS.roll,
+              focalLength: DEFAULTS.focalLength,
+              targetX: 0,
+              targetY: 0,
+              targetZ: 0,
+            })
+          }
+        >
+          Reset view
+        </button>
+        <p className="ctl-hint">Drag to orbit · Shift+drag to pan · scroll to zoom</p>
       </Group>
 
       <Group title="Animate" id="animate" openIds={openIds} toggle={toggle}>

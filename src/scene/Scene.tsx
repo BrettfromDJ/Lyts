@@ -65,12 +65,14 @@ function SceneCapture() {
 }
 
 /**
- * Drag the canvas to orbit (azimuth/polar), scroll to zoom (magnification). Writes
- * straight to the store so the Camera sliders stay in sync — no OrbitControls,
- * the angle is still a real parameter, just also pointer-driven.
+ * Drag the canvas to orbit (azimuth/polar), Shift+drag to pan (move the look-at
+ * target so you can slide the image around when zoomed in), scroll to zoom.
+ * Writes straight to the store so the Camera sliders stay in sync — no
+ * OrbitControls, the angle is still a real parameter, just also pointer-driven.
  */
 function PointerCamera() {
   const gl = useThree((s) => s.gl);
+  const camera = useThree((s) => s.camera);
   useEffect(() => {
     const el = gl.domElement;
     let dragging = false;
@@ -82,7 +84,7 @@ function PointerCamera() {
       lastX = e.clientX;
       lastY = e.clientY;
       el.setPointerCapture(e.pointerId);
-      el.style.cursor = 'grabbing';
+      el.style.cursor = e.shiftKey ? 'move' : 'grabbing';
     };
     const onMove = (e: PointerEvent) => {
       if (!dragging) return;
@@ -91,12 +93,33 @@ function PointerCamera() {
       lastX = e.clientX;
       lastY = e.clientY;
       const s = useMockupStore.getState();
+
+      if (e.shiftKey) {
+        // Pan: shift the look-at target in the camera's screen plane, scaled by
+        // distance so it tracks the cursor at any zoom (content follows cursor).
+        const target = new THREE.Vector3(s.targetX, s.targetY, s.targetZ);
+        const distToTarget = camera.position.distanceTo(target);
+        const cam = camera as THREE.PerspectiveCamera;
+        const worldPerPx =
+          (2 * distToTarget * Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2)) /
+          el.clientHeight;
+        const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+        const up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
+        target
+          .addScaledVector(right, -dx * worldPerPx)
+          .addScaledVector(up, dy * worldPerPx);
+        s.set({ targetX: target.x, targetY: target.y, targetZ: target.z });
+        el.style.cursor = 'move';
+        return;
+      }
+
       let az = s.azimuth + dx * 0.3;
       az = ((((az + 180) % 360) + 360) % 360) - 180; // wrap to [-180, 180]
       s.set({
         azimuth: az,
         polar: THREE.MathUtils.clamp(s.polar - dy * 0.3, 8, 88),
       });
+      el.style.cursor = 'grabbing';
     };
     const onUp = (e: PointerEvent) => {
       dragging = false;
@@ -129,7 +152,7 @@ function PointerCamera() {
       el.removeEventListener('wheel', onWheel);
       el.style.cursor = '';
     };
-  }, [gl]);
+  }, [gl, camera]);
   return null;
 }
 

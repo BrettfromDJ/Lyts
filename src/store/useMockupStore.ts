@@ -19,6 +19,9 @@ export type MockupState = {
   zoom: number; // magnification; higher = closer / more zoomed in
   focalLength: number; // mm-ish; maps to FOV
   roll: number; // deg, editorial roll around the view axis
+  targetX: number; // pan offset of the look-at point (world units)
+  targetY: number;
+  targetZ: number;
 
   // --- Geometry ---
   cornerRadius: number; // device corner roundness
@@ -87,6 +90,9 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   zoom: 2.3,
   focalLength: 42,
   roll: -4,
+  targetX: 0,
+  targetY: 0,
+  targetZ: 0,
 
   // Geometry
   cornerRadius: 0.12,
@@ -153,7 +159,14 @@ export const useMockupStore = create<MockupState>((set) => ({
 export const SERIALIZABLE_KEYS = (
   Object.keys(DEFAULTS) as (keyof typeof DEFAULTS)[]
 ).filter(
-  (k) => k !== 'screenshot' && k !== 'screenAspect' && k !== 'isPro' && k !== 'animate',
+  (k) =>
+    k !== 'screenshot' &&
+    k !== 'screenAspect' &&
+    k !== 'isPro' &&
+    k !== 'animate' &&
+    k !== 'targetX' &&
+    k !== 'targetY' &&
+    k !== 'targetZ',
 );
 
 export type PresetData = Partial<

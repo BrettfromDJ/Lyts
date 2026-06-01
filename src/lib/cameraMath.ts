@@ -43,12 +43,19 @@ export function cameraPose(p: PoseParams, radius: number): CameraPose {
   };
 }
 
-/** Apply a pose to a perspective camera (look at the origin, then roll). */
-export function applyPose(cam: THREE.PerspectiveCamera, pose: CameraPose) {
-  cam.position.copy(pose.position);
+/**
+ * Apply a pose to a perspective camera: orbit offset is positioned relative to
+ * `target` (the pan look-at point), then look at the target and roll.
+ */
+export function applyPose(
+  cam: THREE.PerspectiveCamera,
+  pose: CameraPose,
+  target: THREE.Vector3,
+) {
+  cam.position.copy(target).add(pose.position);
   cam.fov = pose.fov;
   cam.up.set(0, 1, 0);
-  cam.lookAt(0, 0, 0);
+  cam.lookAt(target);
   cam.rotateZ(pose.roll);
   cam.updateProjectionMatrix();
 }

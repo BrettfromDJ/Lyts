@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import { useMockupStore } from '../store/useMockupStore';
 import { surfaceMetrics } from '../lib/deviceDims';
 import { cameraPose, applyPose } from '../lib/cameraMath';
@@ -49,7 +49,11 @@ export function Animator() {
     }
 
     const radius = surfaceMetrics(s.screenAspect).radius;
-    applyPose(camera, cameraPose({ azimuth, polar, zoom, focalLength: s.focalLength, roll: s.roll }, radius));
+    applyPose(
+      camera,
+      cameraPose({ azimuth, polar, zoom, focalLength: s.focalLength, roll: s.roll }, radius),
+      new THREE.Vector3(s.targetX, s.targetY, s.targetZ),
+    );
   });
 
   // Restore the static base pose when playback stops.
@@ -63,6 +67,7 @@ export function Animator() {
         { azimuth: s.azimuth, polar: s.polar, zoom: s.zoom, focalLength: s.focalLength, roll: s.roll },
         radius,
       ),
+      new THREE.Vector3(s.targetX, s.targetY, s.targetZ),
     );
     invalidate();
   }, [animate, camera, invalidate]);

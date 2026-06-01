@@ -21,6 +21,9 @@ export function CameraRig() {
   const zoom = useMockupStore((s) => s.zoom);
   const focalLength = useMockupStore((s) => s.focalLength);
   const roll = useMockupStore((s) => s.roll);
+  const targetX = useMockupStore((s) => s.targetX);
+  const targetY = useMockupStore((s) => s.targetY);
+  const targetZ = useMockupStore((s) => s.targetZ);
   const screenAspect = useMockupStore((s) => s.screenAspect);
 
   const radius = surfaceMetrics(screenAspect).radius;
@@ -30,10 +33,20 @@ export function CameraRig() {
     const cam = camRef.current;
     if (!cam) return;
     if (useMockupStore.getState().animate) return; // Animator owns the camera while playing
-    applyPose(cam, pose);
+    applyPose(cam, pose, new THREE.Vector3(targetX, targetY, targetZ));
     invalidate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pose.position.x, pose.position.y, pose.position.z, pose.fov, pose.roll, invalidate]);
+  }, [
+    pose.position.x,
+    pose.position.y,
+    pose.position.z,
+    pose.fov,
+    pose.roll,
+    targetX,
+    targetY,
+    targetZ,
+    invalidate,
+  ]);
 
   return <PerspectiveCamera ref={camRef} makeDefault near={0.05} far={2000} />;
 }
