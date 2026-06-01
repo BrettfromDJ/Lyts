@@ -13,6 +13,7 @@ import { BlendFunction } from 'postprocessing';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useMockupStore } from '../store/useMockupStore';
+import { MAX_DIM } from '../lib/deviceDims';
 
 /**
  * The DSLR layer (spec §5 Phase 2 + §6.8).
@@ -52,12 +53,23 @@ export function Effects() {
     [chromaticAberration],
   );
 
+  // Focus ON the device (at the origin), regardless of camera distance, and
+  // let the "Focus plane" slider sweep the focal point across the iso tilt
+  // (front edge -> back edge) for the cinematic falloff. Aperture maps to how
+  // wide the sharp zone is (low f = shallow = more bokeh).
+  const focusTarget = useMemo<[number, number, number]>(
+    () => [0, 0, (focusDistance - 0.5) * MAX_DIM],
+    [focusDistance],
+  );
+  const focusRange = THREE.MathUtils.clamp(aperture * 0.025, 0.02, 0.4);
+
   // frameloop="demand": make sure post-only param changes request a frame.
   useEffect(() => {
     invalidate();
   }, [
     invalidate,
     focusDistance,
+    aperture,
     effectiveBokeh,
     bloom,
     vignette,
@@ -69,11 +81,7 @@ export function Effects() {
   return (
     <EffectComposer multisampling={0}>
       <SMAA />
-      <DepthOfField
-        focusDistance={focusDistance}
-        focalLength={0.025}
-        bokehScale={effectiveBokeh}
-      />
+      <DepthOfField target={focusTarget} focusRange={focusRange} bokehScale={effectiveBokeh} />
       <Bloom
         intensity={bloom}
         luminanceThreshold={0.6}

@@ -74,7 +74,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   // Camera — diagonal iso-ish tilt, long lens for minimal convergence.
   // `distance` is a zoom multiplier on the auto-fit (1 = device fills frame).
   azimuth: 35,
-  polar: 58,
+  polar: 48,
   distance: 1.1,
   focalLength: 55,
 
@@ -84,7 +84,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   thickness: 0.18,
 
   // Screen material
-  screenBrightness: 0.55,
+  screenBrightness: 1.0,
   glassRoughness: 0.08,
   reflectionIntensity: 1.1,
   pixelTexture: 0.0,
