@@ -149,7 +149,7 @@ export function ControlPanel() {
         <Slider field="azimuth" label="Orbit" min={-180} max={180} step={1} />
         <Slider field="polar" label="Rake (tilt)" min={8} max={88} step={1} />
         <Slider field="roll" label="Roll" min={-45} max={45} step={0.5} />
-        <Slider field="distance" label="Zoom" min={0.1} max={12} step={0.01} />
+        <Slider field="zoom" label="Zoom" min={0.2} max={10} step={0.01} />
         <Slider field="focalLength" label="Focal length (mm)" min={18} max={300} step={1} />
       </Group>
 

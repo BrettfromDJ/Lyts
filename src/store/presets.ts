@@ -21,7 +21,7 @@ export const PRESETS: NamedPreset[] = [
     data: {
       azimuth: 6,
       polar: 72,
-      distance: 0.62,
+      zoom: 1.6,
       focalLength: 50,
       roll: -4,
       hdriPreset: 'studio',
@@ -48,7 +48,7 @@ export const PRESETS: NamedPreset[] = [
     data: {
       azimuth: 10,
       polar: 76,
-      distance: 0.55,
+      zoom: 1.8,
       focalLength: 65,
       roll: -6,
       hdriPreset: 'night',
@@ -77,7 +77,7 @@ export const PRESETS: NamedPreset[] = [
     data: {
       azimuth: 4,
       polar: 70,
-      distance: 0.66,
+      zoom: 1.5,
       focalLength: 45,
       roll: -3,
       hdriPreset: 'apartment',
@@ -106,7 +106,7 @@ export const PRESETS: NamedPreset[] = [
     data: {
       azimuth: 12,
       polar: 74,
-      distance: 0.58,
+      zoom: 1.7,
       focalLength: 60,
       roll: -5,
       hdriPreset: 'sunset',
@@ -136,7 +136,7 @@ export const PRESETS: NamedPreset[] = [
     data: {
       azimuth: 8,
       polar: 75,
-      distance: 0.56,
+      zoom: 1.8,
       focalLength: 55,
       roll: 5,
       hdriPreset: 'night',

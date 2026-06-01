@@ -16,7 +16,7 @@ export type MockupState = {
   // --- Camera ---
   azimuth: number; // deg, orbit around Y
   polar: number; // deg, grazing "rake" tilt
-  distance: number; // zoom multiplier on the auto-fit (<1 crops in)
+  zoom: number; // magnification; higher = closer / more zoomed in
   focalLength: number; // mm-ish; maps to FOV
   roll: number; // deg, editorial roll around the view axis
 
@@ -73,10 +73,10 @@ export type MockupState = {
 
 export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   // Camera — diagonal iso-ish tilt, long lens for minimal convergence.
-  // `distance` is a zoom multiplier on the auto-fit (1 = device fills frame).
+  // `zoom` is magnification on the auto-fit (1 = whole surface fits; higher = closer).
   azimuth: 6,
   polar: 73,
-  distance: 0.43,
+  zoom: 2.3,
   focalLength: 42,
   roll: -4,
 

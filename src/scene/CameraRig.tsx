@@ -24,18 +24,18 @@ export function CameraRig() {
 
   const azimuth = useMockupStore((s) => s.azimuth);
   const polar = useMockupStore((s) => s.polar);
-  const distance = useMockupStore((s) => s.distance); // zoom multiplier on the auto-fit
+  const zoom = useMockupStore((s) => s.zoom); // magnification (higher = closer)
   const focalLength = useMockupStore((s) => s.focalLength);
   const roll = useMockupStore((s) => s.roll);
   const screenAspect = useMockupStore((s) => s.screenAspect);
   const fov = focalToFov(focalLength);
 
-  // Auto-frame: dolly so the surface fits the vertical FOV, then apply the
-  // user's `distance` as a zoom multiplier (<1 crops in for the close, raked
-  // look). Keeps framing sane across any focal length / screenshot aspect.
+  // Auto-frame: dolly so the surface fits the vertical FOV, then divide by the
+  // user's `zoom` magnification (higher = closer / crops in for the raked look).
+  // Keeps framing sane across any focal length / screenshot aspect.
   const radius = surfaceMetrics(screenAspect).radius;
   const fitDistance = radius / Math.sin(THREE.MathUtils.degToRad(fov) / 2);
-  const dist = fitDistance * distance;
+  const dist = fitDistance / zoom;
 
   const phi = THREE.MathUtils.degToRad(polar);
   const theta = THREE.MathUtils.degToRad(azimuth);

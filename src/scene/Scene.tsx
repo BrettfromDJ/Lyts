@@ -64,7 +64,7 @@ function SceneCapture() {
 }
 
 /**
- * Drag the canvas to orbit (azimuth/polar), scroll to zoom (distance). Writes
+ * Drag the canvas to orbit (azimuth/polar), scroll to zoom (magnification). Writes
  * straight to the store so the Camera sliders stay in sync — no OrbitControls,
  * the angle is still a real parameter, just also pointer-driven.
  */
@@ -109,8 +109,9 @@ function PointerCamera() {
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const s = useMockupStore.getState();
-      const next = THREE.MathUtils.clamp(s.distance * (1 + e.deltaY * 0.0012), 0.1, 12);
-      s.set({ distance: next });
+      // scroll up (deltaY < 0) => zoom in (increase magnification)
+      const next = THREE.MathUtils.clamp(s.zoom * (1 - e.deltaY * 0.0012), 0.2, 12);
+      s.set({ zoom: next });
     };
 
     el.style.cursor = 'grab';
