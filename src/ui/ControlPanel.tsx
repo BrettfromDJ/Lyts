@@ -223,8 +223,6 @@ export function ControlPanel() {
 
       <Group title="Screen" id="screen" openIds={openIds} toggle={toggle}>
         <Slider field="screenBrightness" label="Brightness" min={0} max={2} />
-        <Slider field="glassRoughness" label="Sheen roughness" min={0} max={0.5} />
-        <Slider field="reflectionIntensity" label="Sheen" min={0} max={3} />
       </Group>
 
       <Group title="Lighting" id="lighting" openIds={openIds} toggle={toggle}>

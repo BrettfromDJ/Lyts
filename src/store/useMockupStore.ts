@@ -126,8 +126,8 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
 
   // Screen material
   screenBrightness: 1.0,
-  glassRoughness: 0.22,
-  reflectionIntensity: 0.85,
+  glassRoughness: 0.5, // sheen roughness locked to max (control removed)
+  reflectionIntensity: 0, // sheen off (control removed)
   pixelTexture: 0.0,
 
   // Lighting
