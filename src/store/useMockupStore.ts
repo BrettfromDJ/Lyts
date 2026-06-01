@@ -113,6 +113,9 @@ export type MockupState = {
   screenshot: THREE.Texture | null;
   screenAspect: number; // width / height of the uploaded screenshot
 
+  // --- Transient: which blur tool is being edited on canvas (gizmo + OK/Cancel)
+  blurEditing: 'none' | 'ts' | 'iris';
+
   // --- Pro / license gate (Phase 5 — config layer, defined now) ---
   isPro: boolean;
 
@@ -218,6 +221,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   // Asset
   screenshot: null,
   screenAspect: 16 / 10,
+  blurEditing: 'none',
 
   // Pro
   isPro: false,
@@ -238,6 +242,7 @@ export const SERIALIZABLE_KEYS = (
     k !== 'screenAspect' &&
     k !== 'isPro' &&
     k !== 'animate' &&
+    k !== 'blurEditing' &&
     k !== 'targetX' &&
     k !== 'targetY' &&
     k !== 'targetZ',

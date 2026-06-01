@@ -9,6 +9,7 @@
 .stage {
   position: relative;
   height: 100%;
+  overflow: hidden; /* clip the blur-gallery gizmo lines to the canvas area */
   background: radial-gradient(120% 120% at 70% 20%, #15171f 0%, #07080c 70%);
 }
 .stage canvas {
@@ -304,7 +305,40 @@
   position: absolute;
   inset: 0;
   z-index: 5;
+  overflow: hidden;
   pointer-events: none;
+}
+.blur-editbar {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 7px 7px 14px;
+  background: rgba(17, 19, 26, 0.92);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+  z-index: 7;
+}
+.blur-editbar-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin-right: 4px;
+}
+.blur-editbar button {
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 8px;
+}
+.blur-editbar .primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
 }
 .blur-geo {
   position: absolute;

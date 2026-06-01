@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMockupStore, DEFAULTS } from '../store/useMockupStore';
 import type { MockupState, BgMode, CrtBlend } from '../store/useMockupStore';
 import { PRESETS } from '../store/presets';
+import { startBlurEdit } from './blurEdit';
 
 /* ---- tiny store-bound primitives -------------------------------------- */
 
@@ -132,6 +133,7 @@ export function ControlPanel() {
   const crtBlend = useMockupStore((s) => s.crtBlend);
   const tsEnabled = useMockupStore((s) => s.tsEnabled);
   const irisEnabled = useMockupStore((s) => s.irisEnabled);
+  const blurEditing = useMockupStore((s) => s.blurEditing);
 
   const [openIds, setOpen] = useState<Set<string>>(
     new Set(['presets', 'camera', 'post']),
@@ -252,24 +254,54 @@ export function ControlPanel() {
       </Group>
 
       <Group title="Tilt-Shift" id="tiltshift" openIds={openIds} toggle={toggle}>
-        <Toggle field="tsEnabled" label="Enable" />
+        <label className="ctl ctl-toggle">
+          <span className="ctl-label">Enable</span>
+          <input
+            type="checkbox"
+            checked={tsEnabled}
+            onChange={(e) =>
+              e.target.checked
+                ? startBlurEdit('ts')
+                : set({ tsEnabled: false, blurEditing: blurEditing === 'ts' ? 'none' : blurEditing })
+            }
+          />
+        </label>
         {tsEnabled && (
           <>
+            {blurEditing !== 'ts' && (
+              <button className="ghost reset-view" onClick={() => startBlurEdit('ts')}>
+                Edit on canvas
+              </button>
+            )}
             <Slider field="tsBlur" label="Blur" min={0} max={1} />
             <Slider field="tsDistort" label="Distortion" min={-1} max={1} />
             <Toggle field="tsSym" label="Symmetric distortion" />
-            <p className="ctl-hint">Drag the pins, focus lines and rotation dot on the image.</p>
           </>
         )}
       </Group>
 
       <Group title="Iris Blur" id="iris" openIds={openIds} toggle={toggle}>
-        <Toggle field="irisEnabled" label="Enable" />
+        <label className="ctl ctl-toggle">
+          <span className="ctl-label">Enable</span>
+          <input
+            type="checkbox"
+            checked={irisEnabled}
+            onChange={(e) =>
+              e.target.checked
+                ? startBlurEdit('iris')
+                : set({ irisEnabled: false, blurEditing: blurEditing === 'iris' ? 'none' : blurEditing })
+            }
+          />
+        </label>
         {irisEnabled && (
           <>
+            {blurEditing !== 'iris' && (
+              <button className="ghost reset-view" onClick={() => startBlurEdit('iris')}>
+                Edit on canvas
+              </button>
+            )}
             <Slider field="irisBlur" label="Blur" min={0} max={1} />
             <Slider field="irisRound" label="Roundness" min={0} max={1} />
-            <p className="ctl-hint">Drag the ellipse handles, feather dot and rotation dot.</p>
           </>
         )}
       </Group>

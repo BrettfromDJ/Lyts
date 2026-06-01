@@ -1,6 +1,30 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { useMockupStore } from '../store/useMockupStore';
 import type { MockupState } from '../store/useMockupStore';
+import { cancelBlurEdit, okBlurEdit } from './blurEdit';
+
+function BlurEditBar({ editing }: { editing: 'ts' | 'iris' }) {
+  // close with Esc (cancel) / Enter (ok)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') cancelBlurEdit();
+      else if (e.key === 'Enter') okBlurEdit();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+  return (
+    <div className="blur-editbar">
+      <span className="blur-editbar-title">{editing === 'ts' ? 'Tilt-Shift' : 'Iris Blur'}</span>
+      <button className="ghost" onClick={cancelBlurEdit}>
+        Cancel
+      </button>
+      <button className="primary" onClick={okBlurEdit}>
+        OK
+      </button>
+    </div>
+  );
+}
 
 /**
  * Photoshop-style on-canvas blur controls. Geometry (focus lines, iris ellipse)
@@ -53,15 +77,17 @@ function Handle({
 
 export function BlurOverlay() {
   const s = useMockupStore();
-  if (!s.tsEnabled && !s.irisEnabled) return null;
+  const editing = s.blurEditing;
+  if (editing === 'none') return null;
   return (
     <div className="blur-overlay">
       <svg className="blur-geo" viewBox="0 0 1000 1000" preserveAspectRatio="none">
-        {s.tsEnabled && <TiltShiftGeo s={s} />}
-        {s.irisEnabled && <IrisGeo s={s} />}
+        {editing === 'ts' && <TiltShiftGeo s={s} />}
+        {editing === 'iris' && <IrisGeo s={s} />}
       </svg>
-      {s.tsEnabled && <TiltShiftHandles s={s} />}
-      {s.irisEnabled && <IrisHandles s={s} />}
+      {editing === 'ts' && <TiltShiftHandles s={s} />}
+      {editing === 'iris' && <IrisHandles s={s} />}
+      <BlurEditBar editing={editing} />
     </div>
   );
 }
