@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { sceneRef } from './sceneRef';
 
 export type ExportOptions = {
   scale: number; // supersample multiplier (1..4+). Pro unlocks >2.
@@ -35,12 +36,21 @@ export async function exportStill(
   const w = Math.round(prevSize.x);
   const h = Math.round(prevSize.y);
 
+  const composer = sceneRef.composer;
+
   try {
     gl.setPixelRatio(1);
     gl.setSize(w * scale, h * scale, false);
     if (transparent) gl.setClearAlpha(0);
 
-    gl.render(scene, camera);
+    // Render through the post stack (focus/bloom/tone-mapping/grain) so the
+    // export matches the preview. Fall back to a raw render if unavailable.
+    if (composer) {
+      composer.setSize(w * scale, h * scale, false);
+      composer.render();
+    } else {
+      gl.render(scene, camera);
+    }
 
     // Pull the WebGL canvas into a 2D canvas so we can composite + re-encode.
     const srcCanvas = gl.domElement;
@@ -71,7 +81,12 @@ export async function exportStill(
     gl.setPixelRatio(prevPixelRatio);
     gl.setSize(w, h, false);
     gl.setClearAlpha(prevClearAlpha);
-    gl.render(scene, camera);
+    if (composer) {
+      composer.setSize(w, h, false);
+      composer.render();
+    } else {
+      gl.render(scene, camera);
+    }
   }
 }
 

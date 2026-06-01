@@ -1,4 +1,5 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import type { EffectComposer as EffectComposerImpl } from 'postprocessing';
 import {
   EffectComposer,
   Bloom,
@@ -15,6 +16,7 @@ import { useMockupStore } from '../store/useMockupStore';
 import { Exposure } from './ExposureEffect';
 import { Focus } from './Focus';
 import { Grain } from './GrainEffect';
+import { sceneRef } from '../lib/sceneRef';
 
 /**
  * The DSLR layer (spec §5 Phase 2 + §6.8). Pipeline order:
@@ -29,6 +31,16 @@ import { Grain } from './GrainEffect';
  */
 export function Effects() {
   const invalidate = useThree((s) => s.invalidate);
+  const composerRef = useRef<EffectComposerImpl>(null);
+
+  // Expose the composer so the still/video export renders through the full post
+  // stack (otherwise a raw gl.render skips focus/bloom/tone-mapping/grain).
+  useEffect(() => {
+    sceneRef.composer = composerRef.current;
+    return () => {
+      sceneRef.composer = null;
+    };
+  });
 
   const exposure = useMockupStore((s) => s.exposure);
   const bloom = useMockupStore((s) => s.bloom);
@@ -49,7 +61,7 @@ export function Effects() {
   }, [invalidate, exposure, bloom, vignette, chromaticAberration, grain, contrast]);
 
   return (
-    <EffectComposer multisampling={0}>
+    <EffectComposer ref={composerRef} multisampling={0}>
       <Exposure exposure={exposure} />
       <SMAA />
       <Focus />
