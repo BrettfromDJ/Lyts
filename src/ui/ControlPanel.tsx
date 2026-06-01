@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMockupStore, DEFAULTS } from '../store/useMockupStore';
-import type { MockupState, BgMode, CrtBlend } from '../store/useMockupStore';
+import type { MockupState, BgMode, CrtBlend, CrtMode } from '../store/useMockupStore';
 import { PRESETS } from '../store/presets';
 
 /* ---- tiny store-bound primitives -------------------------------------- */
@@ -130,6 +130,7 @@ export function ControlPanel() {
   const motion = useMockupStore((s) => s.motion);
   const crtEnabled = useMockupStore((s) => s.crtEnabled);
   const crtBlend = useMockupStore((s) => s.crtBlend);
+  const crtMode = useMockupStore((s) => s.crtMode);
 
   const [openIds, setOpen] = useState<Set<string>>(
     new Set(['presets', 'camera', 'post']),
@@ -278,6 +279,17 @@ export function ControlPanel() {
         {crtEnabled && (
           <>
             <label className="ctl">
+              <span className="ctl-label">Mode</span>
+              <select value={crtMode} onChange={(e) => set({ crtMode: e.target.value as CrtMode })}>
+                <option value="aperture">Aperture grille (Trinitron)</option>
+                <option value="shadow">Shadow mask (dot trio)</option>
+                <option value="slot">Slot mask</option>
+                <option value="lcd">LCD grid</option>
+                <option value="mono">Monochrome</option>
+              </select>
+            </label>
+            {crtMode === 'mono' && <ColorRow field="crtTint" label="Phosphor tint" />}
+            <label className="ctl">
               <span className="ctl-label">Blend mode</span>
               <select
                 value={crtBlend}
@@ -293,8 +305,13 @@ export function ControlPanel() {
             </label>
             <Slider field="crtOpacity" label="Opacity" min={0} max={1} />
             <Slider field="crtScanline" label="Scanlines" min={0} max={1} />
-            <Slider field="crtScanCount" label="Line density" min={80} max={1200} step={10} />
-            <Slider field="crtGrille" label="RGB mask" min={0} max={1} />
+            <Slider field="crtScanCount" label="Pixel density" min={80} max={1200} step={10} />
+            <Slider
+              field="crtGrille"
+              label={crtMode === 'mono' ? 'Tint amount' : 'RGB mask'}
+              min={0}
+              max={1}
+            />
             <Slider field="crtFlicker" label="Flicker" min={0} max={1} />
             <Slider field="crtRoll" label="Roll bar" min={0} max={1} />
             <Slider field="crtSpeed" label="Speed" min={0} max={3} />

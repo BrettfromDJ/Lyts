@@ -12,6 +12,7 @@ import type * as THREE from 'three';
  */
 export type BgMode = 'solid' | 'gradient' | 'env-blur' | 'transparent';
 export type CrtBlend = 'normal' | 'screen' | 'overlay' | 'multiply' | 'softlight' | 'add';
+export type CrtMode = 'aperture' | 'shadow' | 'slot' | 'lcd' | 'mono';
 
 export type MockupState = {
   // --- Camera ---
@@ -67,6 +68,8 @@ export type MockupState = {
 
   // --- CRT overlay (animated) ---
   crtEnabled: boolean;
+  crtMode: CrtMode; // phosphor mask type
+  crtTint: string; // monochrome phosphor colour
   crtBlend: CrtBlend;
   crtOpacity: number;
   crtScanline: number;
@@ -157,6 +160,8 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
 
   // CRT overlay
   crtEnabled: false,
+  crtMode: 'aperture',
+  crtTint: '#3bff7a',
   crtBlend: 'normal',
   crtOpacity: 0.85,
   crtScanline: 0.5,

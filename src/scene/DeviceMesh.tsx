@@ -2,7 +2,7 @@ import { useMemo, useRef, useEffect, useCallback } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useMockupStore } from '../store/useMockupStore';
-import type { CrtBlend } from '../store/useMockupStore';
+import type { CrtBlend, CrtMode } from '../store/useMockupStore';
 import { surfaceMetrics } from '../lib/deviceDims';
 
 const CRT_BLEND_ID: Record<CrtBlend, number> = {
@@ -14,12 +14,21 @@ const CRT_BLEND_ID: Record<CrtBlend, number> = {
   softlight: 5,
 };
 
+const CRT_MODE_ID: Record<CrtMode, number> = {
+  aperture: 0,
+  shadow: 1,
+  slot: 2,
+  lcd: 3,
+  mono: 4,
+};
+
 // GLSL injected into the screen material: the CRT pattern lives in surface UV
 // space (vEmissiveMapUv), so it tilts/rotates with the screenshot instead of
 // floating in screen space. Gated by uCrtEnabled so toggling needs no recompile.
 const CRT_HEAD = /* glsl */ `
 uniform float uCrtEnabled, uCrtOpacity, uCrtBlend, uCrtScanline, uCrtScanCount,
-  uCrtGrille, uCrtFlicker, uCrtRoll, uCrtSpeed, uCrtCurve, uCrtTime, uCrtAspect;
+  uCrtGrille, uCrtFlicker, uCrtRoll, uCrtSpeed, uCrtCurve, uCrtTime, uCrtAspect, uCrtMode;
+uniform vec3 uCrtTint;
 vec3 lytsCrtBlend(vec3 b, vec3 o, int m){
   if(m==1) return 1.0-(1.0-b)*(1.0-o);                 // screen
   if(m==2) return b+o;                                 // add
@@ -27,6 +36,35 @@ vec3 lytsCrtBlend(vec3 b, vec3 o, int m){
   if(m==4) return mix(2.0*b*o, 1.0-2.0*(1.0-b)*(1.0-o), step(0.5,b)); // overlay
   if(m==5) return (1.0-2.0*o)*b*b + 2.0*o*b;           // soft light
   return o;                                            // normal
+}
+// Phosphor mask per CRT mode. cuv = surface UV, density = cells across height.
+vec3 lytsCrtMask(vec2 cuv, float density, float aspect, int mode){
+  vec3 R = vec3(1.0, 0.55, 0.55), G = vec3(0.55, 1.0, 0.55), B = vec3(0.55, 0.55, 1.0);
+  vec2 cell = cuv * vec2(density * aspect, density);
+  if(mode == 1){ // shadow mask — staggered RGB dot trios
+    float row = floor(cell.y);
+    float ph = mod(floor(cell.x + mod(row, 2.0) * 1.5), 3.0);
+    vec3 m = ph < 1.0 ? R : ph < 2.0 ? G : B;
+    float dy = abs(fract(cell.y) - 0.5) * 2.0;
+    return m * mix(1.0, 0.4, smoothstep(0.55, 1.0, dy));
+  }
+  if(mode == 2){ // slot mask — staggered vertical slots
+    float ph = mod(floor(cell.x), 3.0);
+    vec3 m = ph < 1.0 ? R : ph < 2.0 ? G : B;
+    float slot = step(0.2, fract(cell.y * 0.5 + mod(floor(cell.x / 3.0), 2.0) * 0.5));
+    return m * mix(0.4, 1.0, slot);
+  }
+  if(mode == 3){ // LCD — square RGB subpixels with a dark grid
+    float ph = mod(floor(cell.x), 3.0);
+    vec3 m = ph < 1.0 ? R : ph < 2.0 ? G : B;
+    float px = cell.x / 3.0;
+    float gx = smoothstep(0.0, 0.14, fract(px)) * smoothstep(0.0, 0.14, 1.0 - fract(px));
+    float gy = smoothstep(0.0, 0.14, fract(cell.y)) * smoothstep(0.0, 0.14, 1.0 - fract(cell.y));
+    return m * mix(0.22, 1.0, gx * gy);
+  }
+  // aperture grille (Trinitron) — smooth vertical RGB stripes
+  float ph = mod(cuv.x * density * aspect, 3.0);
+  return ph < 1.0 ? R : ph < 2.0 ? G : B;
 }
 `;
 
@@ -36,10 +74,11 @@ if(uCrtEnabled > 0.5){
   vec3 base = totalEmissiveRadiance;
   vec3 styled = base;
   vec2 cuv = vEmissiveMapUv;
-  if(uCrtGrille > 0.001){
-    float ph = mod(cuv.x * uCrtScanCount * uCrtAspect, 3.0);
-    vec3 mask = ph < 1.0 ? vec3(1.0,0.55,0.55)
-              : ph < 2.0 ? vec3(0.55,1.0,0.55) : vec3(0.55,0.55,1.0);
+  if(uCrtMode > 3.5){ // monochrome — tinted phosphor
+    float l = dot(styled, vec3(0.299, 0.587, 0.114));
+    styled = mix(styled, l * uCrtTint, uCrtGrille);
+  } else if(uCrtGrille > 0.001){
+    vec3 mask = lytsCrtMask(cuv, uCrtScanCount, uCrtAspect, int(uCrtMode + 0.5));
     styled *= mix(vec3(1.0), mask, uCrtGrille);
   }
   if(uCrtScanline > 0.001){
@@ -94,6 +133,8 @@ export function DeviceMesh() {
   const crtRoll = useMockupStore((s) => s.crtRoll);
   const crtSpeed = useMockupStore((s) => s.crtSpeed);
   const crtCurve = useMockupStore((s) => s.crtCurve);
+  const crtMode = useMockupStore((s) => s.crtMode);
+  const crtTint = useMockupStore((s) => s.crtTint);
 
   const { w, h } = useMemo(() => surfaceMetrics(screenAspect), [screenAspect]);
 
@@ -117,6 +158,8 @@ export function DeviceMesh() {
       uCrtCurve: { value: s.crtCurve },
       uCrtTime: { value: 0 },
       uCrtAspect: { value: s.screenAspect || 1.6 },
+      uCrtMode: { value: CRT_MODE_ID[s.crtMode] },
+      uCrtTint: { value: new THREE.Color(s.crtTint) },
     };
     Object.assign(shader.uniforms, u);
     crtUniforms.current = shader.uniforms;
@@ -154,10 +197,12 @@ export function DeviceMesh() {
     u.uCrtSpeed.value = crtSpeed;
     u.uCrtCurve.value = crtCurve;
     u.uCrtAspect.value = screenAspect || 1.6;
+    if (u.uCrtMode) u.uCrtMode.value = CRT_MODE_ID[crtMode];
+    if (u.uCrtTint) (u.uCrtTint.value as THREE.Color).set(crtTint);
     invalidate();
   }, [
     crtEnabled, crtBlend, crtOpacity, crtScanline, crtScanCount, crtGrille,
-    crtFlicker, crtRoll, crtSpeed, crtCurve, screenAspect, invalidate,
+    crtFlicker, crtRoll, crtSpeed, crtCurve, crtMode, crtTint, screenAspect, invalidate,
   ]);
 
   // Advance CRT time while enabled (Scene runs the frameloop continuously).
