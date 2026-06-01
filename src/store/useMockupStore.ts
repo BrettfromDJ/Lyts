@@ -71,11 +71,12 @@ export type MockupState = {
 };
 
 export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
-  // Camera — diagonal iso-ish tilt, long lens for minimal convergence
+  // Camera — diagonal iso-ish tilt, long lens for minimal convergence.
+  // `distance` is a zoom multiplier on the auto-fit (1 = device fills frame).
   azimuth: 35,
   polar: 58,
-  distance: 9,
-  focalLength: 85,
+  distance: 1.1,
+  focalLength: 55,
 
   // Geometry
   cornerRadius: 0.12,

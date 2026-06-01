@@ -21,8 +21,8 @@ export const PRESETS: NamedPreset[] = [
     data: {
       azimuth: 35,
       polar: 58,
-      distance: 9,
-      focalLength: 85,
+      distance: 1.1,
+      focalLength: 70,
       hdriPreset: 'studio',
       keyColor: '#ffffff',
       keyIntensity: 1.4,
@@ -47,7 +47,7 @@ export const PRESETS: NamedPreset[] = [
     data: {
       azimuth: 48,
       polar: 64,
-      distance: 9.5,
+      distance: 1.25,
       focalLength: 105,
       hdriPreset: 'night',
       keyColor: '#dfe7ff',
@@ -75,8 +75,8 @@ export const PRESETS: NamedPreset[] = [
     data: {
       azimuth: 28,
       polar: 54,
-      distance: 8.6,
-      focalLength: 70,
+      distance: 1.0,
+      focalLength: 55,
       hdriPreset: 'apartment',
       keyColor: '#ffffff',
       keyIntensity: 1.5,
@@ -103,7 +103,7 @@ export const PRESETS: NamedPreset[] = [
     data: {
       azimuth: 42,
       polar: 60,
-      distance: 9.2,
+      distance: 1.25,
       focalLength: 105,
       hdriPreset: 'sunset',
       keyColor: '#ffd9a0',
@@ -132,7 +132,7 @@ export const PRESETS: NamedPreset[] = [
     data: {
       azimuth: 50,
       polar: 62,
-      distance: 9.4,
+      distance: 1.15,
       focalLength: 90,
       hdriPreset: 'night',
       keyColor: '#7af2ff',

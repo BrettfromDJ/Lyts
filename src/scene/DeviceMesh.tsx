@@ -4,8 +4,7 @@ import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useMockupStore } from '../store/useMockupStore';
 import { makePixelGridTexture } from '../lib/textures';
-
-const MAX_DIM = 4; // longest screen dimension in world units
+import { deviceFootprint } from '../lib/deviceDims';
 
 /**
  * Three stacked elements — this layering is the "real screen" trick (spec §4.3):
@@ -27,12 +26,8 @@ export function DeviceMesh() {
   const reflectionIntensity = useMockupStore((s) => s.reflectionIntensity);
   const pixelTexture = useMockupStore((s) => s.pixelTexture);
 
-  // Size the slab to the screenshot aspect, longest side = MAX_DIM.
-  const [w, d] = useMemo(() => {
-    return screenAspect >= 1
-      ? [MAX_DIM, MAX_DIM / screenAspect]
-      : [MAX_DIM * screenAspect, MAX_DIM];
-  }, [screenAspect]);
+  // Size the slab to the screenshot aspect (shared with the camera auto-fit).
+  const { w, d } = useMemo(() => deviceFootprint(screenAspect), [screenAspect]);
 
   // Raise texture anisotropy to the GPU max now that the renderer exists.
   useEffect(() => {

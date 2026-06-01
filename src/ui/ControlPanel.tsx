@@ -148,7 +148,7 @@ export function ControlPanel() {
       <Group title="Camera" id="camera" openIds={openIds} toggle={toggle}>
         <Slider field="azimuth" label="Orbit" min={-180} max={180} step={1} />
         <Slider field="polar" label="Tilt (iso)" min={10} max={88} step={1} />
-        <Slider field="distance" label="Distance" min={4} max={16} step={0.1} />
+        <Slider field="distance" label="Zoom (dolly)" min={0.7} max={3} step={0.02} />
         <Slider field="focalLength" label="Focal length (mm)" min={24} max={135} step={1} />
       </Group>
 
