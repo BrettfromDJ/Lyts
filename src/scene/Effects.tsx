@@ -74,7 +74,7 @@ export function Effects() {
         size={focusSize * 0.5}
         feather={focusFalloff * 0.5}
         angle={THREE.MathUtils.degToRad(focusAngle)}
-        blur={blur * 0.06}
+        blur={blur * 0.035}
       />
       <Bloom intensity={bloom} luminanceThreshold={0.78} luminanceSmoothing={0.3} mipmapBlur />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
