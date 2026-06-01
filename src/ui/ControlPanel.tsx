@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useMockupStore, DEFAULTS } from '../store/useMockupStore';
 import type { MockupState, BgMode, CrtBlend } from '../store/useMockupStore';
 import { PRESETS } from '../store/presets';
-import { startBlurEdit } from './blurEdit';
 
 /* ---- tiny store-bound primitives -------------------------------------- */
 
@@ -131,9 +130,6 @@ export function ControlPanel() {
   const motion = useMockupStore((s) => s.motion);
   const crtEnabled = useMockupStore((s) => s.crtEnabled);
   const crtBlend = useMockupStore((s) => s.crtBlend);
-  const tsEnabled = useMockupStore((s) => s.tsEnabled);
-  const irisEnabled = useMockupStore((s) => s.irisEnabled);
-  const blurEditing = useMockupStore((s) => s.blurEditing);
 
   const [openIds, setOpen] = useState<Set<string>>(
     new Set(['presets', 'camera', 'post']),
@@ -253,64 +249,13 @@ export function ControlPanel() {
         <Slider field="rimIntensity" label="Rim intensity" min={0} max={4} />
       </Group>
 
-      <Group title="Tilt-Shift" id="tiltshift" openIds={openIds} toggle={toggle}>
-        <label className="ctl ctl-toggle">
-          <span className="ctl-label">Enable</span>
-          <input
-            type="checkbox"
-            checked={tsEnabled}
-            onChange={(e) =>
-              e.target.checked
-                ? startBlurEdit('ts')
-                : set({ tsEnabled: false, blurEditing: blurEditing === 'ts' ? 'none' : blurEditing })
-            }
-          />
-        </label>
-        {tsEnabled && (
-          <>
-            {blurEditing !== 'ts' && (
-              <button className="ghost reset-view" onClick={() => startBlurEdit('ts')}>
-                Edit on canvas
-              </button>
-            )}
-            <Slider field="tsBlur" label="Blur" min={0} max={1} />
-            <Slider field="tsDistort" label="Distortion" min={-1} max={1} />
-            <Toggle field="tsSym" label="Symmetric distortion" />
-          </>
-        )}
-      </Group>
-
-      <Group title="Iris Blur" id="iris" openIds={openIds} toggle={toggle}>
-        <label className="ctl ctl-toggle">
-          <span className="ctl-label">Enable</span>
-          <input
-            type="checkbox"
-            checked={irisEnabled}
-            onChange={(e) =>
-              e.target.checked
-                ? startBlurEdit('iris')
-                : set({ irisEnabled: false, blurEditing: blurEditing === 'iris' ? 'none' : blurEditing })
-            }
-          />
-        </label>
-        {irisEnabled && (
-          <>
-            {blurEditing !== 'iris' && (
-              <button className="ghost reset-view" onClick={() => startBlurEdit('iris')}>
-                Edit on canvas
-              </button>
-            )}
-            <Slider field="irisBlur" label="Blur" min={0} max={1} />
-            <Slider field="irisRound" label="Roundness" min={0} max={1} />
-          </>
-        )}
-      </Group>
-
-      <Group title="Bokeh" id="bokeh" openIds={openIds} toggle={toggle}>
-        <Slider field="lightBokeh" label="Light Bokeh" min={0} max={1} />
-        <Slider field="bokehColor" label="Bokeh Color" min={0} max={1} />
-        <Slider field="lightRangeMin" label="Light range — low" min={0} max={1} />
-        <Slider field="lightRangeMax" label="Light range — high" min={0} max={1} />
+      <Group title="Focus" id="focus" openIds={openIds} toggle={toggle}>
+        <Slider field="focusDistance" label="Position" min={0} max={1} />
+        <Slider field="focusSize" label="Size" min={0.05} max={1} />
+        <Slider field="focusFalloff" label="Falloff" min={0} max={1} />
+        <Slider field="focusAngle" label="Angle" min={-45} max={45} step={0.5} />
+        <Slider field="blur" label="Blur" min={0} max={1} />
+        <Slider field="bokeh" label="Bokeh" min={0} max={1} />
       </Group>
 
       <Group title="Post" id="post" openIds={openIds} toggle={toggle}>

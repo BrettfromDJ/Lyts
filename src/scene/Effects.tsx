@@ -13,18 +13,19 @@ import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useMockupStore } from '../store/useMockupStore';
 import { Exposure } from './ExposureEffect';
-import { PhotoBlur } from './PhotoBlur';
+import { Focus } from './Focus';
 import { Grain } from './GrainEffect';
 
 /**
  * The DSLR layer (spec §5 Phase 2 + §6.8). Pipeline order:
- *   Exposure (linear multiply) -> Blur Gallery -> Bloom (HDR)
+ *   Exposure (linear multiply) -> Focus blur -> Bloom (HDR)
  *   -> ToneMapping (ACES) -> contrast / CA / vignette (LDR) -> Grain (last).
  *
  * Tone-mapping is an explicit pass because the EffectComposer disables the
  * renderer's tone-mapping; that's also why Exposure is its own pass.
  *
- * Blur is a Photoshop-style Blur Gallery (Tilt-Shift + Iris) — see PhotoBlur.
+ * Focus is a screen-space tilt-shift band (Position/Size/Falloff/Angle/Blur +
+ * Bokeh) — see Focus.tsx.
  */
 export function Effects() {
   const invalidate = useThree((s) => s.invalidate);
@@ -51,7 +52,7 @@ export function Effects() {
     <EffectComposer multisampling={0}>
       <Exposure exposure={exposure} />
       <SMAA />
-      <PhotoBlur />
+      <Focus />
       <Bloom intensity={bloom} luminanceThreshold={0.78} luminanceSmoothing={0.3} mipmapBlur />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       <BrightnessContrast brightness={0} contrast={contrast - 1} />

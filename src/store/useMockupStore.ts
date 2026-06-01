@@ -57,32 +57,13 @@ export type MockupState = {
   chromaticAberration: number;
   grain: number; // screen-space, post-tonemap
 
-  // --- Blur Gallery (Photoshop-style screen-space blur) ---
-  // Tilt-Shift
-  tsEnabled: boolean;
-  tsX: number; // centre, normalized (top-left origin)
-  tsY: number;
-  tsAngle: number; // deg
-  tsFocus: number; // sharp half-width (normalized)
-  tsFeather: number; // gradient width (normalized)
-  tsBlur: number; // 0..1
-  tsDistort: number; // -1..1
-  tsSym: boolean; // symmetric distortion
-  // Iris
-  irisEnabled: boolean;
-  irisX: number;
-  irisY: number;
-  irisRX: number; // radii, normalized
-  irisRY: number;
-  irisAngle: number; // deg
-  irisRound: number; // 0..1 (ellipse -> rounded rect)
-  irisFeather: number; // inner sharp fraction 0..1
-  irisBlur: number; // 0..1
-  // Bokeh (shared "Effects")
-  lightBokeh: number; // 0..1 highlight emphasis
-  bokehColor: number; // 0..1 saturation of bokeh
-  lightRangeMin: number; // 0..1
-  lightRangeMax: number; // 0..1
+  // --- Focus (screen-space tilt-shift band) ---
+  focusDistance: number; // band position (0..1)
+  focusSize: number; // sharp band half-width (0..1)
+  focusFalloff: number; // feather / falloff (0..1)
+  focusAngle: number; // band rotation (deg)
+  blur: number; // max out-of-focus blur (0..1)
+  bokeh: number; // bokeh highlight emphasis (0..1)
 
   // --- CRT overlay (animated) ---
   crtEnabled: boolean;
@@ -112,9 +93,6 @@ export type MockupState = {
   // --- Asset ---
   screenshot: THREE.Texture | null;
   screenAspect: number; // width / height of the uploaded screenshot
-
-  // --- Transient: which blur tool is being edited on canvas (gizmo + OK/Cancel)
-  blurEditing: 'none' | 'ts' | 'iris';
 
   // --- Pro / license gate (Phase 5 — config layer, defined now) ---
   isPro: boolean;
@@ -169,29 +147,13 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   chromaticAberration: 0.0009,
   grain: 0.08,
 
-  // Blur Gallery
-  tsEnabled: false,
-  tsX: 0.5,
-  tsY: 0.5,
-  tsAngle: 0,
-  tsFocus: 0.08,
-  tsFeather: 0.18,
-  tsBlur: 0.5,
-  tsDistort: 0,
-  tsSym: false,
-  irisEnabled: false,
-  irisX: 0.5,
-  irisY: 0.5,
-  irisRX: 0.3,
-  irisRY: 0.26,
-  irisAngle: 0,
-  irisRound: 0.3,
-  irisFeather: 0.55,
-  irisBlur: 0.5,
-  lightBokeh: 0.3,
-  bokehColor: 0.2,
-  lightRangeMin: 0.7,
-  lightRangeMax: 1.0,
+  // Focus
+  focusDistance: 0.5,
+  focusSize: 0.5,
+  focusFalloff: 0.4,
+  focusAngle: 0,
+  blur: 0.45,
+  bokeh: 0.4,
 
   // CRT overlay
   crtEnabled: false,
@@ -221,7 +183,6 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   // Asset
   screenshot: null,
   screenAspect: 16 / 10,
-  blurEditing: 'none',
 
   // Pro
   isPro: false,
@@ -242,7 +203,6 @@ export const SERIALIZABLE_KEYS = (
     k !== 'screenAspect' &&
     k !== 'isPro' &&
     k !== 'animate' &&
-    k !== 'blurEditing' &&
     k !== 'targetX' &&
     k !== 'targetY' &&
     k !== 'targetZ',
