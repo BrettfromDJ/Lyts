@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   EffectComposer,
   DepthOfField,
@@ -7,6 +7,7 @@ import {
   ChromaticAberration,
   Noise,
   BrightnessContrast,
+  SMAA,
 } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import { useThree } from '@react-three/fiber';
@@ -16,12 +17,20 @@ import { useMockupStore } from '../store/useMockupStore';
 /**
  * The DSLR layer (spec §5 Phase 2 + §6.8).
  *
- * Order matters: DOF and Bloom first, colour/contrast next, grain LAST so it
+ * Order matters: AA + DOF + Bloom first, colour/contrast next, grain LAST so it
  * sits in screen space on top of everything (static grain on a moving shot
  * looks like dirt on the lens — Phase 4 will re-seed it per frame).
  *
  * Tone mapping is done by the renderer (ACES, set on the <Canvas>, spec §4.1),
  * which RenderPass applies while drawing the scene — so we don't double it here.
+ *
+ * NOTE: these effect components are plain-function wrappers, so under React 19
+ * NEVER pass them a `ref` — it would be treated as a prop and the wrapper
+ * JSON.stringify's its props (crashes on three.js' circular graph). Use the
+ * supported scalar props instead (e.g. Noise `opacity`).
+ *
+ * MSAA is disabled in favour of an SMAA pass: multisampled depth resolves
+ * trip a "depth/stencil format not allowed for blit" path on macOS/ANGLE.
  */
 export function Effects() {
   const invalidate = useThree((s) => s.invalidate);
@@ -43,14 +52,23 @@ export function Effects() {
     [chromaticAberration],
   );
 
-  const noiseRef = useRef<{ blendMode: { opacity: { value: number } } }>(null);
+  // frameloop="demand": make sure post-only param changes request a frame.
   useEffect(() => {
-    if (noiseRef.current) noiseRef.current.blendMode.opacity.value = grain;
     invalidate();
-  }, [grain, invalidate]);
+  }, [
+    invalidate,
+    focusDistance,
+    effectiveBokeh,
+    bloom,
+    vignette,
+    chromaticAberration,
+    grain,
+    contrast,
+  ]);
 
   return (
-    <EffectComposer>
+    <EffectComposer multisampling={0}>
+      <SMAA />
       <DepthOfField
         focusDistance={focusDistance}
         focalLength={0.025}
@@ -63,13 +81,9 @@ export function Effects() {
         mipmapBlur
       />
       <BrightnessContrast brightness={0} contrast={contrast - 1} />
-      <ChromaticAberration
-        offset={caOffset}
-        radialModulation={false}
-        modulationOffset={0}
-      />
+      <ChromaticAberration offset={caOffset} radialModulation={false} modulationOffset={0} />
       <Vignette darkness={vignette} offset={0.3} eskil={false} />
-      <Noise ref={noiseRef as never} premultiply blendFunction={BlendFunction.SOFT_LIGHT} />
+      <Noise premultiply blendFunction={BlendFunction.SOFT_LIGHT} opacity={grain} />
     </EffectComposer>
   );
 }
