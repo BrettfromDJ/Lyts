@@ -164,8 +164,9 @@ function PointerCamera() {
 }
 
 export function Scene() {
-  // "always" while animating/recording, "demand" otherwise (spec §6.7).
+  // "always" while animating/recording or running the CRT, "demand" otherwise.
   const animate = useMockupStore((s) => s.animate);
+  const crtEnabled = useMockupStore((s) => s.crtEnabled);
   return (
     <Canvas
       gl={{
@@ -175,7 +176,7 @@ export function Scene() {
         toneMapping: THREE.ACESFilmicToneMapping,
         toneMappingExposure: useMockupStore.getState().exposure,
       }}
-      frameloop={animate ? 'always' : 'demand'}
+      frameloop={animate || crtEnabled ? 'always' : 'demand'}
       dpr={[1, 2]}
       shadows
       camera={{ fov: 28, position: [4, 4, 6] }}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMockupStore, DEFAULTS } from '../store/useMockupStore';
-import type { MockupState, BgMode } from '../store/useMockupStore';
+import type { MockupState, BgMode, CrtBlend } from '../store/useMockupStore';
 import { PRESETS } from '../store/presets';
 
 /* ---- tiny store-bound primitives -------------------------------------- */
@@ -12,6 +12,25 @@ type NumKey = {
 type StrKey = {
   [K in keyof MockupState]: MockupState[K] extends string ? K : never;
 }[keyof MockupState];
+
+type BoolKey = {
+  [K in keyof MockupState]: MockupState[K] extends boolean ? K : never;
+}[keyof MockupState];
+
+function Toggle({ field, label }: { field: BoolKey; label: string }) {
+  const value = useMockupStore((s) => s[field]) as boolean;
+  const set = useMockupStore((s) => s.set);
+  return (
+    <label className="ctl ctl-toggle">
+      <span className="ctl-label">{label}</span>
+      <input
+        type="checkbox"
+        checked={value}
+        onChange={(e) => set({ [field]: e.target.checked } as Partial<MockupState>)}
+      />
+    </label>
+  );
+}
 
 function Slider({
   field,
@@ -109,6 +128,8 @@ export function ControlPanel() {
   const bgMode = useMockupStore((s) => s.bgMode);
   const animate = useMockupStore((s) => s.animate);
   const motion = useMockupStore((s) => s.motion);
+  const crtEnabled = useMockupStore((s) => s.crtEnabled);
+  const crtBlend = useMockupStore((s) => s.crtBlend);
 
   const [openIds, setOpen] = useState<Set<string>>(
     new Set(['presets', 'camera', 'post']),
@@ -249,6 +270,36 @@ export function ControlPanel() {
           step={0.0001}
         />
         <Slider field="grain" label="Grain" min={0} max={0.4} step={0.005} />
+      </Group>
+
+      <Group title="CRT" id="crt" openIds={openIds} toggle={toggle}>
+        <Toggle field="crtEnabled" label="Enable CRT" />
+        {crtEnabled && (
+          <>
+            <label className="ctl">
+              <span className="ctl-label">Blend mode</span>
+              <select
+                value={crtBlend}
+                onChange={(e) => set({ crtBlend: e.target.value as CrtBlend })}
+              >
+                <option value="normal">Normal</option>
+                <option value="screen">Screen</option>
+                <option value="overlay">Overlay</option>
+                <option value="multiply">Multiply</option>
+                <option value="softlight">Soft light</option>
+                <option value="add">Add</option>
+              </select>
+            </label>
+            <Slider field="crtOpacity" label="Opacity" min={0} max={1} />
+            <Slider field="crtScanline" label="Scanlines" min={0} max={1} />
+            <Slider field="crtScanCount" label="Line density" min={80} max={1200} step={10} />
+            <Slider field="crtGrille" label="RGB mask" min={0} max={1} />
+            <Slider field="crtFlicker" label="Flicker" min={0} max={1} />
+            <Slider field="crtRoll" label="Roll bar" min={0} max={1} />
+            <Slider field="crtSpeed" label="Speed" min={0} max={3} />
+            <Slider field="crtCurve" label="Tube vignette" min={0} max={1} />
+          </>
+        )}
       </Group>
 
       <Group title="Background" id="background" openIds={openIds} toggle={toggle}>

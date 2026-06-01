@@ -11,6 +11,7 @@ import type * as THREE from 'three';
  * defined up front, even where a phase only wires up a subset.
  */
 export type BgMode = 'solid' | 'gradient' | 'env-blur' | 'transparent';
+export type CrtBlend = 'normal' | 'screen' | 'overlay' | 'multiply' | 'softlight' | 'add';
 
 export type MockupState = {
   // --- Camera ---
@@ -61,6 +62,18 @@ export type MockupState = {
   vignette: number;
   chromaticAberration: number;
   grain: number; // screen-space, post-tonemap
+
+  // --- CRT overlay (animated) ---
+  crtEnabled: boolean;
+  crtBlend: CrtBlend;
+  crtOpacity: number;
+  crtScanline: number;
+  crtScanCount: number;
+  crtGrille: number;
+  crtFlicker: number;
+  crtRoll: number;
+  crtSpeed: number;
+  crtCurve: number;
 
   // --- Background ---
   bgMode: BgMode;
@@ -136,6 +149,18 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   vignette: 0.42,
   chromaticAberration: 0.0009,
   grain: 0.08,
+
+  // CRT overlay
+  crtEnabled: false,
+  crtBlend: 'normal',
+  crtOpacity: 0.85,
+  crtScanline: 0.5,
+  crtScanCount: 480,
+  crtGrille: 0.25,
+  crtFlicker: 0.25,
+  crtRoll: 0.15,
+  crtSpeed: 0.6,
+  crtCurve: 0.15,
 
   // Background
   bgMode: 'gradient',
