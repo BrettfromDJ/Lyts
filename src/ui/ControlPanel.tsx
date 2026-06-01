@@ -130,6 +130,8 @@ export function ControlPanel() {
   const motion = useMockupStore((s) => s.motion);
   const crtEnabled = useMockupStore((s) => s.crtEnabled);
   const crtBlend = useMockupStore((s) => s.crtBlend);
+  const tsEnabled = useMockupStore((s) => s.tsEnabled);
+  const irisEnabled = useMockupStore((s) => s.irisEnabled);
 
   const [openIds, setOpen] = useState<Set<string>>(
     new Set(['presets', 'camera', 'post']),
@@ -249,11 +251,34 @@ export function ControlPanel() {
         <Slider field="rimIntensity" label="Rim intensity" min={0} max={4} />
       </Group>
 
-      <Group title="Focus" id="focus" openIds={openIds} toggle={toggle}>
-        <Slider field="focusDistance" label="Position (near → far)" min={0} max={1} />
-        <Slider field="focusSize" label="In-focus range" min={0.05} max={1.5} />
-        <Slider field="blur" label="Blur (bokeh)" min={0} max={1} />
-        <p className="ctl-hint">Depth-of-field — the sharp zone follows the surface.</p>
+      <Group title="Tilt-Shift" id="tiltshift" openIds={openIds} toggle={toggle}>
+        <Toggle field="tsEnabled" label="Enable" />
+        {tsEnabled && (
+          <>
+            <Slider field="tsBlur" label="Blur" min={0} max={1} />
+            <Slider field="tsDistort" label="Distortion" min={-1} max={1} />
+            <Toggle field="tsSym" label="Symmetric distortion" />
+            <p className="ctl-hint">Drag the pins, focus lines and rotation dot on the image.</p>
+          </>
+        )}
+      </Group>
+
+      <Group title="Iris Blur" id="iris" openIds={openIds} toggle={toggle}>
+        <Toggle field="irisEnabled" label="Enable" />
+        {irisEnabled && (
+          <>
+            <Slider field="irisBlur" label="Blur" min={0} max={1} />
+            <Slider field="irisRound" label="Roundness" min={0} max={1} />
+            <p className="ctl-hint">Drag the ellipse handles, feather dot and rotation dot.</p>
+          </>
+        )}
+      </Group>
+
+      <Group title="Bokeh" id="bokeh" openIds={openIds} toggle={toggle}>
+        <Slider field="lightBokeh" label="Light Bokeh" min={0} max={1} />
+        <Slider field="bokehColor" label="Bokeh Color" min={0} max={1} />
+        <Slider field="lightRangeMin" label="Light range — low" min={0} max={1} />
+        <Slider field="lightRangeMax" label="Light range — high" min={0} max={1} />
       </Group>
 
       <Group title="Post" id="post" openIds={openIds} toggle={toggle}>

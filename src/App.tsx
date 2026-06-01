@@ -4,6 +4,7 @@ import { ControlPanel } from './ui/ControlPanel';
 import { Uploader } from './ui/Uploader';
 import { ExportBar } from './ui/ExportBar';
 import { ShortcutsOverlay } from './ui/ShortcutsOverlay';
+import { BlurOverlay } from './ui/BlurOverlay';
 import { restoreLicense } from './lib/license';
 import './App.css';
 
@@ -19,6 +20,7 @@ export default function App() {
       <main className="stage">
         <Scene />
         <Uploader />
+        <BlurOverlay />
         <ShortcutsOverlay />
         <ExportBar />
       </main>

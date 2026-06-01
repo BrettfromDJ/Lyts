@@ -67,7 +67,6 @@ export const PRESETS: NamedPreset[] = [
       bgColorB: '#000000',
       exposure: 0.92,
       contrast: 1.18,
-      blur: 0.85,
     },
   },
   {
@@ -95,7 +94,6 @@ export const PRESETS: NamedPreset[] = [
       bgColorB: '#d9e2f2',
       exposure: 1.08,
       contrast: 1.0,
-      blur: 0.6,
     },
   },
   {
@@ -123,7 +121,6 @@ export const PRESETS: NamedPreset[] = [
       bgColorB: '#120a06',
       exposure: 1.05,
       contrast: 1.08,
-      blur: 0.9,
     },
   },
   {
@@ -152,7 +149,6 @@ export const PRESETS: NamedPreset[] = [
       bgColorB: '#04020a',
       exposure: 1.0,
       contrast: 1.12,
-      blur: 0.82,
     },
   },
 ];

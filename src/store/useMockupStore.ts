@@ -52,16 +52,37 @@ export type MockupState = {
   // --- Post (the DSLR layer) ---
   exposure: number;
   contrast: number;
-  // Focus = tilt-shift band: position, size, falloff (feather), angle, blur.
-  focusDistance: number; // band position (0..1)
-  focusSize: number; // width of the sharp band (0..1)
-  focusFalloff: number; // edge softness (0..1)
-  focusAngle: number; // band rotation (deg)
-  blur: number; // out-of-focus blur strength (0..1)
   bloom: number;
   vignette: number;
   chromaticAberration: number;
   grain: number; // screen-space, post-tonemap
+
+  // --- Blur Gallery (Photoshop-style screen-space blur) ---
+  // Tilt-Shift
+  tsEnabled: boolean;
+  tsX: number; // centre, normalized (top-left origin)
+  tsY: number;
+  tsAngle: number; // deg
+  tsFocus: number; // sharp half-width (normalized)
+  tsFeather: number; // gradient width (normalized)
+  tsBlur: number; // 0..1
+  tsDistort: number; // -1..1
+  tsSym: boolean; // symmetric distortion
+  // Iris
+  irisEnabled: boolean;
+  irisX: number;
+  irisY: number;
+  irisRX: number; // radii, normalized
+  irisRY: number;
+  irisAngle: number; // deg
+  irisRound: number; // 0..1 (ellipse -> rounded rect)
+  irisFeather: number; // inner sharp fraction 0..1
+  irisBlur: number; // 0..1
+  // Bokeh (shared "Effects")
+  lightBokeh: number; // 0..1 highlight emphasis
+  bokehColor: number; // 0..1 saturation of bokeh
+  lightRangeMin: number; // 0..1
+  lightRangeMax: number; // 0..1
 
   // --- CRT overlay (animated) ---
   crtEnabled: boolean;
@@ -140,15 +161,34 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   // Post
   exposure: 1.0,
   contrast: 1.12,
-  focusDistance: 0.5,
-  focusSize: 0.5,
-  focusFalloff: 0.4,
-  focusAngle: 0,
-  blur: 0.45,
   bloom: 0.85,
   vignette: 0.42,
   chromaticAberration: 0.0009,
   grain: 0.08,
+
+  // Blur Gallery
+  tsEnabled: false,
+  tsX: 0.5,
+  tsY: 0.5,
+  tsAngle: 0,
+  tsFocus: 0.08,
+  tsFeather: 0.18,
+  tsBlur: 0.5,
+  tsDistort: 0,
+  tsSym: false,
+  irisEnabled: false,
+  irisX: 0.5,
+  irisY: 0.5,
+  irisRX: 0.3,
+  irisRY: 0.26,
+  irisAngle: 0,
+  irisRound: 0.3,
+  irisFeather: 0.55,
+  irisBlur: 0.5,
+  lightBokeh: 0.3,
+  bokehColor: 0.2,
+  lightRangeMin: 0.7,
+  lightRangeMax: 1.0,
 
   // CRT overlay
   crtEnabled: false,
