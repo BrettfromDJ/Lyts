@@ -61,7 +61,7 @@ export function Lighting() {
         {/* large soft top key — the broad reflection in the glass */}
         <Lightformer
           form="rect"
-          intensity={2.2}
+          intensity={1.1}
           color={mood.former}
           position={[0, 5, 1]}
           rotation={[Math.PI / 2, 0, 0]}
@@ -70,7 +70,7 @@ export function Lighting() {
         {/* side wrap */}
         <Lightformer
           form="rect"
-          intensity={1.4}
+          intensity={0.7}
           color={mood.former}
           position={[-5, 1, 2]}
           rotation={[0, Math.PI / 2, 0]}
@@ -79,7 +79,7 @@ export function Lighting() {
         {/* back strip — the premium edge glint */}
         <Lightformer
           form="rect"
-          intensity={2.0}
+          intensity={1.3}
           color={mood.formerBack}
           position={[3, 2, -5]}
           rotation={[0, -Math.PI / 3, 0]}
@@ -88,7 +88,7 @@ export function Lighting() {
         {/* ground bounce */}
         <Lightformer
           form="rect"
-          intensity={0.5}
+          intensity={0.3}
           color={mood.formerBack}
           position={[0, -4, 0]}
           rotation={[-Math.PI / 2, 0, 0]}

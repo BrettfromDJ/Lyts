@@ -111,12 +111,12 @@ export function DeviceMesh() {
           metalness={0}
           roughness={glassRoughness}
           transparent
-          opacity={0.08}
+          opacity={0.05}
           transmission={0}
           clearcoat={1}
           clearcoatRoughness={glassRoughness}
           ior={1.5}
-          envMapIntensity={reflectionIntensity * 1.6}
+          envMapIntensity={reflectionIntensity * 0.6}
           depthWrite={false}
           side={THREE.FrontSide}
         />

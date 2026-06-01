@@ -84,8 +84,8 @@ export function Effects() {
       <DepthOfField target={focusTarget} focusRange={focusRange} bokehScale={effectiveBokeh} />
       <Bloom
         intensity={bloom}
-        luminanceThreshold={0.6}
-        luminanceSmoothing={0.25}
+        luminanceThreshold={0.9}
+        luminanceSmoothing={0.2}
         mipmapBlur
       />
       <BrightnessContrast brightness={0} contrast={contrast - 1} />
