@@ -150,13 +150,23 @@ export function ControlPanel() {
 
       <Group title="Camera" id="camera" openIds={openIds} toggle={toggle}>
         <XYPad
-          label="Tilt — drag to orbit + rake"
+          label="Camera — drag to orbit + rake"
           xField="azimuth"
           yField="polar"
           xMin={-180}
           xMax={180}
           yMin={8}
           yMax={88}
+          invertY
+        />
+        <XYPad
+          label="Perspective — tilt the screen"
+          xField="tiltZ"
+          yField="tiltX"
+          xMin={-35}
+          xMax={35}
+          yMin={-35}
+          yMax={35}
           invertY
         />
         <Slider field="roll" label="Roll" min={-45} max={45} step={0.5} />

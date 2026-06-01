@@ -22,6 +22,8 @@ export function DeviceMesh() {
   const screenBrightness = useMockupStore((s) => s.screenBrightness);
   const reflectionIntensity = useMockupStore((s) => s.reflectionIntensity);
   const glassRoughness = useMockupStore((s) => s.glassRoughness);
+  const tiltX = useMockupStore((s) => s.tiltX);
+  const tiltZ = useMockupStore((s) => s.tiltZ);
 
   const { w, h } = useMemo(() => surfaceMetrics(screenAspect), [screenAspect]);
 
@@ -39,7 +41,9 @@ export function DeviceMesh() {
   }, [screenshot, gl, invalidate]);
 
   return (
-    <group>
+    <group
+      rotation={[THREE.MathUtils.degToRad(tiltX), 0, THREE.MathUtils.degToRad(tiltZ)]}
+    >
       {/* the screenshot surface */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[w, h]} />
@@ -65,11 +69,11 @@ export function DeviceMesh() {
             metalness={0}
             roughness={glassRoughness}
             transparent
-            opacity={0.04}
-            clearcoat={1}
-            clearcoatRoughness={glassRoughness}
-            ior={1.5}
-            envMapIntensity={reflectionIntensity * 0.5}
+            opacity={0.03}
+            clearcoat={0.35}
+            clearcoatRoughness={Math.max(glassRoughness, 0.25)}
+            ior={1.4}
+            envMapIntensity={reflectionIntensity * 0.45}
             depthWrite={false}
           />
         </mesh>

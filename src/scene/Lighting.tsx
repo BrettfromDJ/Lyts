@@ -72,16 +72,6 @@ export function Lighting() {
           rotation={[0, Math.PI / 2, 0]}
           scale={[6, 6, 1]}
         />
-        {/* sheen streak — a thin bright source that reflects as a soft diagonal
-            highlight sweeping across the glossy surface */}
-        <Lightformer
-          form="rect"
-          intensity={3.2}
-          color="#ffffff"
-          position={[-2.5, 6, 2.5]}
-          rotation={[Math.PI / 2, 0, 0.6]}
-          scale={[1.1, 9, 1]}
-        />
         {/* back strip — the premium edge glint */}
         <Lightformer
           form="rect"

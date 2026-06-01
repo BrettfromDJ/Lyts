@@ -19,6 +19,8 @@ export type MockupState = {
   zoom: number; // magnification; higher = closer / more zoomed in
   focalLength: number; // mm-ish; maps to FOV
   roll: number; // deg, editorial roll around the view axis
+  tiltX: number; // surface tilt around X (deg) — tips far/near edge away
+  tiltZ: number; // surface tilt around Z (deg) — tips left/right edge away
   targetX: number; // pan offset of the look-at point (world units)
   targetY: number;
   targetZ: number;
@@ -93,6 +95,8 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   zoom: 2.3,
   focalLength: 42,
   roll: -4,
+  tiltX: 0,
+  tiltZ: 0,
   targetX: 0,
   targetY: 0,
   targetZ: 0,
@@ -104,8 +108,8 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
 
   // Screen material
   screenBrightness: 1.0,
-  glassRoughness: 0.09,
-  reflectionIntensity: 1.15,
+  glassRoughness: 0.22,
+  reflectionIntensity: 0.85,
   pixelTexture: 0.0,
 
   // Lighting
