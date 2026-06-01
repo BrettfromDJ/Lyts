@@ -1,0 +1,39 @@
+:root {
+  --bg: #0a0b0f;
+  --panel: #14161d;
+  --panel-2: #1b1e27;
+  --line: #272b36;
+  --text: #e7e9ef;
+  --text-dim: #9aa0ad;
+  --accent: #6f8cff;
+  --accent-2: #b07cff;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2e3a;
+  border-radius: 6px;
+}
