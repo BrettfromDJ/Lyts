@@ -5,6 +5,7 @@ import { useMockupStore } from '../store/useMockupStore';
 import { makeGradientTexture } from '../lib/textures';
 import { sceneRef } from '../lib/sceneRef';
 import { CameraRig } from './CameraRig';
+import { Animator } from './Animator';
 import { Lighting } from './Lighting';
 import { DeviceMesh } from './DeviceMesh';
 import { Effects } from './Effects';
@@ -133,6 +134,8 @@ function PointerCamera() {
 }
 
 export function Scene() {
+  // "always" while animating/recording, "demand" otherwise (spec §6.7).
+  const animate = useMockupStore((s) => s.animate);
   return (
     <Canvas
       gl={{
@@ -142,7 +145,7 @@ export function Scene() {
         toneMapping: THREE.ACESFilmicToneMapping,
         toneMappingExposure: useMockupStore.getState().exposure,
       }}
-      frameloop="demand" // still tool — render on change (§6.7)
+      frameloop={animate ? 'always' : 'demand'}
       dpr={[1, 2]}
       shadows
       camera={{ fov: 28, position: [4, 4, 6] }}
@@ -152,6 +155,7 @@ export function Scene() {
       <ExposureSync />
       <Background />
       <CameraRig />
+      <Animator />
       <Lighting />
       <DeviceMesh />
       <Effects />

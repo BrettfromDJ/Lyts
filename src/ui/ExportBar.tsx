@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useMockupStore, SERIALIZABLE_KEYS } from '../store/useMockupStore';
 import type { PresetData } from '../store/useMockupStore';
 import { exportStill } from '../lib/exportImage';
+import { exportVideo, videoSupported } from '../lib/exportVideo';
 import { sceneRef } from '../lib/sceneRef';
 import { activateLicense, deactivateLicense } from '../lib/license';
 
@@ -15,6 +16,7 @@ export function ExportBar() {
   const [scale, setScale] = useState<number>(2);
   const [format, setFormat] = useState<'png' | 'jpg'>('png');
   const [busy, setBusy] = useState(false);
+  const [recording, setRecording] = useState<number | null>(null);
   const [licenseKey, setLicenseKey] = useState('');
   const [licenseMsg, setLicenseMsg] = useState<string | null>(null);
   const presetInput = useRef<HTMLInputElement>(null);
@@ -37,6 +39,32 @@ export function ExportBar() {
       });
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function onExportVideo() {
+    const { gl } = sceneRef;
+    if (!gl) return;
+    const s = useMockupStore.getState();
+    if (!s.isPro) {
+      alert('Video export is a Pro feature. Preview is free — paste a license key to unlock export.');
+      return;
+    }
+    setRecording(0);
+    s.set({ animate: true }); // play the motion + switch frameloop to "always"
+    // let a couple of frames settle before recording
+    await new Promise((r) => setTimeout(r, 200));
+    try {
+      await exportVideo(gl, {
+        duration: s.videoDuration,
+        fps: s.videoFps,
+        onProgress: (f) => setRecording(Math.round(f * 100)),
+      });
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Video export failed.');
+    } finally {
+      s.set({ animate: false });
+      setRecording(null);
     }
   }
 
@@ -111,8 +139,22 @@ export function ExportBar() {
           </button>
         </div>
 
-        <button className="export-btn" onClick={onExport} disabled={busy}>
+        <button className="export-btn" onClick={onExport} disabled={busy || recording !== null}>
           {busy ? 'Rendering…' : 'Export'}
+        </button>
+        <button
+          className={`export-btn video ${!isPro ? 'locked' : ''}`}
+          onClick={onExportVideo}
+          disabled={recording !== null || !videoSupported()}
+          title={
+            !isPro
+              ? 'Video export is a Pro feature'
+              : !videoSupported()
+                ? 'Video recording is not supported in this browser'
+                : 'Record a WebM video of the motion'
+          }
+        >
+          {recording !== null ? `Recording ${recording}%` : `Video${!isPro ? ' 🔒' : ''}`}
         </button>
       </div>
 

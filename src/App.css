@@ -288,6 +288,35 @@
 .export-btn:disabled {
   opacity: 0.6;
 }
+.export-btn.video {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  margin-left: 8px;
+}
+.export-btn.video:hover {
+  border-color: var(--accent);
+}
+.export-btn.video.locked {
+  opacity: 0.75;
+}
+.play-btn {
+  width: 100%;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 9px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.play-btn:hover {
+  border-color: var(--accent);
+}
+.play-btn.playing {
+  background: rgba(111, 140, 255, 0.16);
+  border-color: var(--accent);
+  color: #fff;
+}
 .ghost {
   background: none;
   border: 1px solid var(--line);

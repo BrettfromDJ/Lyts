@@ -107,6 +107,8 @@ export function ControlPanel() {
   const isPro = useMockupStore((s) => s.isPro);
   const hdriPreset = useMockupStore((s) => s.hdriPreset);
   const bgMode = useMockupStore((s) => s.bgMode);
+  const animate = useMockupStore((s) => s.animate);
+  const motion = useMockupStore((s) => s.motion);
 
   const [openIds, setOpen] = useState<Set<string>>(
     new Set(['presets', 'camera', 'post']),
@@ -151,6 +153,32 @@ export function ControlPanel() {
         <Slider field="roll" label="Roll" min={-45} max={45} step={0.5} />
         <Slider field="zoom" label="Zoom" min={0.2} max={10} step={0.01} />
         <Slider field="focalLength" label="Focal length (mm)" min={18} max={300} step={1} />
+      </Group>
+
+      <Group title="Animate" id="animate" openIds={openIds} toggle={toggle}>
+        <button
+          className={`play-btn ${animate ? 'playing' : ''}`}
+          onClick={() => set({ animate: !animate })}
+        >
+          {animate ? '◼ Stop preview' : '▶ Preview motion'}
+        </button>
+        <label className="ctl">
+          <span className="ctl-label">Motion</span>
+          <select
+            value={motion}
+            onChange={(e) =>
+              set({ motion: e.target.value as 'drift' | 'orbit' | 'push' | 'parallax' })
+            }
+          >
+            <option value="drift">Drift</option>
+            <option value="parallax">Parallax</option>
+            <option value="orbit">Orbit sway</option>
+            <option value="push">Push in/out</option>
+          </select>
+        </label>
+        <Slider field="motionAmount" label="Amount" min={0} max={3} step={0.05} />
+        <Slider field="motionSpeed" label="Speed (loops)" min={0.25} max={4} step={0.25} />
+        <Slider field="videoDuration" label="Duration (s)" min={2} max={20} step={0.5} />
       </Group>
 
       <Group title="Screen" id="screen" openIds={openIds} toggle={toggle}>

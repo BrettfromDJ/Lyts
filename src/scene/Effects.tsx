@@ -5,15 +5,14 @@ import {
   Bloom,
   Vignette,
   ChromaticAberration,
-  Noise,
   BrightnessContrast,
   SMAA,
 } from '@react-three/postprocessing';
-import { BlendFunction } from 'postprocessing';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useMockupStore } from '../store/useMockupStore';
 import { MAX_DIM } from '../lib/deviceDims';
+import { Grain } from './GrainEffect';
 
 /**
  * The DSLR layer (spec §5 Phase 2 + §6.8).
@@ -91,7 +90,7 @@ export function Effects() {
       <BrightnessContrast brightness={0} contrast={contrast - 1} />
       <ChromaticAberration offset={caOffset} radialModulation={false} modulationOffset={0} />
       <Vignette darkness={vignette} offset={0.3} eskil={false} />
-      <Noise premultiply blendFunction={BlendFunction.SOFT_LIGHT} opacity={grain} />
+      <Grain intensity={grain} />
     </EffectComposer>
   );
 }

@@ -50,8 +50,13 @@ outsourced Merchant-of-Record (`src/lib/license.ts`): validate once, cache in
 `localStorage`, **fail open**. Set `MOR_VALIDATE_URL` to go live; until then any
 6+ char key unlocks Pro for testing.
 
-> **Phase 4 (animation + WebM/MP4 export)** is scoped but not built — the store,
-> `frameloop`, grain pass, and gate points are all staged for it.
+**Phase 4 — animation + video.** Subtle hero motion (drift / parallax / orbit
+sway / push), a seamless loop driven by the clip duration, and **animated film
+grain** (re-seeded per rendered frame so it doesn't look like dirt on the lens).
+`frameloop` flips to `"always"` only while previewing/recording. Video export
+records the canvas to WebM via `captureStream` + `MediaRecorder` (a Pro gate;
+preview is free). True alpha video in-browser is unreliable — noted as a known
+limitation.
 
 ## Architecture (the spine)
 
@@ -65,9 +70,11 @@ change.
 ```
 src/
   store/   useMockupStore.ts (spine) · presets.ts
-  scene/   Scene · CameraRig · DeviceMesh (screenshot surface) · Lighting · Effects
+  scene/   Scene · CameraRig · Animator · DeviceMesh (screenshot surface)
+           Lighting · Effects · GrainEffect
   ui/      ControlPanel · Uploader · ExportBar
-  lib/     useScreenTexture · exportImage · textures · sceneRef · license
+  lib/     useScreenTexture · exportImage · exportVideo · cameraMath
+           textures · sceneRef · license
 ```
 
 ## Landmines handled (spec §6)

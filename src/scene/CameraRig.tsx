@@ -4,19 +4,13 @@ import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useMockupStore } from '../store/useMockupStore';
 import { surfaceMetrics } from '../lib/deviceDims';
-
-const SENSOR_HEIGHT = 24; // full-frame, mm
-
-/** focalLength (mm) -> vertical FOV (deg). */
-function focalToFov(focalLength: number): number {
-  return (2 * Math.atan(SENSOR_HEIGHT / (2 * focalLength)) * 180) / Math.PI;
-}
+import { cameraPose, applyPose } from '../lib/cameraMath';
 
 /**
  * PerspectiveCamera raking across the flat screenshot surface (spec §0). A low
  * grazing tilt + real perspective gives the receding rows; `roll` adds the
- * subtle editorial rotation. Driven entirely by the store — the angle is a
- * deliberate parameter, not free-flight, so no OrbitControls in the shipping UI.
+ * subtle editorial rotation. Driven by the store; while an animation plays the
+ * Animator takes over this same camera per-frame.
  */
 export function CameraRig() {
   const camRef = useRef<THREE.PerspectiveCamera>(null);
@@ -24,36 +18,22 @@ export function CameraRig() {
 
   const azimuth = useMockupStore((s) => s.azimuth);
   const polar = useMockupStore((s) => s.polar);
-  const zoom = useMockupStore((s) => s.zoom); // magnification (higher = closer)
+  const zoom = useMockupStore((s) => s.zoom);
   const focalLength = useMockupStore((s) => s.focalLength);
   const roll = useMockupStore((s) => s.roll);
   const screenAspect = useMockupStore((s) => s.screenAspect);
-  const fov = focalToFov(focalLength);
 
-  // Auto-frame: dolly so the surface fits the vertical FOV, then divide by the
-  // user's `zoom` magnification (higher = closer / crops in for the raked look).
-  // Keeps framing sane across any focal length / screenshot aspect.
   const radius = surfaceMetrics(screenAspect).radius;
-  const fitDistance = radius / Math.sin(THREE.MathUtils.degToRad(fov) / 2);
-  const dist = fitDistance / zoom;
-
-  const phi = THREE.MathUtils.degToRad(polar);
-  const theta = THREE.MathUtils.degToRad(azimuth);
-  const x = dist * Math.sin(phi) * Math.sin(theta);
-  const y = dist * Math.cos(phi);
-  const z = dist * Math.sin(phi) * Math.cos(theta);
-  const rollRad = THREE.MathUtils.degToRad(roll);
+  const pose = cameraPose({ azimuth, polar, zoom, focalLength, roll }, radius);
 
   useLayoutEffect(() => {
     const cam = camRef.current;
     if (!cam) return;
-    cam.position.set(x, y, z);
-    cam.fov = fov;
-    cam.lookAt(0, 0, 0);
-    cam.rotateZ(rollRad); // editorial roll around the view axis
-    cam.updateProjectionMatrix();
+    if (useMockupStore.getState().animate) return; // Animator owns the camera while playing
+    applyPose(cam, pose);
     invalidate();
-  }, [x, y, z, fov, rollRad, invalidate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pose.position.x, pose.position.y, pose.position.z, pose.fov, pose.roll, invalidate]);
 
   return <PerspectiveCamera ref={camRef} makeDefault near={0.05} far={2000} />;
 }

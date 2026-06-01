@@ -59,6 +59,14 @@ export type MockupState = {
   bgColorA: string;
   bgColorB: string;
 
+  // --- Animation (Phase 4) ---
+  animate: boolean; // preview playing (also drives frameloop)
+  motion: 'drift' | 'orbit' | 'push' | 'parallax';
+  motionAmount: number; // amplitude
+  motionSpeed: number; // cycles over the clip (1 = one seamless loop)
+  videoDuration: number; // seconds
+  videoFps: number;
+
   // --- Asset ---
   screenshot: THREE.Texture | null;
   screenAspect: number; // width / height of the uploaded screenshot
@@ -112,12 +120,20 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   bloom: 0.4,
   vignette: 0.35,
   chromaticAberration: 0.0008,
-  grain: 0.06,
+  grain: 0.08,
 
   // Background
   bgMode: 'gradient',
   bgColorA: '#1a1d24',
   bgColorB: '#05060a',
+
+  // Animation
+  animate: false,
+  motion: 'drift',
+  motionAmount: 1,
+  motionSpeed: 1,
+  videoDuration: 6,
+  videoFps: 30,
 
   // Asset
   screenshot: null,
@@ -136,7 +152,9 @@ export const useMockupStore = create<MockupState>((set) => ({
 /** Keys that are safe to serialize into a JSON preset (excludes runtime assets + actions). */
 export const SERIALIZABLE_KEYS = (
   Object.keys(DEFAULTS) as (keyof typeof DEFAULTS)[]
-).filter((k) => k !== 'screenshot' && k !== 'screenAspect' && k !== 'isPro');
+).filter(
+  (k) => k !== 'screenshot' && k !== 'screenAspect' && k !== 'isPro' && k !== 'animate',
+);
 
 export type PresetData = Partial<
   Pick<MockupState, (typeof SERIALIZABLE_KEYS)[number]>
