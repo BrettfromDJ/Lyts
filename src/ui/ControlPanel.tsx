@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMockupStore, DEFAULTS } from '../store/useMockupStore';
 import type { MockupState, BgMode } from '../store/useMockupStore';
 import { PRESETS } from '../store/presets';
+import { XYPad } from './XYPad';
 
 /* ---- tiny store-bound primitives -------------------------------------- */
 
@@ -148,8 +149,16 @@ export function ControlPanel() {
       </Group>
 
       <Group title="Camera" id="camera" openIds={openIds} toggle={toggle}>
-        <Slider field="azimuth" label="Orbit" min={-180} max={180} step={1} />
-        <Slider field="polar" label="Rake (tilt)" min={8} max={88} step={1} />
+        <XYPad
+          label="Tilt — drag to orbit + rake"
+          xField="azimuth"
+          yField="polar"
+          xMin={-180}
+          xMax={180}
+          yMin={8}
+          yMax={88}
+          invertY
+        />
         <Slider field="roll" label="Roll" min={-45} max={45} step={0.5} />
         <Slider field="zoom" label="Zoom" min={0.2} max={10} step={0.01} />
         <Slider field="focalLength" label="Focal length (mm)" min={18} max={300} step={1} />
@@ -228,13 +237,18 @@ export function ControlPanel() {
         <Slider field="rimIntensity" label="Rim intensity" min={0} max={4} />
       </Group>
 
+      <Group title="Focus" id="focus" openIds={openIds} toggle={toggle}>
+        <Slider field="focusDistance" label="Position" min={0} max={1} />
+        <Slider field="focusSize" label="Size" min={0.05} max={1} />
+        <Slider field="focusFalloff" label="Falloff" min={0} max={1} />
+        <Slider field="focusAngle" label="Angle" min={-45} max={45} step={0.5} />
+        <Slider field="blur" label="Blur" min={0} max={1} />
+      </Group>
+
       <Group title="Post" id="post" openIds={openIds} toggle={toggle}>
-        <Slider field="exposure" label="Exposure" min={0.3} max={2} />
+        <Slider field="exposure" label="Exposure" min={0.2} max={3} />
         <Slider field="contrast" label="Contrast" min={0.6} max={1.6} />
-        <Slider field="focusDistance" label="Focus plane" min={0} max={1} />
-        <Slider field="aperture" label="Aperture (f)" min={0.8} max={11} step={0.1} />
-        <Slider field="bokehScale" label="Bokeh" min={0} max={12} step={0.1} />
-        <Slider field="bloom" label="Bloom" min={0} max={2} />
+        <Slider field="bloom" label="Bloom" min={0} max={3} />
         <Slider field="vignette" label="Vignette" min={0} max={1} />
         <Slider
           field="chromaticAberration"

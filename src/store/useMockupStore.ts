@@ -49,9 +49,12 @@ export type MockupState = {
   // --- Post (the DSLR layer) ---
   exposure: number;
   contrast: number;
-  focusDistance: number; // DOF focal plane (normalized 0..1)
-  aperture: number; // f-stop -> bokeh strength
-  bokehScale: number;
+  // Focus = tilt-shift band: position, size, falloff (feather), angle, blur.
+  focusDistance: number; // band position (0..1)
+  focusSize: number; // width of the sharp band (0..1)
+  focusFalloff: number; // edge softness (0..1)
+  focusAngle: number; // band rotation (deg)
+  blur: number; // out-of-focus blur strength (0..1)
   bloom: number;
   vignette: number;
   chromaticAberration: number;
@@ -121,9 +124,11 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   exposure: 1.0,
   contrast: 1.12,
   focusDistance: 0.5,
-  aperture: 2.8,
-  bokehScale: 5,
-  bloom: 0.5,
+  focusSize: 0.32,
+  focusFalloff: 0.45,
+  focusAngle: 0,
+  blur: 0.8,
+  bloom: 0.85,
   vignette: 0.42,
   chromaticAberration: 0.0009,
   grain: 0.08,

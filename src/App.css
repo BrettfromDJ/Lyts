@@ -299,6 +299,46 @@
 .export-btn.video.locked {
   opacity: 0.75;
 }
+.xypad {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.6 / 1;
+  background:
+    radial-gradient(120% 120% at 50% 0%, #20232c 0%, #14161d 70%);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  touch-action: none;
+  cursor: crosshair;
+  overflow: hidden;
+}
+.xypad-cross-h,
+.xypad-cross-v {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.06);
+}
+.xypad-cross-h {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+}
+.xypad-cross-v {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+}
+.xypad-handle {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
 .reset-view {
   width: 100%;
   margin-top: 2px;

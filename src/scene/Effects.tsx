@@ -1,75 +1,74 @@
 import { useEffect, useMemo } from 'react';
 import {
   EffectComposer,
-  DepthOfField,
+  TiltShift,
   Bloom,
   Vignette,
   ChromaticAberration,
   BrightnessContrast,
+  ToneMapping,
   SMAA,
 } from '@react-three/postprocessing';
+import { KernelSize, ToneMappingMode } from 'postprocessing';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useMockupStore } from '../store/useMockupStore';
-import { MAX_DIM } from '../lib/deviceDims';
+import { Exposure } from './ExposureEffect';
 import { Grain } from './GrainEffect';
 
+const KERNELS = [
+  KernelSize.VERY_SMALL,
+  KernelSize.SMALL,
+  KernelSize.MEDIUM,
+  KernelSize.LARGE,
+  KernelSize.VERY_LARGE,
+  KernelSize.HUGE,
+];
+
 /**
- * The DSLR layer (spec §5 Phase 2 + §6.8).
+ * The DSLR layer (spec §5 Phase 2 + §6.8). Pipeline order:
+ *   Exposure (linear multiply) -> TiltShift focus/blur -> Bloom (HDR)
+ *   -> ToneMapping (ACES) -> contrast / CA / vignette (LDR) -> Grain (last).
  *
- * Order matters: AA + DOF + Bloom first, colour/contrast next, grain LAST so it
- * sits in screen space on top of everything (static grain on a moving shot
- * looks like dirt on the lens — Phase 4 will re-seed it per frame).
+ * Tone-mapping is an explicit pass because the EffectComposer disables the
+ * renderer's tone-mapping; that's also why Exposure is its own pass.
  *
- * Tone mapping is done by the renderer (ACES, set on the <Canvas>, spec §4.1),
- * which RenderPass applies while drawing the scene — so we don't double it here.
- *
- * NOTE: these effect components are plain-function wrappers, so under React 19
- * NEVER pass them a `ref` — it would be treated as a prop and the wrapper
- * JSON.stringify's its props (crashes on three.js' circular graph). Use the
- * supported scalar props instead (e.g. Noise `opacity`).
- *
- * MSAA is disabled in favour of an SMAA pass: multisampled depth resolves
- * trip a "depth/stencil format not allowed for blit" path on macOS/ANGLE.
+ * Focus is a tilt-shift band: position (offset), size (focusArea), falloff
+ * (feather) and angle (rotation) — one Blur control replaces aperture+bokeh.
  */
 export function Effects() {
   const invalidate = useThree((s) => s.invalidate);
 
+  const exposure = useMockupStore((s) => s.exposure);
   const focusDistance = useMockupStore((s) => s.focusDistance);
-  const aperture = useMockupStore((s) => s.aperture);
-  const bokehScale = useMockupStore((s) => s.bokehScale);
+  const focusSize = useMockupStore((s) => s.focusSize);
+  const focusFalloff = useMockupStore((s) => s.focusFalloff);
+  const focusAngle = useMockupStore((s) => s.focusAngle);
+  const blur = useMockupStore((s) => s.blur);
   const bloom = useMockupStore((s) => s.bloom);
   const vignette = useMockupStore((s) => s.vignette);
   const chromaticAberration = useMockupStore((s) => s.chromaticAberration);
   const grain = useMockupStore((s) => s.grain);
   const contrast = useMockupStore((s) => s.contrast);
 
-  // lower f-stop => shallower DOF => more bokeh
-  const effectiveBokeh = bokehScale * (2.8 / Math.max(aperture, 0.7));
-
   const caOffset = useMemo(
     () => new THREE.Vector2(chromaticAberration, chromaticAberration),
     [chromaticAberration],
   );
 
-  // Focus ON the device (at the origin), regardless of camera distance, and
-  // let the "Focus plane" slider sweep the focal point across the iso tilt
-  // (front edge -> back edge) for the cinematic falloff. Aperture maps to how
-  // wide the sharp zone is (low f = shallow = more bokeh).
-  const focusTarget = useMemo<[number, number, number]>(
-    () => [0, 0, (focusDistance - 0.5) * MAX_DIM],
-    [focusDistance],
-  );
-  const focusRange = THREE.MathUtils.clamp(aperture * 0.045, 0.04, 0.5);
+  const kernel = KERNELS[Math.round(THREE.MathUtils.clamp(blur, 0, 1) * 5)];
 
   // frameloop="demand": make sure post-only param changes request a frame.
   useEffect(() => {
     invalidate();
   }, [
     invalidate,
+    exposure,
     focusDistance,
-    aperture,
-    effectiveBokeh,
+    focusSize,
+    focusFalloff,
+    focusAngle,
+    blur,
     bloom,
     vignette,
     chromaticAberration,
@@ -79,14 +78,18 @@ export function Effects() {
 
   return (
     <EffectComposer multisampling={0}>
+      <Exposure exposure={exposure} />
       <SMAA />
-      <DepthOfField target={focusTarget} focusRange={focusRange} bokehScale={effectiveBokeh} />
-      <Bloom
-        intensity={bloom}
-        luminanceThreshold={0.82}
-        luminanceSmoothing={0.3}
-        mipmapBlur
+      <TiltShift
+        offset={(focusDistance - 0.5) * 1.2}
+        rotation={THREE.MathUtils.degToRad(focusAngle)}
+        focusArea={focusSize}
+        feather={focusFalloff}
+        kernelSize={kernel}
+        resolutionScale={0.5}
       />
+      <Bloom intensity={bloom} luminanceThreshold={0.78} luminanceSmoothing={0.3} mipmapBlur />
+      <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       <BrightnessContrast brightness={0} contrast={contrast - 1} />
       <ChromaticAberration offset={caOffset} radialModulation={false} modulationOffset={0} />
       <Vignette darkness={vignette} offset={0.3} eskil={false} />

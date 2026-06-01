@@ -10,18 +10,6 @@ import { Lighting } from './Lighting';
 import { DeviceMesh } from './DeviceMesh';
 import { Effects } from './Effects';
 
-/** Keeps renderer exposure in sync with the store (ACES exposure, spec §4.1). */
-function ExposureSync() {
-  const gl = useThree((s) => s.gl);
-  const invalidate = useThree((s) => s.invalidate);
-  const exposure = useMockupStore((s) => s.exposure);
-  useEffect(() => {
-    gl.toneMappingExposure = exposure;
-    invalidate();
-  }, [gl, exposure, invalidate]);
-  return null;
-}
-
 /** Drives scene.background per bgMode. env-blur is handled inside <Lighting>. */
 function Background() {
   const scene = useThree((s) => s.scene);
@@ -175,7 +163,6 @@ export function Scene() {
     >
       <SceneCapture />
       <PointerCamera />
-      <ExposureSync />
       <Background />
       <CameraRig />
       <Animator />
