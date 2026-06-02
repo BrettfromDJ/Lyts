@@ -111,7 +111,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   azimuth: 6,
   polar: 73,
   zoom: 2.3,
-  focalLength: 42,
+  focalLength: 300,
   roll: -4,
   tiltX: 0,
   tiltZ: 0,
@@ -156,7 +156,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   focusFalloff: 0.4,
   focusAngle: 0,
   blur: 0.45,
-  bokeh: 0.4,
+  bokeh: 0,
 
   // CRT overlay
   crtEnabled: false,

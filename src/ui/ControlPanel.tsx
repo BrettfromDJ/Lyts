@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useMockupStore, DEFAULTS } from '../store/useMockupStore';
 import type { MockupState, BgMode, CrtBlend, CrtMode } from '../store/useMockupStore';
-import { PRESETS } from '../store/presets';
 
 /* ---- tiny store-bound primitives -------------------------------------- */
 
@@ -17,17 +16,21 @@ type BoolKey = {
   [K in keyof MockupState]: MockupState[K] extends boolean ? K : never;
 }[keyof MockupState];
 
-function Toggle({ field, label }: { field: BoolKey; label: string }) {
+function Switch({ field, label }: { field: BoolKey; label: string }) {
   const value = useMockupStore((s) => s[field]) as boolean;
   const set = useMockupStore((s) => s.set);
   return (
     <label className="ctl ctl-toggle">
       <span className="ctl-label">{label}</span>
-      <input
-        type="checkbox"
-        checked={value}
-        onChange={(e) => set({ [field]: e.target.checked } as Partial<MockupState>)}
-      />
+      <button
+        type="button"
+        role="switch"
+        aria-checked={value}
+        className={`switch ${value ? 'on' : ''}`}
+        onClick={() => set({ [field]: !value } as Partial<MockupState>)}
+      >
+        <span className="switch-knob" />
+      </button>
     </label>
   );
 }
@@ -105,35 +108,19 @@ function Group({
   );
 }
 
-const HDRI_PRESETS = [
-  'studio',
-  'apartment',
-  'city',
-  'sunset',
-  'dawn',
-  'night',
-  'warehouse',
-  'lobby',
-];
-
 const BG_MODES: BgMode[] = ['solid', 'gradient', 'env-blur', 'transparent'];
 
 /* ---- the panel -------------------------------------------------------- */
 
 export function ControlPanel() {
   const set = useMockupStore((s) => s.set);
-  const loadPreset = useMockupStore((s) => s.loadPreset);
-  const isPro = useMockupStore((s) => s.isPro);
-  const hdriPreset = useMockupStore((s) => s.hdriPreset);
   const bgMode = useMockupStore((s) => s.bgMode);
-  const animate = useMockupStore((s) => s.animate);
-  const motion = useMockupStore((s) => s.motion);
   const crtEnabled = useMockupStore((s) => s.crtEnabled);
   const crtBlend = useMockupStore((s) => s.crtBlend);
   const crtMode = useMockupStore((s) => s.crtMode);
 
   const [openIds, setOpen] = useState<Set<string>>(
-    new Set(['presets', 'camera', 'post']),
+    new Set(['camera', 'focus', 'post']),
   );
   const toggle = (id: string) =>
     setOpen((prev) => {
@@ -150,29 +137,9 @@ export function ControlPanel() {
         <div className="brand-sub">cinematic mockups</div>
       </header>
 
-      <Group title="Presets" id="presets" openIds={openIds} toggle={toggle}>
-        <div className="presets">
-          {PRESETS.map((p) => {
-            const locked = p.pro && !isPro;
-            return (
-              <button
-                key={p.name}
-                className={`preset ${locked ? 'locked' : ''}`}
-                title={p.hint}
-                onClick={() => !locked && loadPreset(p.data)}
-              >
-                {p.name}
-                {p.pro && <span className="pro-tag">PRO</span>}
-              </button>
-            );
-          })}
-        </div>
-      </Group>
-
       <Group title="Camera" id="camera" openIds={openIds} toggle={toggle}>
         <Slider field="roll" label="Roll" min={-45} max={45} step={0.5} />
         <Slider field="zoom" label="Zoom" min={0.2} max={10} step={0.01} />
-        <Slider field="focalLength" label="Focal length (mm)" min={18} max={300} step={1} />
         <button
           className="ghost reset-view"
           onClick={() =>
@@ -181,7 +148,6 @@ export function ControlPanel() {
               polar: DEFAULTS.polar,
               zoom: DEFAULTS.zoom,
               roll: DEFAULTS.roll,
-              focalLength: DEFAULTS.focalLength,
               targetX: 0,
               targetY: 0,
               targetZ: 0,
@@ -195,57 +161,8 @@ export function ControlPanel() {
         </p>
       </Group>
 
-      <Group title="Animate" id="animate" openIds={openIds} toggle={toggle}>
-        <button
-          className={`play-btn ${animate ? 'playing' : ''}`}
-          onClick={() => set({ animate: !animate })}
-        >
-          {animate ? '◼ Stop preview' : '▶ Preview motion'}
-        </button>
-        <label className="ctl">
-          <span className="ctl-label">Motion</span>
-          <select
-            value={motion}
-            onChange={(e) =>
-              set({ motion: e.target.value as 'drift' | 'orbit' | 'push' | 'parallax' })
-            }
-          >
-            <option value="drift">Drift</option>
-            <option value="parallax">Parallax</option>
-            <option value="orbit">Orbit sway</option>
-            <option value="push">Push in/out</option>
-          </select>
-        </label>
-        <Slider field="motionAmount" label="Amount" min={0} max={3} step={0.05} />
-        <Slider field="motionSpeed" label="Speed (loops)" min={0.25} max={4} step={0.25} />
-        <Slider field="videoDuration" label="Duration (s)" min={2} max={20} step={0.5} />
-      </Group>
-
       <Group title="Screen" id="screen" openIds={openIds} toggle={toggle}>
         <Slider field="screenBrightness" label="Brightness" min={0} max={2} />
-      </Group>
-
-      <Group title="Lighting" id="lighting" openIds={openIds} toggle={toggle}>
-        <label className="ctl">
-          <span className="ctl-label">Environment</span>
-          <select
-            value={hdriPreset}
-            onChange={(e) => set({ hdriPreset: e.target.value })}
-          >
-            {HDRI_PRESETS.map((h) => (
-              <option key={h} value={h}>
-                {h}
-              </option>
-            ))}
-          </select>
-        </label>
-        <Slider field="hdriRotation" label="Env rotation" min={0} max={360} step={1} />
-        <ColorRow field="keyColor" label="Key" />
-        <Slider field="keyIntensity" label="Key intensity" min={0} max={4} />
-        <ColorRow field="fillColor" label="Fill" />
-        <Slider field="fillIntensity" label="Fill intensity" min={0} max={2} />
-        <ColorRow field="rimColor" label="Rim" />
-        <Slider field="rimIntensity" label="Rim intensity" min={0} max={4} />
       </Group>
 
       <Group title="Focus" id="focus" openIds={openIds} toggle={toggle}>
@@ -254,7 +171,6 @@ export function ControlPanel() {
         <Slider field="focusFalloff" label="Falloff" min={0} max={1} />
         <Slider field="focusAngle" label="Angle" min={-45} max={45} step={0.5} />
         <Slider field="blur" label="Blur" min={0} max={1} />
-        <Slider field="bokeh" label="Bokeh" min={0} max={1} />
       </Group>
 
       <Group title="Post" id="post" openIds={openIds} toggle={toggle}>
@@ -273,7 +189,7 @@ export function ControlPanel() {
       </Group>
 
       <Group title="CRT" id="crt" openIds={openIds} toggle={toggle}>
-        <Toggle field="crtEnabled" label="Enable CRT" />
+        <Switch field="crtEnabled" label="Enable CRT" />
         {crtEnabled && (
           <>
             <label className="ctl">

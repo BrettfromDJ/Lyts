@@ -65,7 +65,7 @@ export function Effects() {
       <Exposure exposure={exposure} />
       <SMAA />
       <Focus />
-      <Bloom intensity={bloom} luminanceThreshold={0.78} luminanceSmoothing={0.3} mipmapBlur />
+      <Bloom intensity={bloom} luminanceThreshold={0.42} luminanceSmoothing={0.45} mipmapBlur />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       <BrightnessContrast brightness={0} contrast={contrast - 1} />
       <ChromaticAberration offset={caOffset} radialModulation={false} modulationOffset={0} />

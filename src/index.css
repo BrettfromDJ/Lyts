@@ -1,13 +1,24 @@
 :root {
-  --bg: #0a0b0f;
+  --bg: #06070a;
   --panel: #14161d;
   --panel-2: #1b1e27;
   --line: #272b36;
-  --text: #e7e9ef;
-  --text-dim: #9aa0ad;
+  --text: #f2f3f7;
+  --text-dim: #a3a8b6;
   --accent: #6f8cff;
   --accent-2: #b07cff;
-  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* liquid glass material */
+  --glass: rgba(26, 28, 38, 0.5);
+  --glass-soft: rgba(255, 255, 255, 0.06);
+  --glass-soft-2: rgba(255, 255, 255, 0.1);
+  --glass-brd: rgba(255, 255, 255, 0.12);
+  --glass-hi: rgba(255, 255, 255, 0.18);
+  --glass-blur: saturate(170%) blur(28px);
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Inter, system-ui,
+    'Segoe UI', Roboto, sans-serif;
   color-scheme: dark;
 }
 
@@ -31,9 +42,19 @@ button {
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 9px;
+  height: 9px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2a2e3a;
+  background: rgba(255, 255, 255, 0.14);
   border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.24);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
 }
