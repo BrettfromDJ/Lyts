@@ -79,18 +79,21 @@ export function ExportSection() {
     const s = useMockupStore.getState();
     setRecording(0);
     // keep rendering continuously (animated effects) WITHOUT moving the camera
-    s.set({ recording: true });
+    s.set({ recording: true, recordElapsed: 0 });
     await new Promise((r) => setTimeout(r, 200));
     try {
       await exportVideo(gl, {
         duration: s.videoDuration,
         fps: s.videoFps,
-        onProgress: (f) => setRecording(Math.round(f * 100)),
+        onProgress: (f) => {
+          setRecording(Math.round(f * 100));
+          useMockupStore.getState().set({ recordElapsed: f * s.videoDuration });
+        },
       });
     } catch (e) {
       alert(e instanceof Error ? e.message : 'Video export failed.');
     } finally {
-      s.set({ recording: false });
+      s.set({ recording: false, recordElapsed: 0 });
       setRecording(null);
     }
   }
