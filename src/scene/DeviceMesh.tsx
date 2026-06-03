@@ -90,7 +90,9 @@ if(uCrtEnabled > 0.5){
     styled += smoothstep(0.0,0.06,p)*(1.0-smoothstep(0.06,0.18,p))*uCrtRoll*0.22;
   }
   if(uCrtFlicker > 0.001){
-    styled *= 1.0 - uCrtFlicker*0.12*fract(sin(floor(uCrtTime*60.0))*43758.5453);
+    float fa = fract(sin(floor(uCrtTime*24.0))*43758.5453);
+    float fb = fract(sin(floor(uCrtTime*70.0)+1.7)*12543.13);
+    styled *= 1.0 - uCrtFlicker*(0.12 + 0.5*fa*fb);
   }
   if(uCrtCurve > 0.001){
     vec2 d = cuv-0.5;

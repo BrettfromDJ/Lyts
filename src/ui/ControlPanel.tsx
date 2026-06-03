@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMockupStore, DEFAULTS } from '../store/useMockupStore';
 import type { MockupState, BgMode, CrtBlend, CrtMode } from '../store/useMockupStore';
+import { ExportSection } from './ExportSection';
 
 /* ---- tiny store-bound primitives -------------------------------------- */
 
@@ -16,21 +17,40 @@ type BoolKey = {
   [K in keyof MockupState]: MockupState[K] extends boolean ? K : never;
 }[keyof MockupState];
 
+function SwitchButton({ on, onClick }: { on: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      className={`switch ${on ? 'on' : ''}`}
+      onClick={onClick}
+    >
+      <span className="switch-knob" />
+    </button>
+  );
+}
+
 function Switch({ field, label }: { field: BoolKey; label: string }) {
   const value = useMockupStore((s) => s[field]) as boolean;
   const set = useMockupStore((s) => s.set);
   return (
     <label className="ctl ctl-toggle">
       <span className="ctl-label">{label}</span>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={value}
-        className={`switch ${value ? 'on' : ''}`}
-        onClick={() => set({ [field]: !value } as Partial<MockupState>)}
-      >
-        <span className="switch-knob" />
-      </button>
+      <SwitchButton on={value} onClick={() => set({ [field]: !value } as Partial<MockupState>)} />
+    </label>
+  );
+}
+
+/** Switch bound to a numeric field — toggles between `onValue` and 0. */
+function ValueSwitch({ field, label, onValue }: { field: NumKey; label: string; onValue: number }) {
+  const value = useMockupStore((s) => s[field]) as number;
+  const set = useMockupStore((s) => s.set);
+  const on = value > 1e-6;
+  return (
+    <label className="ctl ctl-toggle">
+      <span className="ctl-label">{label}</span>
+      <SwitchButton on={on} onClick={() => set({ [field]: on ? 0 : onValue } as Partial<MockupState>)} />
     </label>
   );
 }
@@ -118,6 +138,7 @@ export function ControlPanel() {
   const crtEnabled = useMockupStore((s) => s.crtEnabled);
   const crtBlend = useMockupStore((s) => s.crtBlend);
   const crtMode = useMockupStore((s) => s.crtMode);
+  const crtRoll = useMockupStore((s) => s.crtRoll);
 
   const [openIds, setOpen] = useState<Set<string>>(
     new Set(['camera', 'focus', 'post']),
@@ -178,13 +199,7 @@ export function ControlPanel() {
         <Slider field="contrast" label="Contrast" min={0.6} max={1.6} />
         <Slider field="bloom" label="Bloom" min={0} max={3} />
         <Slider field="vignette" label="Vignette" min={0} max={1} />
-        <Slider
-          field="chromaticAberration"
-          label="Chromatic ab."
-          min={0}
-          max={0.004}
-          step={0.0001}
-        />
+        <ValueSwitch field="chromaticAberration" label="Chromatic aberration" onValue={0.001} />
         <Slider field="grain" label="Grain" min={0} max={0.4} step={0.005} />
       </Group>
 
@@ -218,18 +233,9 @@ export function ControlPanel() {
               </select>
             </label>
             <Slider field="crtOpacity" label="Opacity" min={0} max={1} />
-            <Slider field="crtScanline" label="Scanlines" min={0} max={1} />
-            <Slider field="crtScanCount" label="Pixel density" min={80} max={1200} step={10} />
-            <Slider
-              field="crtGrille"
-              label={crtMode === 'mono' ? 'Tint amount' : 'RGB mask'}
-              min={0}
-              max={1}
-            />
             <Slider field="crtFlicker" label="Flicker" min={0} max={1} />
-            <Slider field="crtRoll" label="Roll bar" min={0} max={1} />
-            <Slider field="crtSpeed" label="Speed" min={0} max={3} />
-            <Slider field="crtCurve" label="Tube vignette" min={0} max={1} />
+            <ValueSwitch field="crtRoll" label="Roll bar" onValue={0.5} />
+            {crtRoll > 0 && <Slider field="crtSpeed" label="Speed" min={0} max={3} />}
           </>
         )}
       </Group>
@@ -251,6 +257,8 @@ export function ControlPanel() {
         <ColorRow field="bgColorA" label="Color A" />
         <ColorRow field="bgColorB" label="Color B" />
       </Group>
+
+      <ExportSection />
     </aside>
   );
 }

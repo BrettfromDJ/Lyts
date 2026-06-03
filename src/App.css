@@ -362,57 +362,52 @@
   border-color: var(--glass-hi);
 }
 
-/* ---- export bar (floating glass) ---- */
-.exportbar {
-  position: absolute;
-  bottom: 18px;
-  left: calc(50% + 164px);
-  transform: translateX(-50%);
-  z-index: 6;
-  max-width: calc(100vw - 380px);
-  background: var(--glass);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-brd);
-  border-radius: 20px;
-  padding: 13px 15px;
-  box-shadow: var(--shadow), inset 0 1px 0 var(--glass-hi);
+/* ---- export section (in panel) ---- */
+.quality-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  min-width: 520px;
+  gap: 6px;
 }
-.export-row {
+.quality-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  background: var(--glass-soft);
+  border: 1px solid var(--glass-brd);
+  color: var(--text);
+  border-radius: 11px;
+  padding: 10px 13px;
+  font-size: 12.5px;
+  font-weight: 600;
+  transition: background 0.15s, border-color 0.15s;
 }
-.export-row.sub,
-.export-row.pro-row {
-  border-top: 1px solid var(--glass-soft);
-  padding-top: 10px;
+.quality-row:hover {
+  background: var(--glass-soft-2);
+}
+.quality-row.active {
+  border-color: var(--accent);
+  background: rgba(111, 140, 255, 0.16);
+}
+.quality-row em {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
 }
 .seg {
   display: flex;
-  align-items: center;
   gap: 3px;
   background: rgba(0, 0, 0, 0.25);
   border-radius: 11px;
   padding: 3px;
 }
-.seg-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-dim);
-  margin: 0 6px 0 2px;
-}
 .seg-btn {
+  flex: 1;
   background: none;
   border: none;
   color: var(--text-dim);
   border-radius: 8px;
-  padding: 6px 11px;
+  padding: 7px 11px;
   font-size: 12px;
   font-weight: 600;
   transition: background 0.15s, color 0.15s;
@@ -422,17 +417,14 @@
   background: var(--glass-soft-2);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 var(--glass-hi);
 }
-.seg-btn.locked {
-  opacity: 0.55;
-}
 .export-btn {
-  margin-left: auto;
+  width: 100%;
   background: linear-gradient(180deg, var(--accent), #5d78ef);
   border: none;
   color: #fff;
   font-weight: 600;
-  border-radius: 11px;
-  padding: 9px 22px;
+  border-radius: 12px;
+  padding: 11px;
   font-size: 13px;
   box-shadow: 0 4px 14px rgba(111, 140, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
   transition: filter 0.15s;
@@ -443,53 +435,20 @@
 .export-btn:disabled {
   opacity: 0.6;
 }
-.export-btn.video {
-  background: var(--glass-soft);
-  border: 1px solid var(--glass-brd);
-  box-shadow: none;
-  margin-left: 8px;
+
+/* ---- export crop frame on the stage ---- */
+.aspect-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
 }
-.export-btn.video:hover {
-  border-color: var(--glass-hi);
-  filter: none;
-}
-.export-btn.video.locked {
-  opacity: 0.8;
-}
-.hint-pill {
-  font-size: 11px;
-  color: var(--text-dim);
-  background: var(--glass-soft);
-  border-radius: 99px;
-  padding: 4px 11px;
-}
-.pro-row {
-  font-size: 12px;
-  color: var(--text-dim);
-}
-.pro-badge {
-  font-size: 10px;
-  font-weight: 800;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  color: #fff;
-  padding: 3px 8px;
-  border-radius: 7px;
-}
-.pro-note {
-  flex: 1;
-}
-.license-input {
-  flex: 1;
-  background: var(--glass-soft);
-  border: 1px solid var(--glass-brd);
-  color: var(--text);
-  border-radius: 10px;
-  padding: 8px 11px;
-  font-size: 12px;
-}
-.license-input:focus {
-  outline: none;
-  border-color: var(--accent);
+.aspect-frame-box {
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.3);
 }
 
 /* ---- shortcuts overlay ---- */
@@ -571,11 +530,5 @@
   }
   .replace-btn {
     top: 14px;
-  }
-  .exportbar {
-    left: 50%;
-    min-width: unset;
-    width: calc(100% - 24px);
-    max-width: none;
   }
 }

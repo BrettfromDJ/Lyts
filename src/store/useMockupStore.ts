@@ -13,6 +13,7 @@ import type * as THREE from 'three';
 export type BgMode = 'solid' | 'gradient' | 'env-blur' | 'transparent';
 export type CrtBlend = 'normal' | 'screen' | 'overlay' | 'multiply' | 'softlight' | 'add';
 export type CrtMode = 'aperture' | 'shadow' | 'slot' | 'lcd' | 'mono';
+export type ExportAspect = 'original' | '1:1' | '4:5' | '16:9' | '9:16';
 
 export type MockupState = {
   // --- Camera ---
@@ -97,7 +98,10 @@ export type MockupState = {
   screenshot: THREE.Texture | null;
   screenAspect: number; // width / height of the uploaded screenshot
 
-  // --- Pro / license gate (Phase 5 — config layer, defined now) ---
+  // --- Export framing ---
+  exportAspect: ExportAspect; // crop aspect for export (+ on-canvas frame)
+
+  // --- Pro / license gate (all features enabled for everyone) ---
   isPro: boolean;
 
   // --- actions ---
@@ -145,10 +149,10 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   // Post
   exposure: 1.0,
   contrast: 1.12,
-  bloom: 0.85,
+  bloom: 0.2,
   vignette: 0.42,
-  chromaticAberration: 0.0009,
-  grain: 0.08,
+  chromaticAberration: 0.001,
+  grain: 0.15,
 
   // Focus
   focusDistance: 0.5,
@@ -163,14 +167,14 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   crtMode: 'aperture',
   crtTint: '#3bff7a',
   crtBlend: 'normal',
-  crtOpacity: 0.85,
-  crtScanline: 0.5,
+  crtOpacity: 0.3,
+  crtScanline: 0.45,
   crtScanCount: 480,
-  crtGrille: 0.25,
+  crtGrille: 0.3,
   crtFlicker: 0.25,
-  crtRoll: 0.15,
+  crtRoll: 0,
   crtSpeed: 0.6,
-  crtCurve: 0.15,
+  crtCurve: 0,
 
   // Background
   bgMode: 'gradient',
@@ -188,9 +192,10 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   // Asset
   screenshot: null,
   screenAspect: 16 / 10,
+  exportAspect: 'original',
 
   // Pro
-  isPro: false,
+  isPro: true,
 };
 
 export const useMockupStore = create<MockupState>((set) => ({
@@ -208,6 +213,7 @@ export const SERIALIZABLE_KEYS = (
     k !== 'screenAspect' &&
     k !== 'isPro' &&
     k !== 'animate' &&
+    k !== 'exportAspect' &&
     k !== 'targetX' &&
     k !== 'targetY' &&
     k !== 'targetZ',
