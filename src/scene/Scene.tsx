@@ -17,10 +17,14 @@ function Background() {
   const bgMode = useMockupStore((s) => s.bgMode);
   const bgColorA = useMockupStore((s) => s.bgColorA);
   const bgColorB = useMockupStore((s) => s.bgColorB);
+  const hasShot = useMockupStore((s) => s.screenshot !== null);
 
   useEffect(() => {
     let toDispose: THREE.Texture | null = null;
-    if (bgMode === 'solid') {
+    if (!hasShot) {
+      // empty state: nothing in the background (transparent -> black stage)
+      scene.background = null;
+    } else if (bgMode === 'solid') {
       scene.background = new THREE.Color(bgColorA);
     } else if (bgMode === 'gradient') {
       const tex = makeGradientTexture(bgColorA, bgColorB);
@@ -34,7 +38,7 @@ function Background() {
     return () => {
       toDispose?.dispose();
     };
-  }, [scene, bgMode, bgColorA, bgColorB, invalidate]);
+  }, [scene, bgMode, bgColorA, bgColorB, hasShot, invalidate]);
 
   return null;
 }

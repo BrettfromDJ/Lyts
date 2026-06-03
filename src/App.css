@@ -15,7 +15,7 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: radial-gradient(130% 130% at 72% 18%, #181b24 0%, #06070b 70%);
+  background: #000000;
 }
 .stage canvas {
   display: block;
@@ -53,10 +53,7 @@
   font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.03em;
-  background: linear-gradient(100deg, #fff 0%, var(--accent) 60%, var(--accent-2) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: #fff;
 }
 .brand-sub {
   font-size: 10px;
@@ -212,7 +209,7 @@
   flex: none;
 }
 .switch.on {
-  background: linear-gradient(180deg, var(--accent), #5572f0);
+  background: #ffffff;
 }
 .switch-knob {
   position: absolute;
@@ -223,10 +220,11 @@
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
-  transition: transform 0.22s cubic-bezier(0.3, 1.4, 0.5, 1);
+  transition: transform 0.22s cubic-bezier(0.3, 1.4, 0.5, 1), background 0.22s;
 }
 .switch.on .switch-knob {
   transform: translateX(18px);
+  background: #0c0c0e;
 }
 
 .ctl-hint {
@@ -312,7 +310,7 @@
 }
 .dropzone.dragging .dropzone-inner {
   border-color: var(--accent);
-  background: rgba(111, 140, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
 }
 .dropzone-inner {
   border: 1.5px dashed var(--glass-brd);
@@ -327,7 +325,7 @@
 }
 .dropzone-icon {
   font-size: 40px;
-  color: var(--accent);
+  color: #fff;
 }
 .dropzone-inner h2 {
   margin: 10px 0 4px;
@@ -385,8 +383,8 @@
   background: var(--glass-soft-2);
 }
 .quality-row.active {
-  border-color: var(--accent);
-  background: rgba(111, 140, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.14);
 }
 .quality-row em {
   font-style: normal;
@@ -419,18 +417,18 @@
 }
 .export-btn {
   width: 100%;
-  background: linear-gradient(180deg, var(--accent), #5d78ef);
+  background: #ffffff;
   border: none;
-  color: #fff;
+  color: #0a0a0c;
   font-weight: 600;
   border-radius: 12px;
   padding: 11px;
   font-size: 13px;
-  box-shadow: 0 4px 14px rgba(111, 140, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   transition: filter 0.15s;
 }
 .export-btn:hover {
-  filter: brightness(1.08);
+  filter: brightness(0.92);
 }
 .export-btn:disabled {
   opacity: 0.6;
@@ -455,6 +453,32 @@
   border: 1px dashed rgba(255, 255, 255, 0.4);
   border-radius: 4px;
   box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.3);
+}
+.frame-toggle {
+  position: absolute;
+  bottom: 18px;
+  right: 18px;
+  z-index: 7;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  color: var(--text-dim);
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-brd);
+  border-radius: 12px;
+  box-shadow: var(--shadow), inset 0 1px 0 var(--glass-hi);
+}
+.frame-toggle:hover {
+  color: var(--text);
+  border-color: var(--glass-hi);
+}
+.frame-toggle.on {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
 }
 
 /* ---- shortcuts overlay ---- */

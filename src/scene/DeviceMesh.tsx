@@ -27,7 +27,8 @@ const CRT_MODE_ID: Record<CrtMode, number> = {
 // floating in screen space. Gated by uCrtEnabled so toggling needs no recompile.
 const CRT_HEAD = /* glsl */ `
 uniform float uCrtEnabled, uCrtOpacity, uCrtBlend, uCrtScanline, uCrtScanCount,
-  uCrtGrille, uCrtFlicker, uCrtRoll, uCrtSpeed, uCrtCurve, uCrtTime, uCrtAspect, uCrtMode;
+  uCrtGrille, uCrtFlicker, uCrtRoll, uCrtSpeed, uCrtCurve, uCrtTime, uCrtAspect, uCrtMode,
+  uCornerRadius;
 uniform vec3 uCrtTint;
 vec3 lytsCrtBlend(vec3 b, vec3 o, int m){
   if(m==1) return 1.0-(1.0-b)*(1.0-o);                 // screen
@@ -70,6 +71,16 @@ vec3 lytsCrtMask(vec2 cuv, float density, float aspect, int mode){
 
 const CRT_BODY = /* glsl */ `
 #ifdef USE_EMISSIVEMAP
+{
+  // rounded corners (rounded-box SDF in aspect-corrected UV space)
+  float r = min(uCornerRadius, min(0.5 * uCrtAspect, 0.5));
+  if(r > 0.0005){
+    vec2 cq = (vEmissiveMapUv - 0.5); cq.x *= uCrtAspect;
+    vec2 q2 = abs(cq) - vec2(0.5 * uCrtAspect, 0.5) + r;
+    float sd = min(max(q2.x, q2.y), 0.0) + length(max(q2, 0.0)) - r;
+    if(sd > 0.0) discard;
+  }
+}
 if(uCrtEnabled > 0.5){
   vec3 base = totalEmissiveRadiance;
   vec3 styled = base;
@@ -137,6 +148,7 @@ export function DeviceMesh() {
   const crtCurve = useMockupStore((s) => s.crtCurve);
   const crtMode = useMockupStore((s) => s.crtMode);
   const crtTint = useMockupStore((s) => s.crtTint);
+  const cornerRadius = useMockupStore((s) => s.cornerRadius);
 
   const { w, h } = useMemo(() => surfaceMetrics(screenAspect), [screenAspect]);
 
@@ -162,6 +174,7 @@ export function DeviceMesh() {
       uCrtAspect: { value: s.screenAspect || 1.6 },
       uCrtMode: { value: CRT_MODE_ID[s.crtMode] },
       uCrtTint: { value: new THREE.Color(s.crtTint) },
+      uCornerRadius: { value: s.cornerRadius },
     };
     Object.assign(shader.uniforms, u);
     crtUniforms.current = shader.uniforms;
@@ -201,10 +214,11 @@ export function DeviceMesh() {
     u.uCrtAspect.value = screenAspect || 1.6;
     if (u.uCrtMode) u.uCrtMode.value = CRT_MODE_ID[crtMode];
     if (u.uCrtTint) (u.uCrtTint.value as THREE.Color).set(crtTint);
+    if (u.uCornerRadius) u.uCornerRadius.value = cornerRadius;
     invalidate();
   }, [
     crtEnabled, crtBlend, crtOpacity, crtScanline, crtScanCount, crtGrille,
-    crtFlicker, crtRoll, crtSpeed, crtCurve, crtMode, crtTint, screenAspect, invalidate,
+    crtFlicker, crtRoll, crtSpeed, crtCurve, crtMode, crtTint, cornerRadius, screenAspect, invalidate,
   ]);
 
   // Advance CRT time while enabled (Scene runs the frameloop continuously).
@@ -212,6 +226,9 @@ export function DeviceMesh() {
     const u = crtUniforms.current;
     if (crtEnabled && u.uCrtTime) u.uCrtTime.value = performance.now() * 0.001;
   });
+
+  // Empty state (no upload): show nothing — keep the stage pure black.
+  if (!screenshot) return null;
 
   return (
     <group

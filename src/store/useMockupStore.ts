@@ -101,6 +101,7 @@ export type MockupState = {
   // --- Export framing ---
   exportAspect: ExportAspect; // crop aspect for export (+ on-canvas frame)
   recording: boolean; // transient: video capture in progress (forces frameloop)
+  showCaptureFrame: boolean; // transient: show the export crop guide on canvas
 
   // --- Pro / license gate (all features enabled for everyone) ---
   isPro: boolean;
@@ -113,11 +114,11 @@ export type MockupState = {
 export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   // Camera — diagonal iso-ish tilt, long lens for minimal convergence.
   // `zoom` is magnification on the auto-fit (1 = whole surface fits; higher = closer).
-  azimuth: 6,
-  polar: 73,
-  zoom: 2.3,
+  azimuth: 20,
+  polar: 60,
+  zoom: 1.65,
   focalLength: 300,
-  roll: -4,
+  roll: -17,
   tiltX: 0,
   tiltZ: 0,
   targetX: 0,
@@ -125,7 +126,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   targetZ: 0,
 
   // Geometry
-  cornerRadius: 0.12,
+  cornerRadius: 0.05,
   bevel: 0.02,
   thickness: 0.18,
 
@@ -140,7 +141,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   hdriRotation: 0,
   keyColor: '#ffffff',
   keyIntensity: 1.1,
-  fillColor: '#aac4ff',
+  fillColor: '#cfd2d6',
   fillIntensity: 0.5,
   rimColor: '#ffffff',
   rimIntensity: 1.6,
@@ -195,6 +196,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   screenAspect: 16 / 10,
   exportAspect: 'original',
   recording: false,
+  showCaptureFrame: false,
 
   // Pro
   isPro: true,
@@ -216,6 +218,7 @@ export const SERIALIZABLE_KEYS = (
     k !== 'isPro' &&
     k !== 'animate' &&
     k !== 'recording' &&
+    k !== 'showCaptureFrame' &&
     k !== 'exportAspect' &&
     k !== 'targetX' &&
     k !== 'targetY' &&

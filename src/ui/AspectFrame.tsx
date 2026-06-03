@@ -24,6 +24,8 @@ function aspectValue(a: string, screenAspect: number): number {
 export function AspectFrame() {
   const exportAspect = useMockupStore((s) => s.exportAspect);
   const screenAspect = useMockupStore((s) => s.screenAspect);
+  const show = useMockupStore((s) => s.showCaptureFrame);
+  const set = useMockupStore((s) => s.set);
   const av = aspectValue(exportAspect, screenAspect);
 
   const ref = useRef<HTMLDivElement>(null);
@@ -48,8 +50,19 @@ export function AspectFrame() {
   }, [av]);
 
   return (
-    <div className="aspect-frame" ref={ref} aria-hidden>
-      <div className="aspect-frame-box" style={{ width: box.w, height: box.h }} />
-    </div>
+    <>
+      {show && (
+        <div className="aspect-frame" ref={ref} aria-hidden>
+          <div className="aspect-frame-box" style={{ width: box.w, height: box.h }} />
+        </div>
+      )}
+      <button
+        className={`frame-toggle ${show ? 'on' : ''}`}
+        onClick={() => set({ showCaptureFrame: !show })}
+        title={show ? 'Hide capture region' : 'Show capture region'}
+      >
+        ⛶
+      </button>
+    </>
   );
 }

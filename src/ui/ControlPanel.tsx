@@ -184,6 +184,7 @@ export function ControlPanel() {
 
       <Group title="Screen" id="screen" openIds={openIds} toggle={toggle}>
         <Slider field="screenBrightness" label="Brightness" min={0} max={2} />
+        <Slider field="cornerRadius" label="Corner radius" min={0} max={0.5} step={0.005} />
       </Group>
 
       <Group title="Focus" id="focus" openIds={openIds} toggle={toggle}>
