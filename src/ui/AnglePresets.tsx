@@ -9,20 +9,20 @@ import { useMockupStore } from '../store/useMockupStore';
 type Angle = { az: number; polar: number; roll: number };
 
 const PRESETS: Angle[] = [
-  // row 1 — moderate 3/4 tilts
+  // row 1 — gentle 3/4 tilts
   { az: 0, polar: 40, roll: -12 },
   { az: 0, polar: 40, roll: 12 },
-  { az: 26, polar: 42, roll: 0 },
-  { az: -26, polar: 42, roll: 0 },
-  { az: 10, polar: 46, roll: -18 },
-  { az: -10, polar: 46, roll: 18 },
-  // row 2 — stronger / edge-on
-  { az: 0, polar: 60, roll: -12 },
-  { az: 0, polar: 60, roll: 12 },
-  { az: 32, polar: 66, roll: 0 },
-  { az: 0, polar: 85, roll: 0 },
-  { az: 0, polar: 85, roll: 22 },
-  { az: -28, polar: 78, roll: 28 },
+  { az: 24, polar: 42, roll: 0 },
+  { az: -24, polar: 42, roll: 0 },
+  { az: 10, polar: 44, roll: -16 },
+  { az: -10, polar: 44, roll: 16 },
+  // row 2 — a touch stronger
+  { az: 0, polar: 55, roll: -10 },
+  { az: 0, polar: 55, roll: 10 },
+  { az: 28, polar: 58, roll: 0 },
+  { az: -28, polar: 58, roll: 0 },
+  { az: 12, polar: 64, roll: -14 },
+  { az: -12, polar: 64, roll: 14 },
 ];
 
 const rad = (d: number) => (d * Math.PI) / 180;
@@ -59,15 +59,27 @@ function project(p: Angle): P[] {
   ];
   const cr = Math.cos(rad(p.roll));
   const sr = Math.sin(rad(p.roll));
+  // perspective projection so a tilted square reads as a square (converging
+  // edges) rather than a flat parallelogram.
+  const D = 3.6; // camera distance
+  const f = 2.9; // focal length
   const pts = corners.map((c) => {
     const vx = dot(c, x);
     const vy = dot(c, y);
-    return [vx * cr - vy * sr, vx * sr + vy * cr] as P;
+    const vz = dot(c, z); // toward camera
+    const w = f / Math.max(D - vz, 0.2);
+    const px = vx * w;
+    const py = vy * w;
+    return [px * cr - py * sr, px * sr + py * cr] as P;
   });
 
-  const max = Math.max(...pts.flatMap((q) => [Math.abs(q[0]), Math.abs(q[1])])) || 1;
+  // centre on the projected centroid, then scale to fit
+  const cx = (pts[0][0] + pts[1][0] + pts[2][0] + pts[3][0]) / 4;
+  const cy = (pts[0][1] + pts[1][1] + pts[2][1] + pts[3][1]) / 4;
+  const c0 = pts.map(([qx, qy]) => [qx - cx, qy - cy] as P);
+  const max = Math.max(...c0.flatMap((q) => [Math.abs(q[0]), Math.abs(q[1])])) || 1;
   const s = 33 / max;
-  return pts.map(([qx, qy]) => [50 + qx * s, 50 - qy * s] as P);
+  return c0.map(([qx, qy]) => [50 + qx * s, 50 - qy * s] as P);
 }
 
 const lerp = (a: P, b: P, t: number): P => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
