@@ -29,7 +29,7 @@ const PRESETS: Angle[] = [
   { az: 0, polar: 25, roll: 0 }, // top tilted away (perspective)
   { az: 0, polar: 32, roll: -12 },
   { az: 20, polar: 34, roll: 0 },
-  { az: -20, polar: 34, roll: 0 },
+  { az: 38, polar: 50, roll: 4 }, // right side toward camera (perspective turn)
   { az: 0, polar: 38, roll: 0 },
 ];
 
