@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMockupStore, DEFAULTS } from '../store/useMockupStore';
 import type { MockupState, BgMode, CrtBlend, CrtMode } from '../store/useMockupStore';
 import { ExportSection } from './ExportSection';
+import { AnglePresets } from './AnglePresets';
 
 /* ---- tiny store-bound primitives -------------------------------------- */
 
@@ -141,7 +142,7 @@ export function ControlPanel() {
   const crtRoll = useMockupStore((s) => s.crtRoll);
 
   const [openIds, setOpen] = useState<Set<string>>(
-    new Set(['camera', 'focus', 'post']),
+    new Set(['angle', 'camera', 'focus', 'post']),
   );
   const toggle = (id: string) =>
     setOpen((prev) => {
@@ -157,6 +158,10 @@ export function ControlPanel() {
         <div className="brand">Lyts</div>
         <div className="brand-sub">cinematic mockups</div>
       </header>
+
+      <Group title="Angle" id="angle" openIds={openIds} toggle={toggle}>
+        <AnglePresets />
+      </Group>
 
       <Group title="Camera" id="camera" openIds={openIds} toggle={toggle}>
         <Slider field="roll" label="Roll" min={-45} max={45} step={0.5} />

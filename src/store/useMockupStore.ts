@@ -116,7 +116,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   // `zoom` is magnification on the auto-fit (1 = whole surface fits; higher = closer).
   azimuth: 20,
   polar: 60,
-  zoom: 1.65,
+  zoom: 3.0,
   focalLength: 300,
   roll: -17,
   tiltX: 0,
@@ -126,7 +126,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   targetZ: 0,
 
   // Geometry
-  cornerRadius: 0.05,
+  cornerRadius: 0.015,
   bevel: 0.02,
   thickness: 0.18,
 
