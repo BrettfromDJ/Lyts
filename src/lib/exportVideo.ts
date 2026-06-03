@@ -58,7 +58,9 @@ export async function exportVideo(gl: THREE.WebGLRenderer, opts: VideoOptions): 
     recorder.onstop = () => resolve();
   });
 
-  recorder.start(250); // timeslice so data flushes periodically (avoids empty files)
+  // No timeslice: record one continuous segment and flush on stop. A timeslice
+  // forces periodic chunk boundaries that can show up as pauses on playback.
+  recorder.start();
 
   const start = performance.now();
   await new Promise<void>((resolve) => {
@@ -71,6 +73,7 @@ export async function exportVideo(gl: THREE.WebGLRenderer, opts: VideoOptions): 
     requestAnimationFrame(tick);
   });
 
+  if (recorder.state === 'recording') recorder.requestData();
   recorder.stop();
   await stopped;
 
