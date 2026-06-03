@@ -102,6 +102,7 @@ export type MockupState = {
   exportAspect: ExportAspect; // crop aspect for export (+ on-canvas frame)
   recording: boolean; // transient: video capture in progress (forces frameloop)
   recordElapsed: number; // transient: seconds elapsed in the current capture
+  recordDpr: number; // transient: canvas DPR override while recording (0 = off)
   showCaptureFrame: boolean; // transient: show the export crop guide on canvas
 
   // --- Pro / license gate (all features enabled for everyone) ---
@@ -198,6 +199,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   exportAspect: 'original',
   recording: false,
   recordElapsed: 0,
+  recordDpr: 0,
   showCaptureFrame: false,
 
   // Pro
@@ -221,6 +223,7 @@ export const SERIALIZABLE_KEYS = (
     k !== 'animate' &&
     k !== 'recording' &&
     k !== 'recordElapsed' &&
+    k !== 'recordDpr' &&
     k !== 'showCaptureFrame' &&
     k !== 'exportAspect' &&
     k !== 'targetX' &&

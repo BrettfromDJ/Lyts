@@ -77,10 +77,16 @@ export function ExportSection() {
     const { gl } = sceneRef;
     if (!gl) return;
     const s = useMockupStore.getState();
+    // Apply the Quality tier as a canvas DPR bump (R3F resizes/restores the
+    // canvas cleanly). Target the tier width across the current canvas width.
+    const tier = QUALITY.find((q) => q.key === quality)!;
+    const cssW = gl.domElement.clientWidth || window.innerWidth;
+    const targetDpr = Math.max(1, Math.min(4, tier.w / cssW));
+
     setRecording(0);
-    // keep rendering continuously (animated effects) WITHOUT moving the camera
-    s.set({ recording: true, recordElapsed: 0 });
-    await new Promise((r) => setTimeout(r, 200));
+    // bump DPR + keep rendering continuously WITHOUT moving the camera
+    s.set({ recording: true, recordElapsed: 0, recordDpr: targetDpr });
+    await new Promise((r) => setTimeout(r, 350));
     try {
       await exportVideo(gl, {
         duration: s.videoDuration,
@@ -93,7 +99,7 @@ export function ExportSection() {
     } catch (e) {
       alert(e instanceof Error ? e.message : 'Video export failed.');
     } finally {
-      s.set({ recording: false, recordElapsed: 0 });
+      s.set({ recording: false, recordElapsed: 0, recordDpr: 0 });
       setRecording(null);
     }
   }

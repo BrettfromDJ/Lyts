@@ -5,6 +5,10 @@ import type * as THREE from 'three';
  * where the browser supports it in MediaRecorder, falling back to WebM. The
  * caller keeps the scene rendering continuously (frameloop "always") for the
  * duration so the stream has fresh frames; the camera is NOT animated.
+ *
+ * Quality (resolution) is applied by the caller bumping the canvas DPR before
+ * recording (R3F resizes the canvas), so this just records whatever the canvas
+ * currently is.
  */
 export type VideoOptions = {
   duration: number; // seconds
@@ -53,7 +57,6 @@ export async function exportVideo(gl: THREE.WebGLRenderer, opts: VideoOptions): 
   recorder.ondataavailable = (e) => {
     if (e.data && e.data.size > 0) chunks.push(e.data);
   };
-
   const stopped = new Promise<void>((resolve) => {
     recorder.onstop = () => resolve();
   });
