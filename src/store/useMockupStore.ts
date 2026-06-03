@@ -100,6 +100,7 @@ export type MockupState = {
 
   // --- Export framing ---
   exportAspect: ExportAspect; // crop aspect for export (+ on-canvas frame)
+  recording: boolean; // transient: video capture in progress (forces frameloop)
 
   // --- Pro / license gate (all features enabled for everyone) ---
   isPro: boolean;
@@ -163,7 +164,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   bokeh: 0,
 
   // CRT overlay
-  crtEnabled: false,
+  crtEnabled: true,
   crtMode: 'aperture',
   crtTint: '#3bff7a',
   crtBlend: 'normal',
@@ -193,6 +194,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   screenshot: null,
   screenAspect: 16 / 10,
   exportAspect: 'original',
+  recording: false,
 
   // Pro
   isPro: true,
@@ -213,6 +215,7 @@ export const SERIALIZABLE_KEYS = (
     k !== 'screenAspect' &&
     k !== 'isPro' &&
     k !== 'animate' &&
+    k !== 'recording' &&
     k !== 'exportAspect' &&
     k !== 'targetX' &&
     k !== 'targetY' &&

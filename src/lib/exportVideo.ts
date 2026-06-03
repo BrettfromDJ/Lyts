@@ -1,11 +1,10 @@
 import type * as THREE from 'three';
 
 /**
- * Record the live canvas to WebM via captureStream + MediaRecorder (spec §5
- * Phase 4, "easy path"). The caller is responsible for putting the scene into
- * an animating state (frameloop "always") for the duration of the capture so
- * the stream has fresh frames. True alpha video in-browser is unreliable, so
- * this records opaque WebM — a known limitation.
+ * Record the live canvas via captureStream + MediaRecorder. Prefers MP4 (H.264)
+ * where the browser supports it in MediaRecorder, falling back to WebM. The
+ * caller keeps the scene rendering continuously (frameloop "always") for the
+ * duration so the stream has fresh frames; the camera is NOT animated.
  */
 export type VideoOptions = {
   duration: number; // seconds
@@ -14,15 +13,19 @@ export type VideoOptions = {
   onProgress?: (fraction: number) => void;
 };
 
+const CANDIDATES = [
+  'video/mp4;codecs=avc1.640029',
+  'video/mp4;codecs=avc1.42E01E',
+  'video/mp4',
+  'video/webm;codecs=vp9',
+  'video/webm;codecs=vp8',
+  'video/webm',
+];
+
 function pickMime(): string | null {
-  const candidates = [
-    'video/webm;codecs=vp9',
-    'video/webm;codecs=vp8',
-    'video/webm',
-  ];
   const MR = (window as unknown as { MediaRecorder?: typeof MediaRecorder }).MediaRecorder;
   if (!MR || typeof MR.isTypeSupported !== 'function') return null;
-  return candidates.find((m) => MR.isTypeSupported(m)) ?? null;
+  return CANDIDATES.find((m) => MR.isTypeSupported(m)) ?? null;
 }
 
 export function videoSupported(): boolean {
@@ -35,6 +38,7 @@ export async function exportVideo(gl: THREE.WebGLRenderer, opts: VideoOptions): 
   const { duration, fps } = opts;
   const mime = pickMime();
   if (!mime) throw new Error('Video recording is not supported in this browser.');
+  const ext = mime.startsWith('video/mp4') ? 'mp4' : 'webm';
 
   const canvas = gl.domElement as HTMLCanvasElement & {
     captureStream(fps?: number): MediaStream;
@@ -54,7 +58,7 @@ export async function exportVideo(gl: THREE.WebGLRenderer, opts: VideoOptions): 
     recorder.onstop = () => resolve();
   });
 
-  recorder.start();
+  recorder.start(250); // timeslice so data flushes periodically (avoids empty files)
 
   const start = performance.now();
   await new Promise<void>((resolve) => {
@@ -74,7 +78,7 @@ export async function exportVideo(gl: THREE.WebGLRenderer, opts: VideoOptions): 
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = opts.filename ?? `mockup-${Date.now()}.webm`;
+  a.download = opts.filename ?? `mockup-${Date.now()}.${ext}`;
   document.body.appendChild(a);
   a.click();
   a.remove();

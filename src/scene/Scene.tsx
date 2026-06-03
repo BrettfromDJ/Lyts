@@ -167,6 +167,7 @@ export function Scene() {
   // "always" while animating/recording or running the CRT, "demand" otherwise.
   const animate = useMockupStore((s) => s.animate);
   const crtEnabled = useMockupStore((s) => s.crtEnabled);
+  const recording = useMockupStore((s) => s.recording);
   return (
     <Canvas
       gl={{
@@ -176,7 +177,7 @@ export function Scene() {
         toneMapping: THREE.ACESFilmicToneMapping,
         toneMappingExposure: useMockupStore.getState().exposure,
       }}
-      frameloop={animate || crtEnabled ? 'always' : 'demand'}
+      frameloop={animate || crtEnabled || recording ? 'always' : 'demand'}
       dpr={[1, 2]}
       shadows
       camera={{ fov: 28, position: [4, 4, 6] }}

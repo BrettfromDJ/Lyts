@@ -42,6 +42,8 @@ export function ExportSection() {
   const bgMode = useMockupStore((s) => s.bgMode);
   const exportAspect = useMockupStore((s) => s.exportAspect);
   const screenAspect = useMockupStore((s) => s.screenAspect);
+  const videoFps = useMockupStore((s) => s.videoFps);
+  const videoDuration = useMockupStore((s) => s.videoDuration);
 
   const [open, setOpen] = useState(false);
   const [quality, setQuality] = useState<QualityKey>('standard');
@@ -76,7 +78,8 @@ export function ExportSection() {
     if (!gl) return;
     const s = useMockupStore.getState();
     setRecording(0);
-    s.set({ animate: true });
+    // keep rendering continuously (animated effects) WITHOUT moving the camera
+    s.set({ recording: true });
     await new Promise((r) => setTimeout(r, 200));
     try {
       await exportVideo(gl, {
@@ -87,7 +90,7 @@ export function ExportSection() {
     } catch (e) {
       alert(e instanceof Error ? e.message : 'Video export failed.');
     } finally {
-      s.set({ animate: false });
+      s.set({ recording: false });
       setRecording(null);
     }
   }
@@ -151,15 +154,73 @@ export function ExportSection() {
           <button className="export-btn" onClick={onExport} disabled={busy || recording !== null}>
             {busy ? 'Rendering…' : 'Export image'}
           </button>
+
+          <div className="export-divider" />
+
+          <label className="ctl">
+            <span className="ctl-label">Frame rate</span>
+            <div className="seg">
+              {[24, 30, 50, 60].map((f) => (
+                <button
+                  key={f}
+                  className={`seg-btn ${videoFps === f ? 'active' : ''}`}
+                  onClick={() => set({ videoFps: f })}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          </label>
+          <Slider
+            label="Duration (s)"
+            value={videoDuration}
+            min={1}
+            max={30}
+            step={0.5}
+            onChange={(v) => set({ videoDuration: v })}
+          />
           <button
             className="ghost"
             onClick={onExportVideo}
             disabled={recording !== null || !videoSupported()}
           >
-            {recording !== null ? `Recording ${recording}%` : 'Export video (WebM)'}
+            {recording !== null ? `Recording ${recording}%` : 'Export video'}
           </button>
         </div>
       )}
     </section>
+  );
+}
+
+function Slider({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <label className="ctl">
+      <span className="ctl-label">
+        {label}
+        <em>{value.toFixed(step < 1 ? 1 : 0)}</em>
+      </span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+      />
+    </label>
   );
 }

@@ -436,6 +436,12 @@
   opacity: 0.6;
 }
 
+.export-divider {
+  height: 1px;
+  background: var(--glass-soft);
+  margin: 2px 0;
+}
+
 /* ---- export crop frame on the stage ---- */
 .aspect-frame {
   position: absolute;
