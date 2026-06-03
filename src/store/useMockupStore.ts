@@ -172,7 +172,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   crtScanline: 0.45,
   crtScanCount: 480,
   crtGrille: 0.3,
-  crtFlicker: 0.25,
+  crtFlicker: 0.3,
   crtRoll: 0,
   crtSpeed: 0.6,
   crtCurve: 0,
