@@ -49,25 +49,37 @@ export async function exportStill(
     const cx = (src.width - cw) / 2;
     const cy = (src.height - ch) / 2;
 
-    const out = document.createElement('canvas');
-    out.width = outW;
-    out.height = outH;
-    const ctx = out.getContext('2d')!;
-
-    if (!transparent || format === 'jpg') {
-      ctx.fillStyle = '#0b0d12';
-      ctx.fillRect(0, 0, outW, outH);
-    }
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(src, cx, cy, cw, ch, 0, 0, outW, outH);
-
-    if (watermark) drawWatermark(ctx, outW, outH);
-
     const mime = format === 'png' ? 'image/png' : 'image/jpeg';
     const quality = format === 'jpg' ? 0.95 : undefined;
-    const blob: Blob | null = await new Promise((res) => out.toBlob(res, mime, quality));
-    if (!blob) throw new Error('Export failed: empty blob');
+
+    // Encode at the requested size; if the browser's canvas limit makes it fail
+    // (a null or 0-byte blob — common in Safari for large/tall canvases),
+    // downscale and retry so the user always gets the largest size that works.
+    let w = outW;
+    let h = outH;
+    let blob: Blob | null = null;
+    for (let attempt = 0; attempt < 6; attempt++) {
+      const out = document.createElement('canvas');
+      out.width = w;
+      out.height = h;
+      const ctx = out.getContext('2d');
+      if (ctx) {
+        if (!transparent || format === 'jpg') {
+          ctx.fillStyle = '#0b0d12';
+          ctx.fillRect(0, 0, w, h);
+        }
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(src, cx, cy, cw, ch, 0, 0, w, h);
+        if (watermark) drawWatermark(ctx, w, h);
+        blob = await new Promise<Blob | null>((res) => out.toBlob(res, mime, quality));
+      }
+      if (blob && blob.size > 0) break;
+      blob = null;
+      w = Math.round(w * 0.72);
+      h = Math.round(h * 0.72);
+    }
+    if (!blob) throw new Error('Export failed: the image was too large for this browser.');
 
     triggerDownload(blob, opts.filename ?? `mockup-${Date.now()}.${format}`);
   } finally {
