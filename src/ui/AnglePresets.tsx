@@ -24,6 +24,13 @@ const PRESETS: Angle[] = [
   { az: -28, polar: 58, roll: 0 },
   { az: 12, polar: 64, roll: -14 },
   { az: -12, polar: 64, roll: 14 },
+  // row 3 — front / gentle perspective
+  { az: 0, polar: 1.5, roll: 0 }, // straight on
+  { az: 0, polar: 25, roll: 0 }, // top tilted away (perspective)
+  { az: 0, polar: 32, roll: -12 },
+  { az: 20, polar: 34, roll: 0 },
+  { az: -20, polar: 34, roll: 0 },
+  { az: 0, polar: 38, roll: 0 },
 ];
 
 type P = [number, number];
