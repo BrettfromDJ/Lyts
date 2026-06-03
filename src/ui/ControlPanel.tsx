@@ -241,7 +241,12 @@ export function ControlPanel() {
             <Slider field="crtOpacity" label="Opacity" min={0} max={1} />
             <Slider field="crtFlicker" label="Flicker" min={0} max={1} />
             <ValueSwitch field="crtRoll" label="Roll bar" onValue={0.5} />
-            {crtRoll > 0 && <Slider field="crtSpeed" label="Speed" min={0} max={3} />}
+            {crtRoll > 0 && (
+              <>
+                <Slider field="crtRoll" label="Roll bar opacity" min={0.05} max={1} />
+                <Slider field="crtSpeed" label="Speed" min={0} max={3} />
+              </>
+            )}
           </>
         )}
       </Group>
