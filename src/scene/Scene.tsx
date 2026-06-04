@@ -174,7 +174,7 @@ export function Scene() {
   const recording = useMockupStore((s) => s.recording);
   const recordDpr = useMockupStore((s) => s.recordDpr);
   // animated film effects also need a live frameloop
-  const filmAnim = useMockupStore((s) => s.vhs + s.lightLeaks + s.datamosh > 0.001);
+  const filmAnim = useMockupStore((s) => s.lightLeaks + s.datamosh > 0.001);
   return (
     <Canvas
       gl={{

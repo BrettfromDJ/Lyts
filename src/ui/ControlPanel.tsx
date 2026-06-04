@@ -213,9 +213,7 @@ export function ControlPanel() {
       <Group title="Film" id="film" icon="film" openIds={openIds} toggle={toggle}>
         <Slider field="halation" label="Halation" min={0} max={1} />
         <Slider field="lightLeaks" label="Light leaks" min={0} max={1} />
-        <Slider field="scanGlow" label="Scanline glow" min={0} max={1} />
         <Slider field="lensDust" label="Lens dust" min={0} max={1} />
-        <Slider field="vhs" label="VHS tracking" min={0} max={1} />
         <Slider field="datamosh" label="Datamosh" min={0} max={1} />
       </Group>
 

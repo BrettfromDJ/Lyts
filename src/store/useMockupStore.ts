@@ -81,13 +81,11 @@ export type MockupState = {
   crtSpeed: number;
   crtCurve: number;
 
-  // --- Film / analog (moody-filmic suite) ---
+  // --- Film / analog (moody-filmic suite, applied on the screen surface) ---
   halation: number; // warm glow bleeding from highlights
   lightLeaks: number; // animated colored leaks
-  scanGlow: number; // glowing screen-space scanlines
   lensDust: number; // dust specks / motes
-  vhs: number; // VHS tracking jitter + chroma bleed
-  datamosh: number; // digital glitch / block displacement
+  datamosh: number; // block displacement / chroma tear
 
   // --- Background ---
   bgMode: BgMode;
@@ -191,9 +189,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   // Film / analog
   halation: 0,
   lightLeaks: 0,
-  scanGlow: 0,
   lensDust: 0,
-  vhs: 0,
   datamosh: 0,
 
   // Background

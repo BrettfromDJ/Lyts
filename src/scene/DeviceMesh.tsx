@@ -28,8 +28,15 @@ const CRT_MODE_ID: Record<CrtMode, number> = {
 const CRT_HEAD = /* glsl */ `
 uniform float uCrtEnabled, uCrtOpacity, uCrtBlend, uCrtScanline, uCrtScanCount,
   uCrtGrille, uCrtFlicker, uCrtRoll, uCrtSpeed, uCrtCurve, uCrtTime, uCrtAspect, uCrtMode,
-  uCornerRadius;
+  uCornerRadius, uHalation, uLeaks, uDust, uDatamosh;
 uniform vec3 uCrtTint;
+float lytsHash(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float lytsNoise(vec2 p){
+  vec2 i = floor(p), f = fract(p);
+  float a = lytsHash(i), b = lytsHash(i + vec2(1,0)), c = lytsHash(i + vec2(0,1)), d = lytsHash(i + vec2(1,1));
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(a,b,u.x), mix(c,d,u.x), u.y);
+}
 vec3 lytsCrtBlend(vec3 b, vec3 o, int m){
   if(m==1) return 1.0-(1.0-b)*(1.0-o);                 // screen
   if(m==2) return b+o;                                 // add
@@ -80,37 +87,87 @@ const CRT_BODY = /* glsl */ `
     float sd = min(max(q2.x, q2.y), 0.0) + length(max(q2, 0.0)) - r;
     if(sd > 0.0) discard;
   }
-}
-if(uCrtEnabled > 0.5){
-  vec3 base = totalEmissiveRadiance;
+
+  // ---- Film effects, in the screen's UV space ----
+  vec2 fuv = vEmissiveMapUv;
+  // datamosh: per-row block horizontal displacement (smooth ramp)
+  if(uDatamosh > 0.001){
+    float by = floor(fuv.y * 28.0);
+    float seed = floor(uCrtTime * 7.0);
+    float dmAct = step(1.0 - uDatamosh, lytsHash(vec2(by * 0.13, seed)));
+    fuv.x += dmAct * (lytsHash(vec2(by, seed + 5.0)) - 0.5) * uDatamosh * 0.28;
+  }
+  vec3 base = texture2D(emissiveMap, fuv).rgb * emissive;
+  if(uDatamosh > 0.001){
+    float by = floor(fuv.y * 28.0);
+    float seed = floor(uCrtTime * 7.0);
+    if(step(1.0 - uDatamosh, lytsHash(vec2(by * 0.13, seed))) > 0.5){
+      float o = uDatamosh * 0.012;
+      base.r = texture2D(emissiveMap, fuv + vec2(o, 0.0)).r * emissive.r;
+      base.b = texture2D(emissiveMap, fuv - vec2(o, 0.0)).b * emissive.b;
+    }
+  }
   vec3 styled = base;
-  vec2 cuv = vEmissiveMapUv;
-  if(uCrtMode > 3.5){ // monochrome — tinted phosphor
-    float l = dot(styled, vec3(0.299, 0.587, 0.114));
-    styled = mix(styled, l * uCrtTint, uCrtGrille);
-  } else if(uCrtGrille > 0.001){
-    vec3 mask = lytsCrtMask(cuv, uCrtScanCount, uCrtAspect, int(uCrtMode + 0.5));
-    styled *= mix(vec3(1.0), mask, uCrtGrille);
+
+  // halation — warm glow bleeding from the screen's highlights
+  if(uHalation > 0.001){
+    float acc = 0.0;
+    for(int i = 0; i < 12; i++){
+      float a = (float(i) + 0.5) / 12.0 * 6.28318;
+      vec2 dir = vec2(cos(a) / uCrtAspect, sin(a));
+      vec3 s = texture2D(emissiveMap, fuv + dir * 0.012).rgb * emissive;
+      acc += max(max(max(s.r, s.g), s.b) - 0.6, 0.0);
+    }
+    styled += vec3(1.0, 0.36, 0.12) * (acc / 12.0) * uHalation * 3.0;
   }
-  if(uCrtScanline > 0.001){
-    float sl = 0.5 + 0.5*sin(cuv.y*uCrtScanCount*6.2831 - uCrtTime*uCrtSpeed*6.2831);
-    styled *= 1.0 - uCrtScanline*(1.0-sl);
+  // light leaks — animated warm corner + drifting band (screen blend)
+  if(uLeaks > 0.001){
+    float t = uCrtTime * 0.18;
+    float corner = smoothstep(1.05, 0.25, distance(fuv, vec2(0.96, 0.04)));
+    float band = smoothstep(0.45, 0.0, abs((fuv.x + fuv.y * 0.5) - (0.5 + 0.5 * sin(t))));
+    vec3 leak = vec3(1.0, 0.5, 0.22) * corner + vec3(1.0, 0.28, 0.45) * band * 0.6;
+    styled = 1.0 - (1.0 - styled) * (1.0 - leak * uLeaks * 0.75);
   }
-  if(uCrtRoll > 0.001){
-    float p = fract(cuv.y + uCrtTime*uCrtSpeed*0.15);
-    styled += smoothstep(0.0,0.06,p)*(1.0-smoothstep(0.06,0.18,p))*uCrtRoll*0.22;
+  // lens dust — specks + dark motes
+  if(uDust > 0.001){
+    vec2 dp = fuv * vec2(uCrtAspect, 1.0);
+    styled += smoothstep(0.92, 1.0, lytsNoise(dp * 190.0)) * uDust * 0.55;
+    styled *= 1.0 - smoothstep(0.95, 1.0, lytsNoise(dp * 95.0 + 31.0)) * uDust * 0.45;
   }
-  if(uCrtFlicker > 0.001){
-    float fa = fract(sin(floor(uCrtTime*24.0))*43758.5453);
-    float fb = fract(sin(floor(uCrtTime*70.0)+1.7)*12543.13);
-    styled *= 1.0 - uCrtFlicker*(0.12 + 0.5*fa*fb);
+  totalEmissiveRadiance = styled;
+
+  // ---- CRT, on top of the film look ----
+  if(uCrtEnabled > 0.5){
+    vec3 cbase = totalEmissiveRadiance;
+    vec3 cstyled = cbase;
+    vec2 cuv = vEmissiveMapUv;
+    if(uCrtMode > 3.5){
+      float l = dot(cstyled, vec3(0.299, 0.587, 0.114));
+      cstyled = mix(cstyled, l * uCrtTint, uCrtGrille);
+    } else if(uCrtGrille > 0.001){
+      vec3 mask = lytsCrtMask(cuv, uCrtScanCount, uCrtAspect, int(uCrtMode + 0.5));
+      cstyled *= mix(vec3(1.0), mask, uCrtGrille);
+    }
+    if(uCrtScanline > 0.001){
+      float sl = 0.5 + 0.5*sin(cuv.y*uCrtScanCount*6.2831 - uCrtTime*uCrtSpeed*6.2831);
+      cstyled *= 1.0 - uCrtScanline*(1.0-sl);
+    }
+    if(uCrtRoll > 0.001){
+      float p = fract(cuv.y + uCrtTime*uCrtSpeed*0.15);
+      cstyled += smoothstep(0.0,0.06,p)*(1.0-smoothstep(0.06,0.18,p))*uCrtRoll*0.22;
+    }
+    if(uCrtFlicker > 0.001){
+      float fa = fract(sin(floor(uCrtTime*24.0))*43758.5453);
+      float fb = fract(sin(floor(uCrtTime*70.0)+1.7)*12543.13);
+      cstyled *= 1.0 - uCrtFlicker*(0.12 + 0.5*fa*fb);
+    }
+    if(uCrtCurve > 0.001){
+      vec2 d = cuv-0.5;
+      cstyled *= clamp(1.0 - dot(d,d)*uCrtCurve*1.7, 0.0, 1.0);
+    }
+    vec3 res = lytsCrtBlend(cbase, cstyled, int(uCrtBlend + 0.5));
+    totalEmissiveRadiance = mix(cbase, res, uCrtOpacity);
   }
-  if(uCrtCurve > 0.001){
-    vec2 d = cuv-0.5;
-    styled *= clamp(1.0 - dot(d,d)*uCrtCurve*1.7, 0.0, 1.0);
-  }
-  vec3 res = lytsCrtBlend(base, styled, int(uCrtBlend + 0.5));
-  totalEmissiveRadiance = mix(base, res, uCrtOpacity);
 }
 #endif
 `;
@@ -149,6 +206,10 @@ export function DeviceMesh() {
   const crtMode = useMockupStore((s) => s.crtMode);
   const crtTint = useMockupStore((s) => s.crtTint);
   const cornerRadius = useMockupStore((s) => s.cornerRadius);
+  const halation = useMockupStore((s) => s.halation);
+  const lightLeaks = useMockupStore((s) => s.lightLeaks);
+  const lensDust = useMockupStore((s) => s.lensDust);
+  const datamosh = useMockupStore((s) => s.datamosh);
 
   const { w, h } = useMemo(() => surfaceMetrics(screenAspect), [screenAspect]);
 
@@ -175,6 +236,10 @@ export function DeviceMesh() {
       uCrtMode: { value: CRT_MODE_ID[s.crtMode] },
       uCrtTint: { value: new THREE.Color(s.crtTint) },
       uCornerRadius: { value: s.cornerRadius },
+      uHalation: { value: s.halation },
+      uLeaks: { value: s.lightLeaks },
+      uDust: { value: s.lensDust },
+      uDatamosh: { value: s.datamosh },
     };
     Object.assign(shader.uniforms, u);
     crtUniforms.current = shader.uniforms;
@@ -215,16 +280,22 @@ export function DeviceMesh() {
     if (u.uCrtMode) u.uCrtMode.value = CRT_MODE_ID[crtMode];
     if (u.uCrtTint) (u.uCrtTint.value as THREE.Color).set(crtTint);
     if (u.uCornerRadius) u.uCornerRadius.value = cornerRadius;
+    if (u.uHalation) u.uHalation.value = halation;
+    if (u.uLeaks) u.uLeaks.value = lightLeaks;
+    if (u.uDust) u.uDust.value = lensDust;
+    if (u.uDatamosh) u.uDatamosh.value = datamosh;
     invalidate();
   }, [
     crtEnabled, crtBlend, crtOpacity, crtScanline, crtScanCount, crtGrille,
-    crtFlicker, crtRoll, crtSpeed, crtCurve, crtMode, crtTint, cornerRadius, screenAspect, invalidate,
+    crtFlicker, crtRoll, crtSpeed, crtCurve, crtMode, crtTint, cornerRadius,
+    halation, lightLeaks, lensDust, datamosh, screenAspect, invalidate,
   ]);
 
-  // Advance CRT time while enabled (Scene runs the frameloop continuously).
+  // Advance surface time while CRT or an animated film effect is on.
+  const animated = crtEnabled || lightLeaks > 0 || datamosh > 0;
   useFrame(() => {
     const u = crtUniforms.current;
-    if (crtEnabled && u.uCrtTime) u.uCrtTime.value = performance.now() * 0.001;
+    if (animated && u.uCrtTime) u.uCrtTime.value = performance.now() * 0.001;
   });
 
   // Empty state (no upload): show nothing — keep the stage pure black.
