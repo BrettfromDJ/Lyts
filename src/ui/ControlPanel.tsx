@@ -130,12 +130,27 @@ function Group({
 }
 
 const BG_MODES: BgMode[] = ['solid', 'gradient', 'env-blur', 'transparent'];
+const ENV_PRESETS = [
+  'studio',
+  'apartment',
+  'city',
+  'lobby',
+  'warehouse',
+  'sunset',
+  'dawn',
+  'night',
+  'forest',
+  'park',
+];
 
 /* ---- the panel -------------------------------------------------------- */
 
 export function ControlPanel() {
   const set = useMockupStore((s) => s.set);
   const bgMode = useMockupStore((s) => s.bgMode);
+  const grounding = useMockupStore((s) => s.grounding);
+  const hdriPreset = useMockupStore((s) => s.hdriPreset);
+  const envBackground = useMockupStore((s) => s.envBackground);
   const crtEnabled = useMockupStore((s) => s.crtEnabled);
   const crtBlend = useMockupStore((s) => s.crtBlend);
   const crtMode = useMockupStore((s) => s.crtMode);
@@ -190,6 +205,29 @@ export function ControlPanel() {
       <Group title="Screen" id="screen" openIds={openIds} toggle={toggle}>
         <Slider field="screenBrightness" label="Brightness" min={0} max={2} />
         <Slider field="cornerRadius" label="Corner radius" min={0} max={0.5} step={0.005} />
+      </Group>
+
+      <Group title="Environment" id="environment" openIds={openIds} toggle={toggle}>
+        <Switch field="grounding" label="Ground in a scene" />
+        {grounding && (
+          <>
+            <label className="ctl">
+              <span className="ctl-label">HDRI</span>
+              <select value={hdriPreset} onChange={(e) => set({ hdriPreset: e.target.value })}>
+                {ENV_PRESETS.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Slider field="envIntensity" label="Light intensity" min={0} max={3} />
+            <Switch field="envBackground" label="Show backdrop" />
+            {envBackground && <Slider field="envBlur" label="Backdrop blur" min={0} max={1} />}
+            <Slider field="floorReflection" label="Floor reflection" min={0} max={1} />
+            <Slider field="groundShadow" label="Contact shadow" min={0} max={1} />
+          </>
+        )}
       </Group>
 
       <Group title="Focus" id="focus" openIds={openIds} toggle={toggle}>

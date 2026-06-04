@@ -1,21 +1,19 @@
-import { Environment, Lightformer } from '@react-three/drei';
+import { Suspense } from 'react';
+import { Environment, Lightformer, ContactShadows, MeshReflectorMaterial } from '@react-three/drei';
 import { useMockupStore } from '../store/useMockupStore';
+import { surfaceMetrics } from '../lib/deviceDims';
+import { EnvBoundary } from './EnvBoundary';
 import * as THREE from 'three';
 
 /**
- * Procedural studio environment built from Lightformers — no network HDRI
- * fetch, so reflections work fully offline (custom .hdr upload is the Phase 5
- * Pro feature). The Environment drives reflections in the body + glass (the
- * single biggest realism lever, spec §4.4); the discrete key/fill/rim lights
- * drive direct shading and the contact shadow.
+ * Lighting / environment. Two modes:
+ *  - default: a procedural studio built from Lightformers (offline, fast).
+ *  - grounding: a real HDRI (drei preset) drives image-based lighting and an
+ *    optional blurred backdrop, with a soft contact shadow and a reflective
+ *    floor so the mockup looks photographed in a real space.
  */
 
-type Mood = {
-  envIntensity: number;
-  // tint applied to the soft lightformers that show up as reflections
-  former: string;
-  formerBack: string;
-};
+type Mood = { envIntensity: number; former: string; formerBack: string };
 
 const MOODS: Record<string, Mood> = {
   studio: { envIntensity: 1.0, former: '#ffffff', formerBack: '#cdd6e6' },
@@ -28,21 +26,77 @@ const MOODS: Record<string, Mood> = {
   lobby: { envIntensity: 1.0, former: '#fff0dd', formerBack: '#d8c7ad' },
 };
 
+const FLOOR_Y = -0.02;
+
 export function Lighting() {
   const hdriPreset = useMockupStore((s) => s.hdriPreset);
   const hdriRotation = useMockupStore((s) => s.hdriRotation);
   const bgMode = useMockupStore((s) => s.bgMode);
 
-  const keyColor = useMockupStore((s) => s.keyColor);
-  const keyIntensity = useMockupStore((s) => s.keyIntensity);
-  const fillColor = useMockupStore((s) => s.fillColor);
-  const fillIntensity = useMockupStore((s) => s.fillIntensity);
-  const rimColor = useMockupStore((s) => s.rimColor);
-  const rimIntensity = useMockupStore((s) => s.rimIntensity);
+  const grounding = useMockupStore((s) => s.grounding);
+  const envIntensity = useMockupStore((s) => s.envIntensity);
+  const envBackground = useMockupStore((s) => s.envBackground);
+  const envBlur = useMockupStore((s) => s.envBlur);
+  const floorReflection = useMockupStore((s) => s.floorReflection);
+  const groundShadow = useMockupStore((s) => s.groundShadow);
+  const screenAspect = useMockupStore((s) => s.screenAspect);
 
-  const mood = MOODS[hdriPreset] ?? MOODS.studio;
   const rot: [number, number, number] = [0, THREE.MathUtils.degToRad(hdriRotation), 0];
 
+  if (grounding) {
+    const { radius } = surfaceMetrics(screenAspect);
+    const span = Math.max(radius * 4, 6);
+    return (
+      <>
+        <EnvBoundary>
+          <Suspense fallback={null}>
+            <Environment
+              preset={hdriPreset as never}
+              environmentIntensity={envIntensity}
+              environmentRotation={rot}
+              background={envBackground}
+              backgroundBlurriness={envBlur}
+              backgroundIntensity={0.9}
+            />
+          </Suspense>
+        </EnvBoundary>
+        <ambientLight intensity={0.15} />
+
+        {/* soft contact shadow on the floor */}
+        <ContactShadows
+          position={[0, FLOOR_Y + 0.003, 0]}
+          scale={span}
+          opacity={groundShadow}
+          blur={2.6}
+          far={4}
+          resolution={512}
+          color="#000000"
+        />
+
+        {/* reflective floor — catches the glowing screen + the HDRI */}
+        {floorReflection > 0.01 && (
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, FLOOR_Y, 0]}>
+            <planeGeometry args={[span * 6, span * 6]} />
+            <MeshReflectorMaterial
+              resolution={1024}
+              blur={[400, 160]}
+              mixBlur={1}
+              mixStrength={floorReflection * 4}
+              mirror={floorReflection}
+              roughness={1 - floorReflection * 0.45}
+              depthScale={1}
+              minDepthThreshold={0.4}
+              maxDepthThreshold={1.2}
+              color="#0a0a0c"
+              metalness={0.45}
+            />
+          </mesh>
+        )}
+      </>
+    );
+  }
+
+  const mood = MOODS[hdriPreset] ?? MOODS.studio;
   return (
     <>
       <Environment
@@ -54,7 +108,6 @@ export function Lighting() {
         backgroundBlurriness={0.7}
         backgroundIntensity={0.6}
       >
-        {/* large soft top key — the broad reflection in the glass */}
         <Lightformer
           form="rect"
           intensity={1.1}
@@ -63,7 +116,6 @@ export function Lighting() {
           rotation={[Math.PI / 2, 0, 0]}
           scale={[10, 10, 1]}
         />
-        {/* side wrap */}
         <Lightformer
           form="rect"
           intensity={0.7}
@@ -72,7 +124,6 @@ export function Lighting() {
           rotation={[0, Math.PI / 2, 0]}
           scale={[6, 6, 1]}
         />
-        {/* back strip — the premium edge glint */}
         <Lightformer
           form="rect"
           intensity={1.3}
@@ -81,7 +132,6 @@ export function Lighting() {
           rotation={[0, -Math.PI / 3, 0]}
           scale={[5, 5, 1]}
         />
-        {/* ground bounce */}
         <Lightformer
           form="rect"
           intensity={0.3}
@@ -91,16 +141,6 @@ export function Lighting() {
           scale={[10, 10, 1]}
         />
       </Environment>
-
-      {/* Direct lights — shading + shadow. Key from front-top, soft fill, rim behind. */}
-      <directionalLight
-        color={keyColor}
-        intensity={keyIntensity}
-        position={[4, 7, 5]}
-        castShadow
-      />
-      <directionalLight color={fillColor} intensity={fillIntensity} position={[-6, 3, 4]} />
-      <directionalLight color={rimColor} intensity={rimIntensity} position={[-3, 5, -6]} />
       <ambientLight intensity={0.12} />
     </>
   );
