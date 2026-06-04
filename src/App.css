@@ -511,6 +511,11 @@
   border-radius: 4px;
   box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.3);
 }
+/* full-screen capture: the whole stage is exported, so no dim/crop guide. */
+.aspect-frame.fullscreen .aspect-frame-box {
+  border: none;
+  box-shadow: none;
+}
 .rec-timer {
   position: absolute;
   top: 18px;

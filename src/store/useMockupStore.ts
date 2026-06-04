@@ -13,7 +13,7 @@ import type * as THREE from 'three';
 export type BgMode = 'solid' | 'gradient' | 'env-blur' | 'transparent';
 export type CrtBlend = 'normal' | 'screen' | 'overlay' | 'multiply' | 'softlight' | 'add';
 export type CrtMode = 'aperture' | 'shadow' | 'slot' | 'lcd' | 'mono';
-export type ExportAspect = 'original' | '1:1' | '4:5' | '16:9' | '9:16';
+export type ExportAspect = 'fullscreen' | '1:1' | '4:5' | '16:9' | '9:16';
 
 export type MockupState = {
   // --- Camera ---
@@ -208,7 +208,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   // Asset
   screenshot: null,
   screenAspect: 16 / 10,
-  exportAspect: 'original',
+  exportAspect: 'fullscreen',
   recording: false,
   recordElapsed: 0,
   recordDpr: 0,

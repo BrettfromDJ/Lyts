@@ -4,10 +4,11 @@ import type { ExportAspect } from '../store/useMockupStore';
 import { exportStill } from '../lib/exportImage';
 import { exportVideo, videoSupported } from '../lib/exportVideo';
 import { sceneRef } from '../lib/sceneRef';
+import { useStageAspect } from '../lib/useStageAspect';
 import { Icon } from './icons';
 
 const ASPECTS: { key: ExportAspect; label: string }[] = [
-  { key: 'original', label: 'Original' },
+  { key: 'fullscreen', label: 'Full screen' },
   { key: '1:1', label: '1:1' },
   { key: '4:5', label: '4:5' },
   { key: '16:9', label: '16:9' },
@@ -22,7 +23,7 @@ const QUALITY = [
 
 type QualityKey = (typeof QUALITY)[number]['key'];
 
-function aspectValue(a: ExportAspect, screenAspect: number): number {
+function aspectValue(a: ExportAspect, fullAspect: number): number {
   switch (a) {
     case '1:1':
       return 1;
@@ -33,7 +34,7 @@ function aspectValue(a: ExportAspect, screenAspect: number): number {
     case '9:16':
       return 9 / 16;
     default:
-      return screenAspect || 16 / 10;
+      return fullAspect || 16 / 10; // 'fullscreen' — match the live stage
   }
 }
 
@@ -42,7 +43,7 @@ export function ExportSection() {
   const set = useMockupStore((s) => s.set);
   const bgMode = useMockupStore((s) => s.bgMode);
   const exportAspect = useMockupStore((s) => s.exportAspect);
-  const screenAspect = useMockupStore((s) => s.screenAspect);
+  const stageAspect = useStageAspect();
   const videoFps = useMockupStore((s) => s.videoFps);
   const videoDuration = useMockupStore((s) => s.videoDuration);
 
@@ -52,7 +53,7 @@ export function ExportSection() {
   const [busy, setBusy] = useState(false);
   const [recording, setRecording] = useState<number | null>(null);
 
-  const av = aspectValue(exportAspect, screenAspect);
+  const av = aspectValue(exportAspect, stageAspect);
   const dims = (w: number) => `${w}×${Math.round(w / av)}`;
   const transparent = bgMode === 'transparent';
 
