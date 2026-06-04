@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
+import type { ReactElement } from 'react';
 import type { EffectComposer as EffectComposerImpl } from 'postprocessing';
 import {
   EffectComposer,
@@ -8,33 +9,30 @@ import {
   BrightnessContrast,
   ToneMapping,
   SMAA,
+  Glitch,
 } from '@react-three/postprocessing';
-import { ToneMappingMode } from 'postprocessing';
+import { ToneMappingMode, GlitchMode } from 'postprocessing';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useMockupStore } from '../store/useMockupStore';
 import { Exposure } from './ExposureEffect';
 import { Focus } from './Focus';
+import { Analog } from './Analog';
 import { Grain } from './GrainEffect';
 import { sceneRef } from '../lib/sceneRef';
 
+const NONE = null as unknown as ReactElement; // conditional effect placeholder
+
 /**
- * The DSLR layer (spec §5 Phase 2 + §6.8). Pipeline order:
- *   Exposure (linear multiply) -> Focus blur -> Bloom (HDR)
- *   -> ToneMapping (ACES) -> contrast / CA / vignette (LDR) -> Grain (last).
- *
- * Tone-mapping is an explicit pass because the EffectComposer disables the
- * renderer's tone-mapping; that's also why Exposure is its own pass.
- *
- * Focus is a screen-space tilt-shift band (Position/Size/Falloff/Angle/Blur +
- * Bokeh) — see Focus.tsx.
+ * The DSLR + analog layer. Pipeline order:
+ *   Exposure -> Focus blur -> Bloom (HDR) -> ToneMapping (ACES)
+ *   -> contrast / CA / vignette (LDR) -> Analog (halation/leaks/VHS/…)
+ *   -> Glitch (datamosh) -> Grain (last).
  */
 export function Effects() {
   const invalidate = useThree((s) => s.invalidate);
   const composerRef = useRef<EffectComposerImpl>(null);
 
-  // Expose the composer so the still/video export renders through the full post
-  // stack (otherwise a raw gl.render skips focus/bloom/tone-mapping/grain).
   useEffect(() => {
     sceneRef.composer = composerRef.current;
     return () => {
@@ -49,16 +47,33 @@ export function Effects() {
   const grain = useMockupStore((s) => s.grain);
   const contrast = useMockupStore((s) => s.contrast);
 
+  const halation = useMockupStore((s) => s.halation);
+  const lightLeaks = useMockupStore((s) => s.lightLeaks);
+  const scanGlow = useMockupStore((s) => s.scanGlow);
+  const lensDust = useMockupStore((s) => s.lensDust);
+  const vhs = useMockupStore((s) => s.vhs);
+  const datamosh = useMockupStore((s) => s.datamosh);
+
+  const analogOn = halation + lightLeaks + scanGlow + lensDust + vhs > 0.001;
+
   const caOffset = useMemo(
     () => new THREE.Vector2(chromaticAberration, chromaticAberration),
     [chromaticAberration],
   );
 
-  // frameloop="demand": make sure post-only param changes request a frame.
-  // (Focus params are handled inside <Dof>, which invalidates itself.)
+  const glitchDelay = useMemo(() => new THREE.Vector2(2.5, 6), []);
+  const glitchDuration = useMemo(() => new THREE.Vector2(0.15, 0.5), []);
+  const glitchStrength = useMemo(
+    () => new THREE.Vector2(0.2 * datamosh, 0.9 * datamosh),
+    [datamosh],
+  );
+
   useEffect(() => {
     invalidate();
-  }, [invalidate, exposure, bloom, vignette, chromaticAberration, grain, contrast]);
+  }, [
+    invalidate, exposure, bloom, vignette, chromaticAberration, grain, contrast,
+    halation, lightLeaks, scanGlow, lensDust, vhs, datamosh,
+  ]);
 
   return (
     <EffectComposer ref={composerRef} multisampling={0}>
@@ -70,6 +85,18 @@ export function Effects() {
       <BrightnessContrast brightness={0} contrast={contrast - 1} />
       <ChromaticAberration offset={caOffset} radialModulation={false} modulationOffset={0} />
       <Vignette darkness={vignette} offset={0.3} eskil={false} />
+      {analogOn ? <Analog /> : NONE}
+      {datamosh > 0.001 ? (
+        <Glitch
+          delay={glitchDelay}
+          duration={glitchDuration}
+          strength={glitchStrength}
+          mode={datamosh > 0.6 ? GlitchMode.CONSTANT_WILD : GlitchMode.SPORADIC}
+          ratio={0.85}
+        />
+      ) : (
+        NONE
+      )}
       <Grain intensity={grain} />
     </EffectComposer>
   );

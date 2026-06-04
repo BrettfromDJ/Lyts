@@ -4,6 +4,7 @@ import type { ExportAspect } from '../store/useMockupStore';
 import { exportStill } from '../lib/exportImage';
 import { exportVideo, videoSupported } from '../lib/exportVideo';
 import { sceneRef } from '../lib/sceneRef';
+import { Icon } from './icons';
 
 const ASPECTS: { key: ExportAspect; label: string }[] = [
   { key: 'original', label: 'Original' },
@@ -107,8 +108,9 @@ export function ExportSection() {
   return (
     <section className={`group ${open ? 'open' : ''}`}>
       <button className="group-head" onClick={() => setOpen((o) => !o)}>
+        <Icon name="export" />
+        <span className="grp-title">Export</span>
         <span className="chev">{open ? '▾' : '▸'}</span>
-        Export
       </button>
       {open && (
         <div className="group-body">

@@ -3,6 +3,7 @@ import { useMockupStore, DEFAULTS } from '../store/useMockupStore';
 import type { MockupState, BgMode, CrtBlend, CrtMode } from '../store/useMockupStore';
 import { ExportSection } from './ExportSection';
 import { AnglePresets } from './AnglePresets';
+import { Icon, type IconName } from './icons';
 
 /* ---- tiny store-bound primitives -------------------------------------- */
 
@@ -107,12 +108,14 @@ function ColorRow({ field, label }: { field: StrKey; label: string }) {
 function Group({
   title,
   id,
+  icon,
   openIds,
   toggle,
   children,
 }: {
   title: string;
   id: string;
+  icon: IconName;
   openIds: Set<string>;
   toggle: (id: string) => void;
   children: React.ReactNode;
@@ -121,8 +124,9 @@ function Group({
   return (
     <section className={`group ${open ? 'open' : ''}`}>
       <button className="group-head" onClick={() => toggle(id)}>
+        <Icon name={icon} />
+        <span className="grp-title">{title}</span>
         <span className="chev">{open ? '▾' : '▸'}</span>
-        {title}
       </button>
       {open && <div className="group-body">{children}</div>}
     </section>
@@ -142,7 +146,7 @@ export function ControlPanel() {
   const crtRoll = useMockupStore((s) => s.crtRoll);
 
   const [openIds, setOpen] = useState<Set<string>>(
-    new Set(['angle', 'camera', 'focus', 'post']),
+    new Set(['camera', 'focus', 'post']),
   );
   const toggle = (id: string) =>
     setOpen((prev) => {
@@ -159,11 +163,8 @@ export function ControlPanel() {
         <div className="brand-sub">cinematic mockups</div>
       </header>
 
-      <Group title="Angle" id="angle" openIds={openIds} toggle={toggle}>
+      <Group title="Camera" id="camera" icon="camera" openIds={openIds} toggle={toggle}>
         <AnglePresets />
-      </Group>
-
-      <Group title="Camera" id="camera" openIds={openIds} toggle={toggle}>
         <Slider field="roll" label="Roll" min={-45} max={45} step={0.5} />
         <Slider field="zoom" label="Zoom" min={0.2} max={10} step={0.01} />
         <button
@@ -187,12 +188,12 @@ export function ControlPanel() {
         </p>
       </Group>
 
-      <Group title="Screen" id="screen" openIds={openIds} toggle={toggle}>
+      <Group title="Screen" id="screen" icon="screen" openIds={openIds} toggle={toggle}>
         <Slider field="screenBrightness" label="Brightness" min={0} max={2} />
         <Slider field="cornerRadius" label="Corner radius" min={0} max={0.5} step={0.005} />
       </Group>
 
-      <Group title="Focus" id="focus" openIds={openIds} toggle={toggle}>
+      <Group title="Focus" id="focus" icon="focus" openIds={openIds} toggle={toggle}>
         <Slider field="focusDistance" label="Position" min={0} max={1} />
         <Slider field="focusSize" label="Size" min={0.05} max={1} />
         <Slider field="focusFalloff" label="Falloff" min={0} max={1} />
@@ -200,7 +201,7 @@ export function ControlPanel() {
         <Slider field="blur" label="Blur" min={0} max={1} />
       </Group>
 
-      <Group title="Post" id="post" openIds={openIds} toggle={toggle}>
+      <Group title="Color" id="post" icon="color" openIds={openIds} toggle={toggle}>
         <Slider field="exposure" label="Exposure" min={0.2} max={3} />
         <Slider field="contrast" label="Contrast" min={0.6} max={1.6} />
         <Slider field="bloom" label="Bloom" min={0} max={3} />
@@ -209,7 +210,16 @@ export function ControlPanel() {
         <Slider field="grain" label="Grain" min={0} max={0.4} step={0.005} />
       </Group>
 
-      <Group title="CRT" id="crt" openIds={openIds} toggle={toggle}>
+      <Group title="Film" id="film" icon="film" openIds={openIds} toggle={toggle}>
+        <Slider field="halation" label="Halation" min={0} max={1} />
+        <Slider field="lightLeaks" label="Light leaks" min={0} max={1} />
+        <Slider field="scanGlow" label="Scanline glow" min={0} max={1} />
+        <Slider field="lensDust" label="Lens dust" min={0} max={1} />
+        <Slider field="vhs" label="VHS tracking" min={0} max={1} />
+        <Slider field="datamosh" label="Datamosh" min={0} max={1} />
+      </Group>
+
+      <Group title="CRT" id="crt" icon="crt" openIds={openIds} toggle={toggle}>
         <Switch field="crtEnabled" label="Enable CRT" />
         {crtEnabled && (
           <>
@@ -251,7 +261,7 @@ export function ControlPanel() {
         )}
       </Group>
 
-      <Group title="Background" id="background" openIds={openIds} toggle={toggle}>
+      <Group title="Background" id="background" icon="background" openIds={openIds} toggle={toggle}>
         <label className="ctl">
           <span className="ctl-label">Mode</span>
           <select
