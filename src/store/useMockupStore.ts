@@ -51,14 +51,6 @@ export type MockupState = {
   shadowSoftness: number;
   shadowOpacity: number;
 
-  // --- Environment / grounding ---
-  grounding: boolean; // ground the mockup in a real HDRI scene
-  envIntensity: number; // image-based lighting / reflection intensity
-  envBackground: boolean; // show the HDRI behind the mockup
-  envBlur: number; // background blurriness (0..1)
-  floorReflection: number; // reflective floor strength (0..1)
-  groundShadow: number; // contact shadow opacity (0..1)
-
   // --- Post (the DSLR layer) ---
   exposure: number;
   contrast: number;
@@ -157,14 +149,6 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   rimIntensity: 1.6,
   shadowSoftness: 2.4,
   shadowOpacity: 0.55,
-
-  // Environment / grounding
-  grounding: false,
-  envIntensity: 1.0,
-  envBackground: true,
-  envBlur: 0.5,
-  floorReflection: 0.6,
-  groundShadow: 0.5,
 
   // Post
   exposure: 1.0,

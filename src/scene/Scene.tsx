@@ -18,11 +18,8 @@ function Background() {
   const bgColorA = useMockupStore((s) => s.bgColorA);
   const bgColorB = useMockupStore((s) => s.bgColorB);
   const hasShot = useMockupStore((s) => s.screenshot !== null);
-  const envBg = useMockupStore((s) => s.grounding && s.envBackground);
 
   useEffect(() => {
-    // When grounded with an HDRI backdrop, let <Environment background> own it.
-    if (envBg) return;
     let toDispose: THREE.Texture | null = null;
     if (!hasShot) {
       // empty state: nothing in the background (transparent -> black stage)
@@ -41,7 +38,7 @@ function Background() {
     return () => {
       toDispose?.dispose();
     };
-  }, [scene, bgMode, bgColorA, bgColorB, hasShot, envBg, invalidate]);
+  }, [scene, bgMode, bgColorA, bgColorB, hasShot, invalidate]);
 
   return null;
 }
