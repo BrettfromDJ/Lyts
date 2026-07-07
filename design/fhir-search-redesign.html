@@ -440,14 +440,103 @@
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
   .toast svg { width: 15px; height: 15px; color: var(--good); }
 
+  /* ---------- Detail drawer ---------- */
+  .scrim { position: fixed; inset: 0; background: color-mix(in srgb, #101828 42%, transparent);
+    backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 40; }
+  .scrim.show { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed; top: 0; right: 0; height: 100vh; width: 480px; max-width: 94vw;
+    background: var(--surface); border-left: 1px solid var(--border); box-shadow: var(--shadow-md);
+    transform: translateX(100%); transition: transform .26s cubic-bezier(.4,0,.2,1);
+    z-index: 45; display: flex; flex-direction: column;
+  }
+  .drawer.show { transform: translateX(0); }
+  .drawer.wide { width: 720px; }
+  .dw-head { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--border); }
+  .dw-type { width: 34px; height: 34px; border-radius: 9px; flex: none; display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--accent); font-weight: 800; font-size: 15px; }
+  .dw-titles { flex: 1; min-width: 0; }
+  .dw-titles h3 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+  .dw-titles .meta { font-size: 12px; color: var(--ink-3); font-family: var(--font-mono); }
+  .dw-x { width: 34px; height: 34px; flex: none; border-radius: 9px; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--ink-2); display: grid; place-items: center; }
+  .dw-x:hover { color: var(--ink); border-color: var(--border-strong); }
+  .dw-x svg { width: 16px; height: 16px; }
+  .dw-actions { display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .dw-body { flex: 1; overflow-y: auto; padding: 6px 18px 20px; }
+  .statepill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px;
+    font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  .statepill.view { background: var(--surface-2); color: var(--ink-3); }
+  .statepill.edit { background: var(--warn-soft); color: var(--warn); }
+
+  .kv { display: grid; grid-template-columns: 150px 1fr; gap: 2px 14px; padding: 11px 0; border-bottom: 1px solid var(--border); align-items: baseline; }
+  .kv:last-child { border-bottom: 0; }
+  .kv .k { font-size: 12.5px; color: var(--ink-3); font-weight: 550; }
+  .kv .v { color: var(--ink); font-weight: 500; }
+  .kv .v.mono { font-family: var(--font-mono); font-size: 13px; }
+  .dw-section-lab { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--ink-3); margin: 18px 0 4px; }
+  .dw-hero { padding: 14px 0 4px; }
+  .dw-hero .nm { font-size: 20px; font-weight: 700; letter-spacing: -.02em; }
+  .dw-hero .sub { color: var(--ink-2); font-size: 13px; margin-top: 3px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .dw-hero .sub .gender { text-transform: capitalize; }
+
+  .formfield { margin-bottom: 13px; }
+  .formfield label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-2); margin-bottom: 5px; }
+  .formfield .ctl { height: 40px; }
+  .json {
+    width: 100%; min-height: 340px; resize: vertical; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--inset); color: var(--ink); font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6;
+    padding: 12px 14px; white-space: pre; overflow: auto; tab-size: 2;
+  }
+  .json:focus { outline: none; border-color: var(--accent-border); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+  .toggle2 { display: inline-flex; gap: 3px; background: var(--surface-2); padding: 3px; border-radius: 8px; border: 1px solid var(--border); }
+  .toggle2 button { border: 0; background: transparent; color: var(--ink-2); font-weight: 600; font-size: 12.5px; padding: 6px 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; }
+  .toggle2 button svg { width: 14px; height: 14px; }
+  .toggle2 button.on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); }
+
+  /* ---------- Resource editor page ---------- */
+  .ed-actions { display: flex; align-items: center; gap: 8px; }
+  .chooser { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 22px; }
+  .choicecard { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .choicecard .ic { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+  .choicecard .ic svg { width: 20px; height: 20px; }
+  .choicecard h3 { margin: 0; font-size: 15px; font-weight: 650; }
+  .choicecard p { margin: 0; font-size: 13px; color: var(--ink-3); }
+  .choicecard .go { margin-top: auto; display: flex; gap: 8px; }
+  .choicecard .go .ctl { height: 42px; }
+  .recents { margin-top: 22px; }
+  .recents h4 { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 10px; }
+  .recent { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); margin-bottom: 8px; }
+  .recent:hover { border-color: var(--accent-border); background: var(--accent-soft); }
+  .recent .rtag { font-family: var(--font-mono); font-size: 12px; color: var(--accent); font-weight: 600; }
+  .recent .rnm { font-weight: 600; }
+  .recent .rwhen { margin-left: auto; font-size: 12px; color: var(--ink-3); }
+  .breadcrumb { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-3); margin-bottom: 14px; }
+  .breadcrumb a { color: var(--ink-2); text-decoration: none; font-weight: 550; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .ed-loaded-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+  .ed-loaded-head .titles { flex: 1; min-width: 200px; }
+  .ed-loaded-head h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
+  .ed-loaded-head .titles .meta { color: var(--ink-3); font-size: 12.5px; font-family: var(--font-mono); margin-top: 3px; }
+  .ed-panel { padding: 18px; }
+  .ed-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+  .btn-sm { height: 38px; padding: 0 15px; border-radius: 9px; font-weight: 600; font-size: 13.5px; display: inline-flex; align-items: center; gap: 7px; border: 1px solid transparent; }
+  .btn-sm svg { width: 15px; height: 15px; }
+  .btn-sm.danger { background: var(--surface); color: #c0392b; border-color: var(--border); }
+  .btn-sm.danger:hover { background: #fbeae7; border-color: #e6b0aa; }
+
   @media (max-width: 900px) {
     .resources { display: none; }
     .frow { grid-template-columns: 1fr 1fr; }
     .frow .selwrap:first-child { grid-column: 1 / -1; }
     .disp { grid-template-columns: 1fr; }
     .main-inner { padding: 20px 16px 60px; }
+    .chooser { grid-template-columns: 1fr; }
+    .drawer { width: 100%; }
   }
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  @media (prefers-reduced-motion: reduce) { *, .drawer { transition: none !important; } }
 </style>
 
 <div class="app">
@@ -470,8 +559,8 @@
     <!-- App rail -->
     <nav class="rail" aria-label="Primary">
       <a href="#" title="Dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></a>
-      <a href="#" class="active" title="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></a>
-      <a href="#" title="Resource editor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></a>
+      <a href="#" class="active" id="nav-search" data-view="search" title="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></a>
+      <a href="#" id="nav-editor" data-view="editor" title="Resource editor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></a>
       <a href="#" title="History & versions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 8v4l3 2"/></svg></a>
       <a href="#" title="Bulk export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg></a>
       <a href="#" title="Terminology"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></a>
@@ -493,7 +582,7 @@
 
     <!-- Main -->
     <main class="main">
-      <div class="main-inner">
+      <div class="main-inner" id="view-search">
         <div class="pagehead">
           <h1>Search</h1>
           <span class="sub">Querying <b id="curType">Patient</b> · <b id="curCount">1,204</b> records</span>
@@ -692,9 +781,104 @@
           </div>
         </section>
       </div>
+
+      <!-- ============ RESOURCE EDITOR VIEW ============ -->
+      <div class="main-inner" id="view-editor" hidden>
+        <!-- Empty / chooser state -->
+        <div id="editor-empty">
+          <div class="pagehead">
+            <h1>Resource editor</h1>
+            <span class="sub">Create a new record, or open an existing one by ID.</span>
+          </div>
+
+          <div class="chooser">
+            <section class="card choicecard">
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></span>
+              <div>
+                <h3>Create new</h3>
+                <p>Start from a blank template of any resource type.</p>
+              </div>
+              <div class="go">
+                <div class="selwrap" style="flex:1"><select class="ctl" id="createType">
+                  <option>Patient</option><option>Observation</option><option>Encounter</option>
+                  <option>Condition</option><option>Practitioner</option><option>Organization</option>
+                </select></div>
+                <button class="btn-sm btn-primary" id="createBtn" style="background:var(--accent);color:var(--accent-ink)">Create</button>
+              </div>
+            </section>
+
+            <section class="card choicecard">
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg></span>
+              <div>
+                <h3>Open existing</h3>
+                <p>Enter a reference like <code style="font-family:var(--font-mono);color:var(--accent)">Patient/a12</code>.</p>
+              </div>
+              <div class="go">
+                <input class="ctl" id="openRef" placeholder="Patient/a12" style="flex:1">
+                <button class="btn-sm btn-ghost" id="openBtn" style="background:var(--surface);border-color:var(--border);color:var(--ink-2)">Open</button>
+              </div>
+            </section>
+          </div>
+
+          <div class="recents">
+            <h4>Recently edited</h4>
+            <button class="recent" data-open="a12"><span class="rtag">Patient/a12</span><span class="rnm">Smith, John</span><span class="rwhen">edited 12:01</span></button>
+            <button class="recent" data-open="a63"><span class="rtag">Patient/a63</span><span class="rnm">Smith, Maria</span><span class="rwhen">edited yesterday</span></button>
+            <button class="recent" data-open="b23"><span class="rtag">Patient/b23</span><span class="rnm">Smith, Owen</span><span class="rwhen">edited 2 days ago</span></button>
+          </div>
+        </div>
+
+        <!-- Loaded editor state -->
+        <div id="editor-loaded" hidden>
+          <div class="breadcrumb">
+            <a href="#" id="edBackChooser">Resource editor</a> <span>›</span>
+            <span id="edCrumb">Patient/a12</span>
+          </div>
+          <div class="ed-loaded-head">
+            <span class="dw-type" id="edTypeBadge">P</span>
+            <div class="titles">
+              <h1 id="edTitle">Smith, John</h1>
+              <div class="meta" id="edMeta">Patient/a12 · version 3 · updated 2026-07-07 12:01</div>
+            </div>
+            <div class="ed-actions">
+              <button class="btn-sm danger" id="edDelete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg> Delete</button>
+              <button class="btn-sm btn-ghost" id="edCancel" style="background:var(--surface);border-color:var(--border);color:var(--ink-2)">Cancel</button>
+              <button class="btn-sm btn-primary" id="edSave" style="background:var(--accent);color:var(--accent-ink)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Save changes</button>
+            </div>
+          </div>
+
+          <section class="card ed-panel">
+            <div class="ed-panel-head">
+              <div class="toggle2" id="edToggle">
+                <button class="on" data-rep="form"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="12" height="4" rx="1"/></svg> Form</button>
+                <button data-rep="json"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/></svg> Raw JSON</button>
+              </div>
+              <span class="statepill edit" id="edValid"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Valid FHIR R4</span>
+            </div>
+            <div id="edForm"></div>
+            <textarea class="json" id="edJson" hidden spellcheck="false"></textarea>
+          </section>
+        </div>
+      </div>
     </main>
   </div>
 </div>
+
+<!-- ============ DETAIL DRAWER ============ -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true" aria-label="Resource detail">
+  <div class="dw-head">
+    <span class="dw-type" id="dwType">P</span>
+    <div class="dw-titles">
+      <h3 id="dwTitle">Smith, John</h3>
+      <span class="meta" id="dwMeta">Patient/a12</span>
+    </div>
+    <span class="statepill view" id="dwState">Viewing</span>
+    <button class="dw-x" id="dwClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="dw-actions" id="dwActions"></div>
+  <div class="dw-body" id="dwBody"></div>
+</aside>
 
 <div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg><span id="toastMsg">Copied</span></div>
 
@@ -964,35 +1148,213 @@
   });
   document.getElementById("searchBtn").addEventListener("click", function () { showToast("Running search…"); });
 
-  // ---------- Results ----------
-  var ROWS = [
-    ["a12", "Smith, John", "male", "1979-03-02", "Acme General", "12:01"],
-    ["a44", "Smith, Ana", "female", "1990-11-20", "Acme General", "10:32"],
-    ["a63", "Smith, Maria", "female", "1986-07-22", "Northside Clinic", "11:47"],
-    ["a91", "Smith, Lee", "male", "2004-06-15", "Acme General", "09:14"],
-    ["b07", "Smith, Grace", "female", "1998-01-09", "Harbor Health", "08:52"],
-    ["b23", "Smith, Owen", "male", "1982-12-30", "Northside Clinic", "14:20"]
+  // ---------- Patient data ----------
+  var PATIENTS = {
+    a12: { id: "a12", family: "Smith", given: "John", gender: "male", birthDate: "1979-03-02", mrn: "MRN-40021", phone: "+1 415 555 0132", address: "124 Rivera St, San Francisco, CA", gp: "Dr. Lee", org: "Acme General", ver: 3, updated: "12:01" },
+    a44: { id: "a44", family: "Smith", given: "Ana", gender: "female", birthDate: "1990-11-20", mrn: "MRN-40088", phone: "+1 415 555 0177", address: "9 Marlow Ave, Oakland, CA", gp: "Dr. Lee", org: "Acme General", ver: 1, updated: "10:32" },
+    a63: { id: "a63", family: "Smith", given: "Maria", gender: "female", birthDate: "1986-07-22", mrn: "MRN-40120", phone: "+1 510 555 0043", address: "42 Cedar Rd, Berkeley, CA", gp: "Dr. Okafor", org: "Northside Clinic", ver: 5, updated: "11:47" },
+    a91: { id: "a91", family: "Smith", given: "Lee", gender: "male", birthDate: "2004-06-15", mrn: "MRN-40155", phone: "+1 415 555 0210", address: "1 Bay St, San Francisco, CA", gp: "Dr. Lee", org: "Acme General", ver: 2, updated: "09:14" },
+    b07: { id: "b07", family: "Smith", given: "Grace", gender: "female", birthDate: "1998-01-09", mrn: "MRN-40199", phone: "+1 650 555 0091", address: "77 Elm Way, Palo Alto, CA", gp: "Dr. Nwosu", org: "Harbor Health", ver: 1, updated: "08:52" },
+    b23: { id: "b23", family: "Smith", given: "Owen", gender: "male", birthDate: "1982-12-30", mrn: "MRN-40230", phone: "+1 510 555 0066", address: "300 Foster Ln, Berkeley, CA", gp: "Dr. Okafor", org: "Northside Clinic", ver: 4, updated: "14:20" }
+  };
+  var RESULT_IDS = ["a12", "a44", "a63", "a91", "b07", "b23"];
+  var esc = function (s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); };
+  var fullName = function (p) { return esc(p.family) + ", " + esc(p.given); };
+
+  var PFIELDS = [
+    ["family", "Family name", "text"], ["given", "Given name", "text"],
+    ["gender", "Gender", "enum"], ["birthDate", "Birth date", "date"],
+    ["mrn", "MRN (identifier)", "text"], ["phone", "Phone", "text"],
+    ["address", "Address", "text"], ["gp", "General practitioner", "text"],
+    ["org", "Managing organization", "text"]
   ];
+
+  function fhirJson(p) {
+    return JSON.stringify({
+      resourceType: "Patient", id: p.id,
+      meta: { versionId: String(p.ver), lastUpdated: "2026-07-07T" + p.updated + ":00Z" },
+      identifier: [{ system: "urn:mrn", value: p.mrn }],
+      name: [{ family: p.family, given: [p.given] }],
+      gender: p.gender, birthDate: p.birthDate,
+      telecom: [{ system: "phone", value: p.phone }],
+      address: [{ text: p.address }],
+      generalPractitioner: [{ display: p.gp }],
+      managingOrganization: { display: p.org }
+    }, null, 2);
+  }
+
+  function inputFor(key, type, val) {
+    if (type === "enum") {
+      return '<div class="selwrap"><select class="ctl" data-fk="' + key + '">' +
+        ["male", "female", "other"].map(function (o) { return '<option' + (o === val ? " selected" : "") + '>' + o + '</option>'; }).join("") +
+        '</select></div>';
+    }
+    return '<input class="ctl" type="' + (type === "date" ? "date" : "text") + '" data-fk="' + key + '" value="' + esc(val) + '">';
+  }
+  function formHtml(p) {
+    return PFIELDS.map(function (f) {
+      return '<div class="formfield"><label>' + f[1] + '</label>' + inputFor(f[0], f[2], p[f[0]]) + '</div>';
+    }).join("");
+  }
+  function readForm(scope) {
+    var out = {};
+    scope.querySelectorAll("[data-fk]").forEach(function (el) { out[el.getAttribute("data-fk")] = el.value; });
+    return out;
+  }
+  function kv(k, v, mono) { return '<div class="kv"><span class="k">' + k + '</span><span class="v' + (mono ? " mono" : "") + '">' + esc(v) + '</span></div>'; }
+
+  // ---------- Results table ----------
   var body = document.getElementById("resBody");
-  ROWS.forEach(function (r, i) {
-    var tr = document.createElement("tr");
-    if (i === 0) tr.className = "sel";
-    tr.innerHTML =
-      '<td class="id"><a href="#">' + r[0] + '</a></td>' +
-      '<td class="name"><b>' + r[1] + '</b></td>' +
-      '<td><span class="gender"><span class="gdot g-' + r[2] + '"></span>' + r[2] + '</span></td>' +
-      '<td class="num">' + r[3] + '</td>' +
-      '<td>' + r[4] + '</td>' +
-      '<td class="num">' + r[5] + '</td>' +
-      '<td class="act"><button title="Open in editor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></td>';
-    tr.addEventListener("click", function () {
-      body.querySelectorAll("tr").forEach(function (x) { x.classList.remove("sel"); });
-      tr.classList.add("sel");
+  var selectedId = "a12";
+  function renderResults() {
+    body.innerHTML = "";
+    RESULT_IDS.forEach(function (id) {
+      var p = PATIENTS[id];
+      var tr = document.createElement("tr");
+      if (id === selectedId) tr.className = "sel";
+      tr.innerHTML =
+        '<td class="id"><a href="#">' + p.id + '</a></td>' +
+        '<td class="name"><b>' + fullName(p) + '</b></td>' +
+        '<td><span class="gender"><span class="gdot g-' + p.gender + '"></span>' + p.gender + '</span></td>' +
+        '<td class="num">' + p.birthDate + '</td>' +
+        '<td>' + esc(p.org) + '</td>' +
+        '<td class="num">' + p.updated + '</td>' +
+        '<td class="act"><button title="Edit this patient" data-edit="' + id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></td>';
+      tr.addEventListener("click", function () { selectedId = id; renderResults(); openDrawer(id, "view"); });
+      tr.querySelector("[data-edit]").addEventListener("click", function (e) { e.stopPropagation(); selectedId = id; renderResults(); openDrawer(id, "edit"); });
+      body.appendChild(tr);
     });
-    body.appendChild(tr);
+  }
+
+  // ---------- Detail drawer ----------
+  var scrim = document.getElementById("scrim"), drawer = document.getElementById("drawer");
+  var dwBody = document.getElementById("dwBody"), dwActions = document.getElementById("dwActions");
+  var dwState = document.getElementById("dwState"), curDrawerId = null;
+
+  function drawerHeader(p) {
+    document.getElementById("dwTitle").textContent = p.family + ", " + p.given;
+    document.getElementById("dwMeta").textContent = "Patient/" + p.id;
+  }
+  function renderDrawerView(p) {
+    drawer.classList.remove("wide");
+    dwState.textContent = "Viewing"; dwState.className = "statepill view";
+    dwActions.innerHTML =
+      '<button class="btn-sm btn-primary" id="dwEdit" style="background:var(--accent);color:var(--accent-ink)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit</button>' +
+      '<button class="btn-sm btn-ghost" id="dwFull" style="background:var(--surface);border-color:var(--border);color:var(--ink-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M21 3l-9 9M10 3H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-6"/></svg> Open in full editor</button>' +
+      '<button class="btn-sm btn-ghost" id="dwCopy" title="Copy reference" style="background:var(--surface);border-color:var(--border);color:var(--ink-2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg> Copy ID</button>';
+    dwBody.innerHTML =
+      '<div class="dw-hero"><div class="nm">' + fullName(p) + '</div>' +
+        '<div class="sub"><span class="mono" style="font-family:var(--font-mono)">' + esc(p.mrn) + '</span><span class="gender">' + p.gender + '</span><span>born ' + p.birthDate + '</span></div></div>' +
+      '<div class="dw-section-lab">Demographics</div>' + kv("Gender", p.gender) + kv("Birth date", p.birthDate) + kv("MRN", p.mrn, true) +
+      '<div class="dw-section-lab">Contact</div>' + kv("Phone", p.phone, true) + kv("Address", p.address) +
+      '<div class="dw-section-lab">Care team</div>' + kv("General practitioner", p.gp) + kv("Managing organization", p.org);
+    document.getElementById("dwEdit").addEventListener("click", function () { renderDrawerEdit(p); });
+    document.getElementById("dwFull").addEventListener("click", function () { closeDrawer(); showView("editor"); loadEditor(p.id); });
+    document.getElementById("dwCopy").addEventListener("click", function () { copyText("Patient/" + p.id, "Reference copied"); });
+  }
+  function renderDrawerEdit(p) {
+    drawer.classList.add("wide");
+    dwState.textContent = "Editing"; dwState.className = "statepill edit";
+    dwActions.innerHTML =
+      '<button class="btn-sm btn-primary" id="dwSave" style="background:var(--accent);color:var(--accent-ink)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Save changes</button>' +
+      '<button class="btn-sm btn-ghost" id="dwCancelEdit" style="background:var(--surface);border-color:var(--border);color:var(--ink-2)">Cancel</button>' +
+      '<span style="flex:1"></span>' +
+      '<button class="btn-sm btn-ghost" id="dwFull2" style="background:var(--surface);border-color:var(--border);color:var(--ink-2)">Open in full editor</button>';
+    dwBody.innerHTML = '<div class="dw-section-lab" style="margin-top:12px">Editing Patient/' + p.id + '</div>' + formHtml(p);
+    document.getElementById("dwCancelEdit").addEventListener("click", function () { renderDrawerView(PATIENTS[p.id]); });
+    document.getElementById("dwFull2").addEventListener("click", function () { closeDrawer(); showView("editor"); loadEditor(p.id); });
+    document.getElementById("dwSave").addEventListener("click", function () {
+      var vals = readForm(dwBody);
+      Object.assign(PATIENTS[p.id], vals);
+      renderResults();
+      renderDrawerView(PATIENTS[p.id]); drawerHeader(PATIENTS[p.id]);
+      showToast("Patient/" + p.id + " saved");
+    });
+  }
+  function openDrawer(id, mode) {
+    curDrawerId = id; var p = PATIENTS[id];
+    document.getElementById("dwType").textContent = "P";
+    drawerHeader(p);
+    if (mode === "edit") renderDrawerEdit(p); else renderDrawerView(p);
+    scrim.classList.add("show"); drawer.classList.add("show"); drawer.setAttribute("aria-hidden", "false");
+  }
+  function closeDrawer() { scrim.classList.remove("show"); drawer.classList.remove("show"); drawer.setAttribute("aria-hidden", "true"); }
+  document.getElementById("dwClose").addEventListener("click", closeDrawer);
+  scrim.addEventListener("click", closeDrawer);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDrawer(); });
+
+  function copyText(txt, msg) {
+    if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () { showToast(msg); }, function () { showToast(msg); });
+    else showToast(msg);
+  }
+
+  // ---------- View switching ----------
+  function showView(view) {
+    document.getElementById("view-search").hidden = view !== "search";
+    document.getElementById("view-editor").hidden = view !== "editor";
+    document.getElementById("nav-search").classList.toggle("active", view === "search");
+    document.getElementById("nav-editor").classList.toggle("active", view === "editor");
+    document.querySelector(".main").scrollTop = 0;
+  }
+  document.getElementById("nav-search").addEventListener("click", function (e) { e.preventDefault(); showView("search"); });
+  document.getElementById("nav-editor").addEventListener("click", function (e) { e.preventDefault(); showView("editor"); showChooser(); });
+
+  // ---------- Resource editor page ----------
+  var edEmpty = document.getElementById("editor-empty"), edLoaded = document.getElementById("editor-loaded");
+  var edForm = document.getElementById("edForm"), edJson = document.getElementById("edJson");
+  var edCurId = null;
+  function showChooser() { edEmpty.hidden = false; edLoaded.hidden = true; }
+  function loadEditor(id) {
+    var p = PATIENTS[id]; if (!p) { showToast("No resource with that reference"); return; }
+    edCurId = id;
+    edEmpty.hidden = true; edLoaded.hidden = false;
+    document.getElementById("edCrumb").textContent = "Patient/" + id;
+    document.getElementById("edTitle").textContent = fullName(p);
+    document.getElementById("edMeta").textContent = "Patient/" + id + " · version " + p.ver + " · updated 2026-07-07 " + p.updated;
+    edForm.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 18px">' + formHtml(p) + '</div>';
+    edJson.value = fhirJson(p);
+    setRep("form");
+  }
+  function setRep(rep) {
+    document.querySelectorAll("#edToggle button").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-rep") === rep); });
+    edForm.hidden = rep !== "form"; edJson.hidden = rep !== "json";
+  }
+  document.querySelectorAll("#edToggle button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      if (b.getAttribute("data-rep") === "json" && edCurId) edJson.value = fhirJson(Object.assign({}, PATIENTS[edCurId], readForm(edForm)));
+      setRep(b.getAttribute("data-rep"));
+    });
+  });
+  document.getElementById("createBtn").addEventListener("click", function () {
+    showToast("New " + document.getElementById("createType").value + " template — demo shows Patient");
+    // Seed a blank-ish patient for the demo
+    PATIENTS.__new = { id: "(new)", family: "", given: "", gender: "male", birthDate: "", mrn: "", phone: "", address: "", gp: "", org: "", ver: 0, updated: "—" };
+    loadEditor("__new");
+    document.getElementById("edCrumb").textContent = "New Patient";
+    document.getElementById("edTitle").textContent = "New Patient";
+    document.getElementById("edMeta").textContent = "Unsaved · will be assigned an ID on save";
+  });
+  document.getElementById("openBtn").addEventListener("click", function () {
+    var ref = document.getElementById("openRef").value.trim();
+    var id = ref.indexOf("/") > -1 ? ref.split("/")[1] : ref;
+    loadEditor(id);
+  });
+  document.getElementById("openRef").addEventListener("keydown", function (e) { if (e.key === "Enter") document.getElementById("openBtn").click(); });
+  document.querySelectorAll(".recent").forEach(function (r) {
+    r.addEventListener("click", function () { loadEditor(r.getAttribute("data-open")); });
+  });
+  document.getElementById("edBackChooser").addEventListener("click", function (e) { e.preventDefault(); showChooser(); });
+  document.getElementById("edCancel").addEventListener("click", showChooser);
+  document.getElementById("edDelete").addEventListener("click", function () { showToast("Delete Patient/" + edCurId + " — confirm dialog would appear"); });
+  document.getElementById("edSave").addEventListener("click", function () {
+    if (!edCurId) return;
+    if (!edForm.hidden) Object.assign(PATIENTS[edCurId], readForm(edForm));
+    if (edCurId !== "__new" && PATIENTS[edCurId]) { PATIENTS[edCurId].ver++; renderResults(); }
+    showToast((edCurId === "__new" ? "New patient" : "Patient/" + edCurId) + " saved");
   });
 
   // ---------- Init ----------
+  renderResults();
   renderFilters();
 })();
 </script>
