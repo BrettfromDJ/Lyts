@@ -470,6 +470,37 @@
   .menu-opt .ck { width: 15px; height: 15px; flex: none; opacity: 0; }
   .menu-opt.on .ck { opacity: 1; }
 
+  /* ---------- Global quick-search (top bar) ---------- */
+  .gsearch { flex: 1; min-width: 0; display: flex; justify-content: center; position: relative; }
+  .gsearch-field {
+    display: flex; align-items: center; gap: 9px; width: min(460px, 100%); height: 36px;
+    padding: 0 8px 0 12px; border-radius: 9px; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--ink-3);
+  }
+  .gsearch-field:focus-within { border-color: var(--accent-border); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .gsearch-field > svg { width: 16px; height: 16px; flex: none; }
+  .gsearch-field input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink); font-size: 13.5px; }
+  .gsearch-field input:focus { outline: none; }
+  .gsearch-field input::placeholder { color: var(--ink-3); }
+  .kbd { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); border: 1px solid var(--border);
+    border-radius: 5px; padding: 1px 6px; background: var(--surface); flex: none; }
+  .gsearch-pop {
+    position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); width: min(560px, 92vw);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-md);
+    z-index: 60; overflow: hidden; padding-bottom: 0;
+  }
+  .gsearch-pop[hidden] { display: none; }
+  .gs-sec { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); padding: 12px 14px 6px; }
+  .gs-item { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; border: 0; background: transparent; padding: 10px 14px; color: var(--ink-2); }
+  .gs-item:hover { background: var(--surface-2); }
+  .gs-item .rtag { font-family: var(--font-mono); font-size: 12px; color: var(--accent); font-weight: 600; flex: none; }
+  .gs-item .nm { color: var(--ink); font-weight: 600; }
+  .gs-item .sub2 { color: var(--ink-3); font-size: 12px; font-family: var(--font-mono); margin-left: auto; }
+  .gs-foot { display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; border: 0; border-top: 1px solid var(--border);
+    padding: 11px 14px; color: var(--ink-2); font-size: 13px; background: var(--surface-2); }
+  .gs-foot:hover { color: var(--accent); }
+  .gs-foot svg { width: 15px; height: 15px; flex: none; }
+
   /* ---------- Detail drawer ---------- */
   .scrim { position: fixed; inset: 0; background: color-mix(in srgb, #101828 42%, transparent);
     backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 40; }
@@ -575,7 +606,14 @@
     <div class="brand">
       <span class="mark">H</span> Helios FHIR Server <span class="ver">v0.1.47</span>
     </div>
-    <div class="spacer"></div>
+    <div class="gsearch" id="gsearch">
+      <div class="gsearch-field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="gsInput" placeholder="Search all resources…" aria-label="Search all resources" autocomplete="off">
+        <span class="kbd">⌘K</span>
+      </div>
+      <div class="gsearch-pop" id="gsPop" hidden></div>
+    </div>
     <span class="pillselect">FHIR <b>R4</b> <span class="chev">▾</span></span>
     <span class="pillselect">Tenant <b>acme-health</b> <span class="chev">▾</span></span>
     <span class="health"><span class="dot"></span> Healthy <code>sqlite+es</code></span>
@@ -589,8 +627,7 @@
     <!-- App rail -->
     <nav class="rail" aria-label="Primary">
       <a href="#" title="Dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></a>
-      <a href="#" class="active" id="nav-search" data-view="search" title="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></a>
-      <a href="#" id="nav-editor" data-view="editor" title="Resource editor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></a>
+      <a href="#" class="active" id="nav-resources" title="Resources"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg></a>
       <a href="#" title="History & versions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 8v4l3 2"/></svg></a>
       <a href="#" title="Bulk export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg></a>
       <a href="#" title="Terminology"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></a>
@@ -612,10 +649,12 @@
 
     <!-- Main -->
     <main class="main">
-      <div class="main-inner" id="view-search">
+      <div class="main-inner" id="view-resources">
         <div class="pagehead">
-          <h1>Search</h1>
-          <span class="sub">Querying <b id="curType">Patient</b> · <b id="curCount">1,204</b> records</span>
+          <h1>Resources</h1>
+          <span class="sub">Browse, search, view &amp; edit <b id="curType">Patient</b> · <b id="curCount">1,204</b> records</span>
+          <span style="flex:1"></span>
+          <button class="btn-sm btn-primary" id="newBtn" style="align-self:center;background:var(--accent);color:var(--accent-ink)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> New <span id="newType">Patient</span></button>
         </div>
 
         <!-- Mode tabs -->
@@ -782,56 +821,11 @@
         </section>
       </div>
 
-      <!-- ============ RESOURCE EDITOR VIEW ============ -->
+      <!-- ============ FULL EDITOR (a state within Resources) ============ -->
       <div class="main-inner" id="view-editor" hidden>
-        <!-- Empty / chooser state -->
-        <div id="editor-empty">
-          <div class="pagehead">
-            <h1>Resource editor</h1>
-            <span class="sub">Create a new record, or open an existing one by ID.</span>
-          </div>
-
-          <div class="chooser">
-            <section class="card choicecard">
-              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></span>
-              <div>
-                <h3>Create new</h3>
-                <p>Start from a blank template of any resource type.</p>
-              </div>
-              <div class="go">
-                <div class="selwrap" style="flex:1"><select class="ctl" id="createType">
-                  <option>Patient</option><option>Observation</option><option>Encounter</option>
-                  <option>Condition</option><option>Practitioner</option><option>Organization</option>
-                </select></div>
-                <button class="btn-sm btn-primary" id="createBtn" style="background:var(--accent);color:var(--accent-ink)">Create</button>
-              </div>
-            </section>
-
-            <section class="card choicecard">
-              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg></span>
-              <div>
-                <h3>Open existing</h3>
-                <p>Enter a reference like <code style="font-family:var(--font-mono);color:var(--accent)">Patient/a12</code>.</p>
-              </div>
-              <div class="go">
-                <input class="ctl" id="openRef" placeholder="Patient/a12" style="flex:1">
-                <button class="btn-sm btn-ghost" id="openBtn" style="background:var(--surface);border-color:var(--border);color:var(--ink-2)">Open</button>
-              </div>
-            </section>
-          </div>
-
-          <div class="recents">
-            <h4>Recently edited</h4>
-            <button class="recent" data-open="a12"><span class="rtag">Patient/a12</span><span class="rnm">Smith, John</span><span class="rwhen">edited 12:01</span></button>
-            <button class="recent" data-open="a63"><span class="rtag">Patient/a63</span><span class="rnm">Smith, Maria</span><span class="rwhen">edited yesterday</span></button>
-            <button class="recent" data-open="b23"><span class="rtag">Patient/b23</span><span class="rnm">Smith, Owen</span><span class="rwhen">edited 2 days ago</span></button>
-          </div>
-        </div>
-
-        <!-- Loaded editor state -->
-        <div id="editor-loaded" hidden>
+        <div id="editor-loaded">
           <div class="breadcrumb">
-            <a href="#" id="edBackChooser">Resource editor</a> <span>›</span>
+            <a href="#" id="edBackChooser">Resources</a> <span>›</span>
             <span id="edCrumb">Patient/a12</span>
           </div>
           <div class="ed-loaded-head">
@@ -915,6 +909,7 @@
           activeType = t[0];
           document.getElementById("curType").textContent = t[0];
           document.getElementById("curCount").textContent = fmt(t[1]);
+          var nt = document.getElementById("newType"); if (nt) nt.textContent = t[0];
           renderTypes(document.getElementById("rfilter").value);
           buildQuery();
         });
@@ -1293,7 +1288,7 @@
       '<div class="dw-section-lab">Contact</div>' + kv("Phone", p.phone, true) + kv("Address", p.address) +
       '<div class="dw-section-lab">Care team</div>' + kv("General practitioner", p.gp) + kv("Managing organization", p.org);
     document.getElementById("dwEdit").addEventListener("click", function () { renderDrawerEdit(p); });
-    document.getElementById("dwFull").addEventListener("click", function () { closeDrawer(); showView("editor"); loadEditor(p.id); });
+    document.getElementById("dwFull").addEventListener("click", function () { closeDrawer(); openFullEditor(p.id); });
     document.getElementById("dwCopy").addEventListener("click", function () { copyText("Patient/" + p.id, "Reference copied"); });
   }
   function renderDrawerEdit(p) {
@@ -1306,7 +1301,7 @@
       '<button class="btn-sm btn-ghost" id="dwFull2" style="background:var(--surface);border-color:var(--border);color:var(--ink-2)">Open in full editor</button>';
     dwBody.innerHTML = '<div class="dw-section-lab" style="margin-top:12px">Editing Patient/' + p.id + '</div>' + formHtml(p);
     document.getElementById("dwCancelEdit").addEventListener("click", function () { renderDrawerView(PATIENTS[p.id]); });
-    document.getElementById("dwFull2").addEventListener("click", function () { closeDrawer(); showView("editor"); loadEditor(p.id); });
+    document.getElementById("dwFull2").addEventListener("click", function () { closeDrawer(); openFullEditor(p.id); });
     document.getElementById("dwSave").addEventListener("click", function () {
       var vals = readForm(dwBody);
       Object.assign(PATIENTS[p.id], vals);
@@ -1332,29 +1327,30 @@
     else showToast(msg);
   }
 
-  // ---------- View switching ----------
-  function showView(view) {
-    document.getElementById("view-search").hidden = view !== "search";
-    document.getElementById("view-editor").hidden = view !== "editor";
-    document.getElementById("nav-search").classList.toggle("active", view === "search");
-    document.getElementById("nav-editor").classList.toggle("active", view === "editor");
+  // ---------- Resources: browse vs. full editor (same tab) ----------
+  function showResources() {
+    document.getElementById("view-resources").hidden = false;
+    document.getElementById("view-editor").hidden = true;
     document.querySelector(".main").scrollTop = 0;
   }
-  document.getElementById("nav-search").addEventListener("click", function (e) { e.preventDefault(); showView("search"); });
-  document.getElementById("nav-editor").addEventListener("click", function (e) { e.preventDefault(); showView("editor"); showChooser(); });
+  function openFullEditor(id) {
+    document.getElementById("view-resources").hidden = true;
+    document.getElementById("view-editor").hidden = false;
+    document.querySelector(".main").scrollTop = 0;
+    loadEditor(id);
+  }
+  document.getElementById("nav-resources").addEventListener("click", function (e) { e.preventDefault(); showResources(); });
 
-  // ---------- Resource editor page ----------
-  var edEmpty = document.getElementById("editor-empty"), edLoaded = document.getElementById("editor-loaded");
+  // ---------- Full editor ----------
   var edForm = document.getElementById("edForm"), edJson = document.getElementById("edJson");
   var edCurId = null;
-  function showChooser() { edEmpty.hidden = false; edLoaded.hidden = true; }
   function loadEditor(id) {
-    var p = PATIENTS[id]; if (!p) { showToast("No resource with that reference"); return; }
+    var p = PATIENTS[id]; if (!p) { showToast("No resource with reference " + id); showResources(); return; }
     edCurId = id;
-    edEmpty.hidden = true; edLoaded.hidden = false;
-    document.getElementById("edCrumb").textContent = "Patient/" + id;
-    document.getElementById("edTitle").textContent = fullName(p);
-    document.getElementById("edMeta").textContent = "Patient/" + id + " · version " + p.ver + " · updated 2026-07-07 " + p.updated;
+    var isNew = p.id === "(new)";
+    document.getElementById("edCrumb").textContent = isNew ? "New Patient" : "Patient/" + id;
+    document.getElementById("edTitle").textContent = isNew ? "New Patient" : fullName(p);
+    document.getElementById("edMeta").textContent = isNew ? "Unsaved · an ID is assigned on save" : "Patient/" + id + " · version " + p.ver + " · updated 2026-07-07 " + p.updated;
     edForm.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 18px">' + formHtml(p) + '</div>';
     edJson.value = fhirJson(p);
     setRep("form");
@@ -1369,33 +1365,60 @@
       setRep(b.getAttribute("data-rep"));
     });
   });
-  document.getElementById("createBtn").addEventListener("click", function () {
-    showToast("New " + document.getElementById("createType").value + " template — demo shows Patient");
-    // Seed a blank-ish patient for the demo
+  // "New" from the Resources header — creates a blank record straight in the editor
+  document.getElementById("newBtn").addEventListener("click", function () {
     PATIENTS.__new = { id: "(new)", family: "", given: "", gender: "male", birthDate: "", mrn: "", phone: "", address: "", gp: "", org: "", ver: 0, updated: "—" };
-    loadEditor("__new");
-    document.getElementById("edCrumb").textContent = "New Patient";
-    document.getElementById("edTitle").textContent = "New Patient";
-    document.getElementById("edMeta").textContent = "Unsaved · will be assigned an ID on save";
+    openFullEditor("__new");
   });
-  document.getElementById("openBtn").addEventListener("click", function () {
-    var ref = document.getElementById("openRef").value.trim();
-    var id = ref.indexOf("/") > -1 ? ref.split("/")[1] : ref;
-    loadEditor(id);
-  });
-  document.getElementById("openRef").addEventListener("keydown", function (e) { if (e.key === "Enter") document.getElementById("openBtn").click(); });
-  document.querySelectorAll(".recent").forEach(function (r) {
-    r.addEventListener("click", function () { loadEditor(r.getAttribute("data-open")); });
-  });
-  document.getElementById("edBackChooser").addEventListener("click", function (e) { e.preventDefault(); showChooser(); });
-  document.getElementById("edCancel").addEventListener("click", showChooser);
+  document.getElementById("edBackChooser").addEventListener("click", function (e) { e.preventDefault(); showResources(); });
+  document.getElementById("edCancel").addEventListener("click", showResources);
   document.getElementById("edDelete").addEventListener("click", function () { showToast("Delete Patient/" + edCurId + " — confirm dialog would appear"); });
   document.getElementById("edSave").addEventListener("click", function () {
     if (!edCurId) return;
     if (!edForm.hidden) Object.assign(PATIENTS[edCurId], readForm(edForm));
     if (edCurId !== "__new" && PATIENTS[edCurId]) { PATIENTS[edCurId].ver++; renderResults(); }
     showToast((edCurId === "__new" ? "New patient" : "Patient/" + edCurId) + " saved");
+    showResources();
   });
+
+  // ---------- Global quick-search (top bar) ----------
+  var gsInput = document.getElementById("gsInput"), gsPop = document.getElementById("gsPop"), gsWrap = document.getElementById("gsearch");
+  function gsAdvanced() {
+    var term = gsInput.value.trim();
+    gsClose(); gsInput.blur(); showResources();
+    if (term) { filters = [{ field: "name", op: "contains", value: term, mods: [], adv: false }]; renderFilters(); showToast("Searching Patients named “" + term + "”"); }
+  }
+  function gsRender() {
+    var raw = gsInput.value.trim(), q = raw.toLowerCase();
+    var matches = RESULT_IDS.map(function (id) { return PATIENTS[id]; }).filter(function (p) {
+      if (!q) return true;
+      return (p.family + " " + p.given).toLowerCase().indexOf(q) > -1 || p.id.indexOf(q) > -1 || p.mrn.toLowerCase().indexOf(q) > -1;
+    }).slice(0, 6);
+    var html = '<div class="gs-sec">' + (q ? "Matching patients" : "Recent patients") + '</div>';
+    html += matches.length
+      ? matches.map(function (p) { return '<button class="gs-item" data-open="' + p.id + '"><span class="rtag">Patient/' + p.id + '</span><span class="nm">' + fullName(p) + '</span><span class="sub2">' + esc(p.mrn) + '</span></button>'; }).join("")
+      : '<div class="gs-item" style="color:var(--ink-3)">No resources match “' + esc(raw) + '”</div>';
+    html += '<button class="gs-foot" id="gsAdvanced"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span>Advanced search' + (q ? ' for “' + esc(raw) + '”' : "") + ' in Resources</span><span class="kbd" style="margin-left:auto">↵</span></button>';
+    gsPop.innerHTML = html;
+    gsPop.querySelectorAll("[data-open]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var id = b.getAttribute("data-open");
+        gsClose(); gsInput.blur(); showResources();
+        selectedId = id; renderResults(); openDrawer(id, "view");
+      });
+    });
+    document.getElementById("gsAdvanced").addEventListener("click", gsAdvanced);
+  }
+  function gsOpen() { gsRender(); gsPop.hidden = false; }
+  function gsClose() { gsPop.hidden = true; }
+  gsInput.addEventListener("focus", gsOpen);
+  gsInput.addEventListener("input", gsRender);
+  gsInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); gsAdvanced(); }
+    else if (e.key === "Escape") { gsClose(); gsInput.blur(); }
+  });
+  document.addEventListener("click", function (e) { if (!gsWrap.contains(e.target)) gsClose(); });
+  document.addEventListener("keydown", function (e) { if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) { e.preventDefault(); gsInput.focus(); } });
 
   // ---------- Init ----------
   renderDisplayMenus();
