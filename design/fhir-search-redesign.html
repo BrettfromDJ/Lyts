@@ -344,6 +344,24 @@
   .valcell { display: flex; gap: 6px; align-items: center; min-width: 0; }
   .valcell .ctl { min-width: 0; }
   .joinch { color: var(--ink-3); font-family: var(--font-mono); font-weight: 700; flex: none; }
+  /* OR value list within a condition */
+  .orlist { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+  .orentry { display: inline-flex; align-items: center; gap: 6px; flex: 1 1 130px; min-width: 90px; }
+  .orentry .ctl { min-width: 0; }
+  .orentry .selwrap.sm { flex: 0 0 auto; }
+  .orentry .selwrap.sm .ctl { width: 86px; padding: 0 22px 0 9px; font-size: 12px; font-weight: 600; }
+  .orsep { flex: none; font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-border); border-radius: 5px; padding: 3px 7px; }
+  .orx { flex: none; border: 0; background: transparent; color: var(--ink-3); font-size: 17px; line-height: 1; padding: 0 2px; cursor: pointer; }
+  .orx:hover { color: #c0392b; }
+  .oradd { flex: none; border: 1px dashed var(--border-strong); background: transparent; color: var(--ink-2);
+    font-weight: 600; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; padding: 7px 10px; border-radius: 7px; }
+  .oradd:hover { border-color: var(--accent-border); color: var(--accent); background: var(--accent-soft); border-style: solid; }
+  .matchhint { display: flex; align-items: center; height: 40px; padding: 0 4px; font-size: 11.5px; color: var(--ink-3); font-style: italic; }
+  .and-divider { display: flex; align-items: center; gap: 10px; margin: 3px 2px 9px; }
+  .and-divider::before, .and-divider::after { content: ""; height: 1px; background: var(--border); flex: 1; }
+  .and-divider span { flex: none; font-size: 10px; font-weight: 700; letter-spacing: .09em; color: var(--ink-3);
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 2px 10px; }
   .adv-panel .lab .ptype { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: .04em;
     color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-border); padding: 1px 6px; border-radius: 5px; margin-right: 7px; }
 
@@ -750,7 +768,7 @@
               <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
               <div class="htext">
                 <h2>Find <span id="findWhat">Patient</span>s where…</h2>
-                <p>Add conditions to narrow the search. All conditions must match.</p>
+                <p>Conditions are joined with <b>AND</b> — all must match. Add <b>OR</b> values inside a condition for either/or.</p>
               </div>
             </header>
             <div class="content">
@@ -1021,22 +1039,22 @@
   // primary Match option (its code) — shown here too, active when that match is
   // selected. Without it, the modifier toggles independently.
   var MVOCAB = {
-    string:    [["contains", "match anywhere in the text", "co"], ["exact", "case & accent sensitive", "ex"], ["missing", "field is present / absent"]],
-    token:     [["text", "match display text, not the code", "txt"], ["in", "value is in this value set", "in"], ["not-in", "value is not in this value set", "ni"], ["not", "exclude rows that match"], ["above", "this code or any broader / parent"], ["below", "this code or any narrower / child"], ["of-type", "an identifier of a given type"], ["missing", "field is present / absent"]],
+    string:    [["contains", "match anywhere in the text", "co"], ["exact", "whole value incl. case & accents", "ex"], ["text", "advanced text handling"], ["missing", "field is present / absent"]],
+    token:     [["in", "value is in this value set", "in"], ["not-in", "value not in this value set", "ni"], ["text", "match the display text", "txt"], ["not", "exclude rows that match"], ["above", "this code or any broader / parent"], ["below", "this code or any narrower / child"], ["of-type", "an Identifier of a given type"], ["code-text", "coded value, string-matched"], ["text-advanced", "advanced text on code display"], ["missing", "field is present / absent"]],
     date:      [["missing", "field is present / absent"]],
     number:    [["missing", "field is present / absent"]],
     quantity:  [["missing", "field is present / absent"]],
-    reference: [["identifier", "match the reference's identifier", "idized"], ["above", "reference hierarchy: this or broader"], ["below", "reference hierarchy: this or narrower"], ["missing", "field is present / absent"]],
+    reference: [["identifier", "match Reference.identifier", "idized"], ["[type]", "points to a given resource type (→ :Patient)"], ["above", "reference hierarchy: this or broader"], ["below", "reference hierarchy: this or narrower"], ["contains", "match anywhere in the reference"], ["not-in", "not a member of a value set"], ["text", "match Reference.display"], ["code-text", "coded value, string-matched"], ["text-advanced", "advanced text on display"], ["missing", "field is present / absent"]],
     uri:       [["above", "this URI or any above it", "above"], ["below", "this URI or any below it", "below"], ["contains", "match anywhere in the URI"], ["missing", "field is present / absent"]],
-    composite: [["missing", "field is present / absent"]],
-    special:   [["missing", "field is present / absent"]]
+    composite: [],
+    special:   []
   };
   var TNOTE = {
-    date: "Ordered type — pick a comparator (=, >, ≥, starts after…) in the Match menu.",
-    number: "Ordered type — pick a comparator in the Match menu.",
-    quantity: "Ordered type — comparator in Match; the unit goes in the value box.",
-    composite: "Composite value is entered as code $ value; only :missing applies.",
-    special: "Special parameter with its own value grammar; only :missing applies."
+    date: "Ordered type — comparators (=, >, ≥, starts after…) live on each value.",
+    number: "Ordered type — comparators live on each value.",
+    quantity: "Ordered type — comparator per value; the unit goes in the value box.",
+    composite: "Composite parameters take no standard modifiers — enter the two components.",
+    special: "Special parameters declare their own allowed modifiers per definition."
   };
   // Common parameters that apply to every resource type.
   var COMMON = [
@@ -1076,13 +1094,18 @@
   }
   buildCatalog(activeType);
   function firstParam(type) { return (CATALOG[type] && CATALOG[type][0][0]) || COMMON[0][0]; }
+  function ordered(t) { return t === "date" || t === "number" || t === "quantity"; }
+  function newVal(pre) { return { v: "", v2: "", unit: "", pre: pre || "eq" }; }
   function blankFilter(field) {
-    return { field: field, op: PTYPE[catalog[field].type].comps[0][0], value: "", value2: "", unit: "", mods: [], adv: false };
+    var t = catalog[field].type;
+    return { field: field, op: PTYPE[t].comps[0][0], mods: [], adv: false, vals: [newVal("eq")] };
   }
 
+  // A condition holds one or more OR-joined values (comma-separated in the URL).
+  // Separate conditions are AND-joined (& in the URL).
   var filters = [
-    { field: "name", op: "co", value: "Smith", value2: "", unit: "", mods: [], adv: false },
-    { field: "birthdate", op: "ge", value: "1980-01-01", value2: "", unit: "", mods: [], adv: false }
+    { field: "name", op: "co", mods: [], adv: false, vals: [{ v: "Smith", v2: "", unit: "", pre: "eq" }] },
+    { field: "birthdate", op: "ge", mods: [], adv: false, vals: [{ v: "1980-01-01", v2: "", unit: "", pre: "ge" }] }
   ];
 
   var filtersEl = document.getElementById("filters");
@@ -1095,88 +1118,126 @@
     });
     return html + '</select>';
   }
-  function valueEditor(f, i, t) {
-    var di = ' data-i="' + i + '" data-k="value"';
-    if (t === "date") return '<input class="ctl" type="date" value="' + esc(f.value) + '"' + di + '>';
-    if (t === "number") return '<input class="ctl" type="number" step="any" placeholder="e.g. 5"' + ' value="' + esc(f.value) + '"' + di + '>';
-    if (t === "quantity") return '<div class="valcell"><input class="ctl" type="number" step="any" placeholder="value" value="' + esc(f.value) + '"' + di + '><span class="joinch">|</span><input class="ctl" type="text" placeholder="unit (mg, mmol/L…)" value="' + esc(f.unit) + '" data-i="' + i + '" data-k="unit"></div>';
-    if (t === "composite") return '<div class="valcell"><input class="ctl" type="text" placeholder="code" value="' + esc(f.value) + '"' + di + '><span class="joinch">$</span><input class="ctl" type="text" placeholder="value" value="' + esc(f.value2) + '" data-i="' + i + '" data-k="value2"></div>';
-    if (t === "reference") return '<input class="ctl" type="text" placeholder="Type/id  or  name" value="' + esc(f.value) + '"' + di + '>';
-    if (t === "special") return '<input class="ctl" type="text" placeholder="lat|long|distance|unit  (37.77|-122.4|5|km)" value="' + esc(f.value) + '"' + di + '>';
-    if (t === "token") {
-      if (catalog[f.field] && catalog[f.field].enums) {
-        return '<div class="selwrap"><select class="ctl"' + di + '>' + catalog[f.field].enums.map(function (o) { return '<option' + (o === f.value ? " selected" : "") + '>' + o + '</option>'; }).join("") + '</select></div>';
-      }
-      var ph = (f.op === "in" || f.op === "ni") ? "value set URL" : "code   or   system|code";
-      return '<input class="ctl" type="text" placeholder="' + ph + '" value="' + esc(f.value) + '"' + di + '>';
-    }
-    return '<input class="ctl" type="text" placeholder="Enter a value…" value="' + esc(f.value) + '"' + di + '>';
+  function preSelect(i, j, sel, asMatch) {
+    return '<div class="selwrap' + (asMatch ? "" : " sm") + '"><select class="ctl" data-i="' + i + '" data-j="' + j + '" data-k="pre" title="comparator">' +
+      PREF.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sel ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") + '</select></div>';
+  }
+  // Inputs for one OR value entry (no comparator — that's added separately for ordered types).
+  function entryInputs(f, i, j, t) {
+    var e = f.vals[j], b = ' data-i="' + i + '" data-j="' + j + '"';
+    if (t === "date") return '<input class="ctl" type="date" value="' + esc(e.v) + '"' + b + ' data-k="v">';
+    if (t === "number") return '<input class="ctl" type="number" step="any" placeholder="e.g. 5" value="' + esc(e.v) + '"' + b + ' data-k="v">';
+    if (t === "quantity") return '<input class="ctl" type="number" step="any" placeholder="value" value="' + esc(e.v) + '"' + b + ' data-k="v"><span class="joinch">|</span><input class="ctl" type="text" placeholder="unit" value="' + esc(e.unit) + '"' + b + ' data-k="unit">';
+    if (t === "composite") return '<input class="ctl" type="text" placeholder="code" value="' + esc(e.v) + '"' + b + ' data-k="v"><span class="joinch">$</span><input class="ctl" type="text" placeholder="value" value="' + esc(e.v2) + '"' + b + ' data-k="v2">';
+    if (t === "reference") return '<input class="ctl" type="text" placeholder="Type/id  or  name" value="' + esc(e.v) + '"' + b + ' data-k="v">';
+    if (t === "special") return '<input class="ctl" type="text" placeholder="lat|long|dist|unit" value="' + esc(e.v) + '"' + b + ' data-k="v">';
+    if (t === "token" && catalog[f.field] && catalog[f.field].enums)
+      return '<div class="selwrap"><select class="ctl"' + b + ' data-k="v">' + catalog[f.field].enums.map(function (o) { return '<option' + (o === e.v ? " selected" : "") + '>' + o + '</option>'; }).join("") + '</select></div>';
+    if (t === "token") { var ph = (f.op === "in" || f.op === "ni") ? "value set URL" : "code  or  system|code"; return '<input class="ctl" type="text" placeholder="' + ph + '" value="' + esc(e.v) + '"' + b + ' data-k="v">'; }
+    return '<input class="ctl" type="text" placeholder="value" value="' + esc(e.v) + '"' + b + ' data-k="v">';
+  }
+  function orList(f, i, t) {
+    var isOrd = ordered(t), multi = f.vals.length > 1;
+    var html = '<div class="orlist">';
+    f.vals.forEach(function (e, j) {
+      if (j > 0) html += '<span class="orsep">or</span>';
+      html += '<span class="orentry">' + (isOrd && multi ? preSelect(i, j, e.pre) : "") + entryInputs(f, i, j, t) +
+        (multi ? '<button class="orx" data-delval="' + i + ':' + j + '" title="Remove value">×</button>' : "") + '</span>';
+    });
+    return html + '<button class="oradd" data-addval="' + i + '" title="Add an OR value">+ or</button></div>';
   }
   function renderFilters() {
     filtersEl.innerHTML = "";
     filters.forEach(function (f, i) {
       var d = catalog[f.field] || { label: f.field, type: "string" };
-      var t = d.type, comps = PTYPE[t].comps, mods = PTYPE[t].mods;
+      var t = d.type, isOrd = ordered(t), multi = f.vals.length > 1;
+      // MATCH cell: non-ordered -> shared key match; ordered single -> comparator; ordered multi -> hint (per value)
+      var matchCell = isOrd
+        ? (multi ? '<div class="matchhint">per value →</div>' : preSelect(i, 0, f.vals[0].pre, true))
+        : '<div class="selwrap"><select class="ctl" data-i="' + i + '" data-k="op" title="' + t + ' match">' +
+            PTYPE[t].comps.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === f.op ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") + '</select></div>';
       var row = document.createElement("div");
       row.className = "frow";
       row.innerHTML =
         '<div class="selwrap">' + fieldSelect(i, f.field) + '</div>' +
-        '<div class="selwrap"><select class="ctl" data-i="' + i + '" data-k="op" title="' + t + ' match">' +
-          comps.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === f.op ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") +
-        '</select></div>' +
-        valueEditor(f, i, t) +
+        matchCell +
+        orList(f, i, t) +
         '<button class="iconbtn adv' + (f.adv ? " on" : "") + '" data-adv="' + i + '" title="Modifiers">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>' +
           (f.mods.length ? '<span class="adv-badge">' + f.mods.length + '</span>' : '') + '</button>' +
         '<button class="iconbtn danger" data-del="' + i + '" title="Remove condition">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>';
 
-      var mv = MVOCAB[t] || [["missing", "field is present / absent"]];
+      var mv = MVOCAB[t] || [];
       var adv = document.createElement("div");
       adv.className = "adv-panel" + (f.adv ? " open" : "");
-      adv.innerHTML = '<div class="lab"><span class="ptype">' + t + '</span>modifiers for “' + d.label + '”</div><div class="modgrid">' +
-        mv.map(function (m) {
+      adv.innerHTML = '<div class="lab"><span class="ptype">' + t + '</span>modifiers for “' + d.label + '”</div>' +
+        (mv.length ? '<div class="modgrid">' + mv.map(function (m) {
           var opCode = m[2];
           var on = opCode ? (f.op === opCode) : (f.mods.indexOf(m[0]) > -1);
           var attr = opCode ? ('data-mop="' + i + ':' + opCode + '"') : ('data-mod="' + i + ':' + m[0] + '"');
           return '<button class="mod' + (on ? " on" : "") + '" ' + attr + '><code>:' + m[0] + '</code><span class="desc">' + m[1] + '</span></button>';
-        }).join("") + '</div>' +
-        (TNOTE[t] ? '<div class="modnote">' + TNOTE[t] + '</div>' : '');
+        }).join("") + '</div>' : "") +
+        (TNOTE[t] ? '<div class="modnote">' + TNOTE[t] + '</div>' : "");
 
       filtersEl.appendChild(row);
       filtersEl.appendChild(adv);
+      if (i < filters.length - 1) {
+        var andd = document.createElement("div");
+        andd.className = "and-divider"; andd.innerHTML = '<span>AND</span>';
+        filtersEl.appendChild(andd);
+      }
     });
     wireFilters();
     buildQuery();
   }
   function wireFilters() {
     filtersEl.querySelectorAll("[data-k]").forEach(function (el) {
+      var i = +el.getAttribute("data-i"), k = el.getAttribute("data-k"), ja = el.getAttribute("data-j");
       el.addEventListener("change", function () {
-        var i = +el.getAttribute("data-i"), k = el.getAttribute("data-k");
+        if (!filters[i]) return; // element may fire on blur after the model was rebuilt
         if (k === "field") { filters[i] = blankFilter(el.value); renderFilters(); return; }
         if (k === "op") { filters[i].op = el.value; renderFilters(); return; }
+        if (ja !== null) { if (filters[i].vals[+ja]) { filters[i].vals[+ja][k] = el.value; buildQuery(); } return; }
         filters[i][k] = el.value; buildQuery();
       });
       if (el.tagName === "INPUT") el.addEventListener("input", function () {
-        filters[+el.getAttribute("data-i")][el.getAttribute("data-k")] = el.value; buildQuery();
+        if (!filters[i]) return;
+        if (ja !== null) { if (!filters[i].vals[+ja]) return; filters[i].vals[+ja][k] = el.value; }
+        else filters[i][k] = el.value;
+        buildQuery();
+      });
+    });
+    filtersEl.querySelectorAll("[data-addval]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var i = +el.getAttribute("data-addval"), t = catalog[filters[i].field].type;
+        filters[i].vals.push(newVal(ordered(t) ? (filters[i].vals[0].pre || "eq") : "eq"));
+        renderFilters();
+      });
+    });
+    filtersEl.querySelectorAll("[data-delval]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var p = el.getAttribute("data-delval").split(":"), i = +p[0], j = +p[1];
+        filters[i].vals.splice(j, 1); if (!filters[i].vals.length) filters[i].vals = [newVal("eq")];
+        renderFilters();
       });
     });
     filtersEl.querySelectorAll("[data-adv]").forEach(function (el) {
       el.addEventListener("click", function () { var i = +el.getAttribute("data-adv"); filters[i].adv = !filters[i].adv; renderFilters(); });
     });
     filtersEl.querySelectorAll("[data-del]").forEach(function (el) {
-      el.addEventListener("click", function () { filters.splice(+el.getAttribute("data-del"), 1); renderFilters(); });
+      el.addEventListener("click", function () { filters.splice(+el.getAttribute("data-del"), 1); if (!filters.length) filters.push(blankFilter(firstParam(activeType))); renderFilters(); });
     });
     filtersEl.querySelectorAll("[data-mod]").forEach(function (el) {
       el.addEventListener("click", function () {
-        var parts = el.getAttribute("data-mod").split(":"), i = +parts[0], m = parts[1];
+        var raw = el.getAttribute("data-mod"), ci = raw.indexOf(":"), i = +raw.slice(0, ci), m = raw.slice(ci + 1);
         var idx = filters[i].mods.indexOf(m);
         if (idx > -1) filters[i].mods.splice(idx, 1); else filters[i].mods.push(m);
         renderFilters();
       });
     });
-    // Match-linked modifiers (contains/exact/in/…) set the operator; clicking the
-    // active one reverts to the type's default match.
+    // Match-linked modifiers (contains/exact/in/…) set the shared match; clicking the
+    // active one reverts to the type's default.
     filtersEl.querySelectorAll("[data-mop]").forEach(function (el) {
       el.addEventListener("click", function () {
         var parts = el.getAttribute("data-mop").split(":"), i = +parts[0], code = parts[1];
@@ -1264,22 +1325,25 @@
 
   // ---------- Query builder ----------
   // Serialize one condition to [key, value] honoring its FHIR parameter type.
+  // key modifier applies to ALL OR values; each value may carry its own prefix (ordered types).
   function serialize(f) {
     var d = catalog[f.field]; if (!d) return null;
     if (f.mods.indexOf("missing") > -1) return [f.field + ":missing", "true"];
-    var t = d.type, key = f.field, val = f.value;
-    if (t === "quantity") { if (val === "") return null; if (f.unit) val = val + "|" + f.unit; }
-    else if (t === "composite") { if (!f.value || !f.value2) return null; val = f.value + "$" + f.value2; }
-    else if (val === "") return null;
-
+    var t = d.type, key = f.field;
     if (t === "string") { if (f.op === "co") key += ":contains"; else if (f.op === "ex") key += ":exact"; }
     else if (t === "token") { if (f.op === "in") key += ":in"; else if (f.op === "ni") key += ":not-in"; else if (f.op === "txt") key += ":text"; }
     else if (t === "reference") { if (f.op === "idized") key += ":identifier"; }
     else if (t === "uri") { if (f.op === "above") key += ":above"; else if (f.op === "below") key += ":below"; }
-    else if (t === "date" || t === "number" || t === "quantity") { if (f.op && f.op !== "eq") val = f.op + val; }
+    f.mods.forEach(function (m) { key += (m === "[type]") ? ":Patient" : (":" + m); });
 
-    f.mods.forEach(function (m) { key += ":" + m; });
-    return [key, val];
+    var parts = f.vals.map(function (e) {
+      if (t === "quantity") { if (e.v === "") return null; return ((e.pre && e.pre !== "eq") ? e.pre : "") + e.v + (e.unit ? ("|" + e.unit) : ""); }
+      if (t === "composite") { if (!e.v || !e.v2) return null; return e.v + "$" + e.v2; }
+      if (t === "date" || t === "number") { if (e.v === "") return null; return ((e.pre && e.pre !== "eq") ? e.pre : "") + e.v; }
+      return e.v === "" ? null : e.v;
+    }).filter(function (x) { return x !== null; });
+    if (!parts.length) return null;
+    return [key, parts.join(",")];
   }
   function buildQuery() {
     var parts = [];
@@ -1322,17 +1386,19 @@
   // ---------- AI generate ----------
   var EXAMPLES = {
     smith: { text: "Patients named Smith born after 1980", filters: [
-      { field: "name", op: "co", value: "Smith", value2: "", unit: "", mods: [], adv: false },
-      { field: "birthdate", op: "ge", value: "1980-01-01", value2: "", unit: "", mods: [], adv: false }] },
+      { field: "name", op: "co", mods: [], adv: false, vals: [{ v: "Smith", v2: "", unit: "", pre: "eq" }] },
+      { field: "birthdate", op: "ge", mods: [], adv: false, vals: [{ v: "1980-01-01", v2: "", unit: "", pre: "ge" }] }] },
     age: { text: "Patients 18 or older", filters: [
-      { field: "birthdate", op: "le", value: "2008-07-07", value2: "", unit: "", mods: [], adv: false }] },
+      { field: "birthdate", op: "le", mods: [], adv: false, vals: [{ v: "2008-07-07", v2: "", unit: "", pre: "le" }] }] },
     gp: { text: "Patients whose GP is Dr. Lee", filters: [
-      { field: "general-practitioner", op: "eq", value: "Dr. Lee", value2: "", unit: "", mods: [], adv: false }] }
+      { field: "general-practitioner", op: "eq", mods: [], adv: false, vals: [{ v: "Dr. Lee", v2: "", unit: "", pre: "eq" }] }] }
   };
   function applyExample(key) {
     var ex = EXAMPLES[key]; if (!ex) return;
     document.getElementById("aiInput").value = ex.text;
-    filters = ex.filters.map(function (f) { return Object.assign({}, f); });
+    filters = ex.filters.map(function (f) {
+      return { field: f.field, op: f.op, mods: f.mods.slice(), adv: false, vals: f.vals.map(function (v) { return Object.assign({}, v); }) };
+    });
     renderFilters();
     showToast("Query built — review below, then Search");
   }
@@ -1589,7 +1655,7 @@
   function gsAdvanced() {
     var term = gsInput.value.trim();
     gsClose(); gsInput.blur(); showResources();
-    if (term) { filters = [{ field: "name", op: "co", value: term, value2: "", unit: "", mods: [], adv: false }]; renderFilters(); showToast("Searching Patients named “" + term + "”"); }
+    if (term) { filters = [{ field: "name", op: "co", mods: [], adv: false, vals: [{ v: term, v2: "", unit: "", pre: "eq" }] }]; renderFilters(); showToast("Searching Patients named “" + term + "”"); }
   }
   function gsRender() {
     var raw = gsInput.value.trim(), q = raw.toLowerCase();
