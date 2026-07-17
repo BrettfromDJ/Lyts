@@ -336,6 +336,11 @@
   .mod code { font-family: var(--font-mono); font-size: 11.5px; }
   .mod .desc { color: var(--ink-3); font-weight: 400; }
   .mod.on .desc { color: color-mix(in srgb, var(--accent) 80%, var(--ink-2)); }
+  .valcell { display: flex; gap: 6px; align-items: center; min-width: 0; }
+  .valcell .ctl { min-width: 0; }
+  .joinch { color: var(--ink-3); font-family: var(--font-mono); font-weight: 700; flex: none; }
+  .adv-panel .lab .ptype { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-border); padding: 1px 6px; border-radius: 5px; margin-right: 7px; }
 
   .addrow {
     display: inline-flex; align-items: center; gap: 7px; margin-top: 4px;
@@ -739,7 +744,7 @@
             <header>
               <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
               <div class="htext">
-                <h2>Find Patients where…</h2>
+                <h2>Find <span id="findWhat">Patient</span>s where…</h2>
                 <p>Add conditions to narrow the search. All conditions must match.</p>
               </div>
             </header>
@@ -971,8 +976,11 @@
           document.getElementById("curType").textContent = t[0];
           document.getElementById("curCount").textContent = fmt(t[1]);
           var nt = document.getElementById("newType"); if (nt) nt.textContent = t[0];
+          var fw = document.getElementById("findWhat"); if (fw) fw.textContent = t[0];
+          buildCatalog(activeType);
+          filters = [blankFilter(firstParam(activeType))];
           renderTypes(document.getElementById("rfilter").value);
-          buildQuery();
+          renderFilters();
         });
         rlist.appendChild(b);
       });
@@ -980,65 +988,128 @@
   document.getElementById("rfilter").addEventListener("input", function (e) { renderTypes(e.target.value); });
   renderTypes("");
 
-  // ---------- Filters model ----------
-  var FIELDS = {
-    name: { label: "Name", tag: "name", ops: ["contains", "exact", "starts"], type: "text" },
-    birthdate: { label: "Birth date", tag: "birthdate", ops: ["ge", "le", "eq"], type: "date" },
-    "general-practitioner": { label: "General practitioner", tag: "general-practitioner", ops: ["is", "identifier"], type: "ref" },
-    gender: { label: "Gender", tag: "gender", ops: ["is"], type: "enum" },
-    identifier: { label: "Identifier (MRN)", tag: "identifier", ops: ["is"], type: "text" },
-    address: { label: "Address", tag: "address", ops: ["contains", "exact"], type: "text" }
+  // ---------- FHIR search-parameter model (build.fhir.org/search.html#ptypes) ----------
+  // Comparator prefixes shared by the ordered types (number, date, quantity).
+  var PREF = [["eq", "="], ["ne", "≠"], ["gt", ">"], ["lt", "<"], ["ge", "≥"], ["le", "≤"], ["sa", "starts after"], ["eb", "ends before"], ["ap", "≈ approx"]];
+  // Per search-parameter TYPE: primary match options (the Match dropdown),
+  // advanced modifiers (the popover), and which value editor to render.
+  var PTYPE = {
+    string:    { comps: [["sw", "starts with"], ["co", "contains"], ["ex", "is exactly"]], mods: ["missing"], input: "text" },
+    token:     { comps: [["eq", "is"], ["in", "in value set"], ["ni", "not in value set"], ["txt", "text matches"]], mods: ["not", "above", "below", "of-type", "missing"], input: "token" },
+    date:      { comps: PREF, mods: ["missing"], input: "date" },
+    number:    { comps: PREF, mods: ["missing"], input: "number" },
+    quantity:  { comps: PREF, mods: ["missing"], input: "quantity" },
+    reference: { comps: [["eq", "is"], ["idized", "by identifier"]], mods: ["above", "below", "missing"], input: "reference" },
+    uri:       { comps: [["eq", "is (exact)"], ["above", "above"], ["below", "below"]], mods: ["contains", "missing"], input: "text" },
+    composite: { comps: [["eq", "matches"]], mods: ["missing"], input: "composite" },
+    special:   { comps: [["eq", "near"]], mods: ["missing"], input: "special" }
   };
-  var OP_LABEL = { contains: "contains", exact: "is exactly", starts: "starts with", ge: "on or after",
-    le: "on or before", eq: "on", is: "is", identifier: "by identifier" };
-  var MODIFIERS = [
-    ["missing", "field has no value at all"],
-    ["not", "exclude rows that match"],
-    ["exact", "case & accent sensitive"],
-    ["above", "this code or any broader one"],
-    ["type", "restrict to a resource type"]
+  var MOD_INFO = {
+    missing: "field is present / absent",
+    not: "exclude rows that match this token",
+    above: "this value or any broader / parent",
+    below: "this value or any narrower / child",
+    "of-type": "match an identifier of a given type",
+    contains: "match anywhere in the URI"
+  };
+  // Common parameters that apply to every resource type.
+  var COMMON = [
+    ["_id", "Resource id", "token"], ["_lastUpdated", "Last updated", "date"],
+    ["_tag", "Tag", "token"], ["_profile", "Profile", "uri"], ["_security", "Security label", "token"],
+    ["_text", "Narrative text", "string"], ["_content", "Full-text content", "string"]
   ];
+  // Resource-specific catalogs: [name, label, type, (enum values)]
+  var CATALOG = {
+    Patient: [
+      ["name", "Name", "string"], ["family", "Family name", "string"], ["given", "Given name", "string"],
+      ["birthdate", "Birth date", "date"], ["gender", "Gender", "token", ["male", "female", "other", "unknown"]],
+      ["identifier", "Identifier (MRN)", "token"], ["active", "Active", "token", ["true", "false"]],
+      ["address", "Address", "string"], ["address-postalcode", "Postal code", "string"],
+      ["general-practitioner", "General practitioner", "reference"], ["organization", "Managing organization", "reference"],
+      ["language", "Language", "token"], ["death-date", "Date of death", "date"]
+    ],
+    Observation: [
+      ["code", "Code", "token"], ["value-quantity", "Value (quantity)", "quantity"],
+      ["value-string", "Value (string)", "string"], ["value-concept", "Value (coded)", "token"],
+      ["date", "Effective date", "date"], ["status", "Status", "token", ["registered", "preliminary", "final", "amended", "cancelled"]],
+      ["subject", "Subject", "reference"], ["patient", "Patient", "reference"],
+      ["code-value-quantity", "Code + value", "composite"], ["component-code-value-quantity", "Component code + value", "composite"]
+    ],
+    Location: [
+      ["near", "Near (lat / long)", "special"], ["address", "Address", "string"],
+      ["status", "Status", "token", ["active", "suspended", "inactive"]], ["organization", "Managing organization", "reference"]
+    ]
+  };
+  var catalog = {}, catalogGroups = [];
+  function buildCatalog(type) {
+    catalog = {}; catalogGroups = [];
+    var spec = CATALOG[type] || [];
+    if (spec.length) catalogGroups.push([type + " parameters", spec]);
+    catalogGroups.push(["Common — all resources", COMMON]);
+    catalogGroups.forEach(function (g) { g[1].forEach(function (r) { catalog[r[0]] = { label: r[1], type: r[2], enums: r[3] || null }; }); });
+  }
+  buildCatalog(activeType);
+  function firstParam(type) { return (CATALOG[type] && CATALOG[type][0][0]) || COMMON[0][0]; }
+  function blankFilter(field) {
+    return { field: field, op: PTYPE[catalog[field].type].comps[0][0], value: "", value2: "", unit: "", mods: [], adv: false };
+  }
 
   var filters = [
-    { field: "name", op: "contains", value: "Smith", mods: [], adv: false },
-    { field: "birthdate", op: "ge", value: "1980-01-01", mods: [], adv: false }
+    { field: "name", op: "co", value: "Smith", value2: "", unit: "", mods: [], adv: false },
+    { field: "birthdate", op: "ge", value: "1980-01-01", value2: "", unit: "", mods: [], adv: false }
   ];
 
   var filtersEl = document.getElementById("filters");
-  function optionList(obj, sel) {
-    return Object.keys(obj).map(function (k) {
-      var label = FIELDS[k] ? FIELDS[k].label : k;
-      return '<option value="' + k + '"' + (k === sel ? " selected" : "") + '>' + label + '</option>';
-    }).join("");
+  function fieldSelect(i, sel) {
+    var html = '<select class="ctl field" data-i="' + i + '" data-k="field">';
+    catalogGroups.forEach(function (g) {
+      html += '<optgroup label="' + g[0] + '">';
+      g[1].forEach(function (r) { html += '<option value="' + r[0] + '"' + (r[0] === sel ? " selected" : "") + '>' + r[1] + '</option>'; });
+      html += '</optgroup>';
+    });
+    return html + '</select>';
+  }
+  function valueEditor(f, i, t) {
+    var di = ' data-i="' + i + '" data-k="value"';
+    if (t === "date") return '<input class="ctl" type="date" value="' + esc(f.value) + '"' + di + '>';
+    if (t === "number") return '<input class="ctl" type="number" step="any" placeholder="e.g. 5"' + ' value="' + esc(f.value) + '"' + di + '>';
+    if (t === "quantity") return '<div class="valcell"><input class="ctl" type="number" step="any" placeholder="value" value="' + esc(f.value) + '"' + di + '><span class="joinch">|</span><input class="ctl" type="text" placeholder="unit (mg, mmol/L…)" value="' + esc(f.unit) + '" data-i="' + i + '" data-k="unit"></div>';
+    if (t === "composite") return '<div class="valcell"><input class="ctl" type="text" placeholder="code" value="' + esc(f.value) + '"' + di + '><span class="joinch">$</span><input class="ctl" type="text" placeholder="value" value="' + esc(f.value2) + '" data-i="' + i + '" data-k="value2"></div>';
+    if (t === "reference") return '<input class="ctl" type="text" placeholder="Type/id  or  name" value="' + esc(f.value) + '"' + di + '>';
+    if (t === "special") return '<input class="ctl" type="text" placeholder="lat|long|distance|unit  (37.77|-122.4|5|km)" value="' + esc(f.value) + '"' + di + '>';
+    if (t === "token") {
+      if (catalog[f.field] && catalog[f.field].enums) {
+        return '<div class="selwrap"><select class="ctl"' + di + '>' + catalog[f.field].enums.map(function (o) { return '<option' + (o === f.value ? " selected" : "") + '>' + o + '</option>'; }).join("") + '</select></div>';
+      }
+      var ph = (f.op === "in" || f.op === "ni") ? "value set URL" : "code   or   system|code";
+      return '<input class="ctl" type="text" placeholder="' + ph + '" value="' + esc(f.value) + '"' + di + '>';
+    }
+    return '<input class="ctl" type="text" placeholder="Enter a value…" value="' + esc(f.value) + '"' + di + '>';
   }
   function renderFilters() {
     filtersEl.innerHTML = "";
     filters.forEach(function (f, i) {
-      var fld = FIELDS[f.field];
+      var d = catalog[f.field] || { label: f.field, type: "string" };
+      var t = d.type, comps = PTYPE[t].comps, mods = PTYPE[t].mods;
       var row = document.createElement("div");
       row.className = "frow";
-      var valCtl;
-      if (fld.type === "date") valCtl = '<input class="ctl" type="date" value="' + f.value + '" data-i="' + i + '" data-k="value">';
-      else if (fld.type === "enum") valCtl = '<div class="selwrap"><select class="ctl" data-i="' + i + '" data-k="value"><option>male</option><option>female</option><option>other</option></select></div>';
-      else valCtl = '<input class="ctl" type="text" placeholder="Enter a value…" value="' + f.value + '" data-i="' + i + '" data-k="value">';
-
       row.innerHTML =
-        '<div class="selwrap"><select class="ctl field" data-i="' + i + '" data-k="field">' + optionList(FIELDS, f.field) + '</select></div>' +
-        '<div class="selwrap"><select class="ctl" data-i="' + i + '" data-k="op">' +
-          fld.ops.map(function (o) { return '<option value="' + o + '"' + (o === f.op ? " selected" : "") + '>' + (OP_LABEL[o] || o) + '</option>'; }).join("") +
+        '<div class="selwrap">' + fieldSelect(i, f.field) + '</div>' +
+        '<div class="selwrap"><select class="ctl" data-i="' + i + '" data-k="op" title="' + t + ' match">' +
+          comps.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === f.op ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") +
         '</select></div>' +
-        valCtl +
-        '<button class="iconbtn adv' + (f.adv ? " on" : "") + '" data-adv="' + i + '" title="Advanced modifiers">' +
+        valueEditor(f, i, t) +
+        '<button class="iconbtn adv' + (f.adv ? " on" : "") + '" data-adv="' + i + '" title="' + t + ' modifiers">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></button>' +
         '<button class="iconbtn danger" data-del="' + i + '" title="Remove condition">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>';
 
       var adv = document.createElement("div");
       adv.className = "adv-panel" + (f.adv ? " open" : "");
-      adv.innerHTML = '<div class="lab">Modifiers for “' + fld.label + '”</div><div class="modgrid">' +
-        MODIFIERS.map(function (m) {
-          var on = f.mods.indexOf(m[0]) > -1;
-          return '<button class="mod' + (on ? " on" : "") + '" data-mod="' + i + ':' + m[0] + '"><code>:' + m[0] + '</code><span class="desc">' + m[1] + '</span></button>';
+      adv.innerHTML = '<div class="lab"><span class="ptype">' + t + '</span>modifiers for “' + d.label + '”</div><div class="modgrid">' +
+        mods.map(function (m) {
+          var on = f.mods.indexOf(m) > -1;
+          return '<button class="mod' + (on ? " on" : "") + '" data-mod="' + i + ':' + m + '"><code>:' + m + '</code><span class="desc">' + (MOD_INFO[m] || "") + '</span></button>';
         }).join("") + '</div>';
 
       filtersEl.appendChild(row);
@@ -1051,13 +1122,12 @@
     filtersEl.querySelectorAll("[data-k]").forEach(function (el) {
       el.addEventListener("change", function () {
         var i = +el.getAttribute("data-i"), k = el.getAttribute("data-k");
-        filters[i][k] = el.value;
-        if (k === "field") { filters[i].op = FIELDS[el.value].ops[0]; filters[i].value = ""; filters[i].mods = []; renderFilters(); return; }
-        buildQuery();
+        if (k === "field") { filters[i] = blankFilter(el.value); renderFilters(); return; }
+        if (k === "op") { filters[i].op = el.value; renderFilters(); return; }
+        filters[i][k] = el.value; buildQuery();
       });
-      el.addEventListener("input", function () {
-        var i = +el.getAttribute("data-i"), k = el.getAttribute("data-k");
-        if (k === "value") { filters[i][k] = el.value; buildQuery(); }
+      if (el.tagName === "INPUT") el.addEventListener("input", function () {
+        filters[+el.getAttribute("data-i")][el.getAttribute("data-k")] = el.value; buildQuery();
       });
     });
     filtersEl.querySelectorAll("[data-adv]").forEach(function (el) {
@@ -1076,7 +1146,7 @@
     });
   }
   document.getElementById("addFilter").addEventListener("click", function () {
-    filters.push({ field: "gender", op: "is", value: "male", mods: [], adv: false });
+    filters.push(blankFilter(firstParam(activeType)));
     renderFilters();
   });
 
@@ -1152,21 +1222,27 @@
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeAllMenus(); });
 
   // ---------- Query builder ----------
+  // Serialize one condition to [key, value] honoring its FHIR parameter type.
+  function serialize(f) {
+    var d = catalog[f.field]; if (!d) return null;
+    if (f.mods.indexOf("missing") > -1) return [f.field + ":missing", "true"];
+    var t = d.type, key = f.field, val = f.value;
+    if (t === "quantity") { if (val === "") return null; if (f.unit) val = val + "|" + f.unit; }
+    else if (t === "composite") { if (!f.value || !f.value2) return null; val = f.value + "$" + f.value2; }
+    else if (val === "") return null;
+
+    if (t === "string") { if (f.op === "co") key += ":contains"; else if (f.op === "ex") key += ":exact"; }
+    else if (t === "token") { if (f.op === "in") key += ":in"; else if (f.op === "ni") key += ":not-in"; else if (f.op === "txt") key += ":text"; }
+    else if (t === "reference") { if (f.op === "idized") key += ":identifier"; }
+    else if (t === "uri") { if (f.op === "above") key += ":above"; else if (f.op === "below") key += ":below"; }
+    else if (t === "date" || t === "number" || t === "quantity") { if (f.op && f.op !== "eq") val = f.op + val; }
+
+    f.mods.forEach(function (m) { key += ":" + m; });
+    return [key, val];
+  }
   function buildQuery() {
     var parts = [];
-    filters.forEach(function (f) {
-      if (!f.value && FIELDS[f.field].type !== "enum") return;
-      var key = FIELDS[f.field].tag;
-      if (f.op === "contains") key += ":contains";
-      else if (f.op === "exact") key += ":exact";
-      else if (f.op === "starts") key += "";
-      f.mods.forEach(function (m) { key += ":" + m; });
-      var val = f.value;
-      if (f.op === "ge") val = "ge" + val;
-      else if (f.op === "le") val = "le" + val;
-      else if (f.op === "identifier") val = "Practitioner?identifier=" + val;
-      parts.push([key, val]);
-    });
+    filters.forEach(function (f) { var p = serialize(f); if (p) parts.push(p); });
     document.querySelectorAll(".inc.on").forEach(function (el) {
       var t = el.getAttribute("data-inc");
       if (t === "org") parts.push(["_include", "Patient:organization"]);
@@ -1205,12 +1281,12 @@
   // ---------- AI generate ----------
   var EXAMPLES = {
     smith: { text: "Patients named Smith born after 1980", filters: [
-      { field: "name", op: "contains", value: "Smith", mods: [], adv: false },
-      { field: "birthdate", op: "ge", value: "1980-01-01", mods: [], adv: false }] },
+      { field: "name", op: "co", value: "Smith", value2: "", unit: "", mods: [], adv: false },
+      { field: "birthdate", op: "ge", value: "1980-01-01", value2: "", unit: "", mods: [], adv: false }] },
     age: { text: "Patients 18 or older", filters: [
-      { field: "birthdate", op: "le", value: "2008-07-07", mods: [], adv: false }] },
+      { field: "birthdate", op: "le", value: "2008-07-07", value2: "", unit: "", mods: [], adv: false }] },
     gp: { text: "Patients whose GP is Dr. Lee", filters: [
-      { field: "general-practitioner", op: "is", value: "Dr. Lee", mods: [], adv: false }] }
+      { field: "general-practitioner", op: "eq", value: "Dr. Lee", value2: "", unit: "", mods: [], adv: false }] }
   };
   function applyExample(key) {
     var ex = EXAMPLES[key]; if (!ex) return;
@@ -1472,7 +1548,7 @@
   function gsAdvanced() {
     var term = gsInput.value.trim();
     gsClose(); gsInput.blur(); showResources();
-    if (term) { filters = [{ field: "name", op: "contains", value: term, mods: [], adv: false }]; renderFilters(); showToast("Searching Patients named “" + term + "”"); }
+    if (term) { filters = [{ field: "name", op: "co", value: term, value2: "", unit: "", mods: [], adv: false }]; renderFilters(); showToast("Searching Patients named “" + term + "”"); }
   }
   function gsRender() {
     var raw = gsInput.value.trim(), q = raw.toLowerCase();
