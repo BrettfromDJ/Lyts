@@ -315,7 +315,12 @@
   .iconbtn svg { width: 16px; height: 16px; }
   .iconbtn:hover { color: var(--ink); border-color: var(--border-strong); background: var(--surface-2); }
   .iconbtn.danger:hover { color: #c0392b; border-color: #e6b0aa; background: #fbeae7; }
+  .iconbtn.adv { position: relative; }
   .iconbtn.adv.on { color: var(--accent); border-color: var(--accent-border); background: var(--accent-soft); }
+  .adv-badge { position: absolute; top: -6px; right: -6px; min-width: 17px; height: 17px; padding: 0 4px;
+    border-radius: 9px; background: var(--accent); color: var(--accent-ink); font-size: 10px; font-weight: 700;
+    display: grid; place-items: center; line-height: 1; box-shadow: var(--shadow-sm); }
+  .modnote { margin-top: 11px; font-size: 12px; color: var(--ink-3); display: flex; gap: 7px; }
 
   .adv-panel {
     grid-column: 1 / -1; margin: -2px 0 10px; padding: 12px 14px;
@@ -1012,6 +1017,27 @@
     "of-type": "match an identifier of a given type",
     contains: "match anywhere in the URI"
   };
+  // Full modifier vocabulary per type. A 3rd element means the modifier is the
+  // primary Match option (its code) — shown here too, active when that match is
+  // selected. Without it, the modifier toggles independently.
+  var MVOCAB = {
+    string:    [["contains", "match anywhere in the text", "co"], ["exact", "case & accent sensitive", "ex"], ["missing", "field is present / absent"]],
+    token:     [["text", "match display text, not the code", "txt"], ["in", "value is in this value set", "in"], ["not-in", "value is not in this value set", "ni"], ["not", "exclude rows that match"], ["above", "this code or any broader / parent"], ["below", "this code or any narrower / child"], ["of-type", "an identifier of a given type"], ["missing", "field is present / absent"]],
+    date:      [["missing", "field is present / absent"]],
+    number:    [["missing", "field is present / absent"]],
+    quantity:  [["missing", "field is present / absent"]],
+    reference: [["identifier", "match the reference's identifier", "idized"], ["above", "reference hierarchy: this or broader"], ["below", "reference hierarchy: this or narrower"], ["missing", "field is present / absent"]],
+    uri:       [["above", "this URI or any above it", "above"], ["below", "this URI or any below it", "below"], ["contains", "match anywhere in the URI"], ["missing", "field is present / absent"]],
+    composite: [["missing", "field is present / absent"]],
+    special:   [["missing", "field is present / absent"]]
+  };
+  var TNOTE = {
+    date: "Ordered type — pick a comparator (=, >, ≥, starts after…) in the Match menu.",
+    number: "Ordered type — pick a comparator in the Match menu.",
+    quantity: "Ordered type — comparator in Match; the unit goes in the value box.",
+    composite: "Composite value is entered as code $ value; only :missing applies.",
+    special: "Special parameter with its own value grammar; only :missing applies."
+  };
   // Common parameters that apply to every resource type.
   var COMMON = [
     ["_id", "Resource id", "token"], ["_lastUpdated", "Last updated", "date"],
@@ -1099,18 +1125,23 @@
           comps.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === f.op ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") +
         '</select></div>' +
         valueEditor(f, i, t) +
-        '<button class="iconbtn adv' + (f.adv ? " on" : "") + '" data-adv="' + i + '" title="' + t + ' modifiers">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></button>' +
+        '<button class="iconbtn adv' + (f.adv ? " on" : "") + '" data-adv="' + i + '" title="Modifiers">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>' +
+          (f.mods.length ? '<span class="adv-badge">' + f.mods.length + '</span>' : '') + '</button>' +
         '<button class="iconbtn danger" data-del="' + i + '" title="Remove condition">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>';
 
+      var mv = MVOCAB[t] || [["missing", "field is present / absent"]];
       var adv = document.createElement("div");
       adv.className = "adv-panel" + (f.adv ? " open" : "");
       adv.innerHTML = '<div class="lab"><span class="ptype">' + t + '</span>modifiers for “' + d.label + '”</div><div class="modgrid">' +
-        mods.map(function (m) {
-          var on = f.mods.indexOf(m) > -1;
-          return '<button class="mod' + (on ? " on" : "") + '" data-mod="' + i + ':' + m + '"><code>:' + m + '</code><span class="desc">' + (MOD_INFO[m] || "") + '</span></button>';
-        }).join("") + '</div>';
+        mv.map(function (m) {
+          var opCode = m[2];
+          var on = opCode ? (f.op === opCode) : (f.mods.indexOf(m[0]) > -1);
+          var attr = opCode ? ('data-mop="' + i + ':' + opCode + '"') : ('data-mod="' + i + ':' + m[0] + '"');
+          return '<button class="mod' + (on ? " on" : "") + '" ' + attr + '><code>:' + m[0] + '</code><span class="desc">' + m[1] + '</span></button>';
+        }).join("") + '</div>' +
+        (TNOTE[t] ? '<div class="modnote">' + TNOTE[t] + '</div>' : '');
 
       filtersEl.appendChild(row);
       filtersEl.appendChild(adv);
@@ -1141,6 +1172,16 @@
         var parts = el.getAttribute("data-mod").split(":"), i = +parts[0], m = parts[1];
         var idx = filters[i].mods.indexOf(m);
         if (idx > -1) filters[i].mods.splice(idx, 1); else filters[i].mods.push(m);
+        renderFilters();
+      });
+    });
+    // Match-linked modifiers (contains/exact/in/…) set the operator; clicking the
+    // active one reverts to the type's default match.
+    filtersEl.querySelectorAll("[data-mop]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var parts = el.getAttribute("data-mop").split(":"), i = +parts[0], code = parts[1];
+        var t = catalog[filters[i].field].type;
+        filters[i].op = (filters[i].op === code) ? PTYPE[t].comps[0][0] : code;
         renderFilters();
       });
     });
