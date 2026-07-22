@@ -362,6 +362,21 @@
   .and-divider::before, .and-divider::after { content: ""; height: 1px; background: var(--border); flex: 1; }
   .and-divider span { flex: none; font-size: 10px; font-weight: 700; letter-spacing: .09em; color: var(--ink-3);
     background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 2px 10px; }
+  /* chained / _has conditions use a wrapping flex row instead of the fixed grid */
+  .frow.flex { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 11px 12px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--inset); }
+  .frow.flex .selwrap { flex: 0 0 auto; }
+  .frow.flex .orlist { flex: 1 1 200px; }
+  .frow.flex .field { min-width: 120px; }
+  .chevr { flex: none; color: var(--ink-3); font-weight: 700; font-size: 15px; }
+  .seg-lab { flex: none; font-size: 12px; color: var(--ink-3); }
+  .hasbadge { flex: none; font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid var(--accent-border); border-radius: 6px; padding: 3px 8px; }
+  .chainbtn { flex: none; border: 1px dashed var(--border-strong); background: transparent; color: var(--ink-2);
+    font-weight: 600; font-size: 11px; letter-spacing: .03em; padding: 6px 9px; border-radius: 7px; }
+  .chainbtn:hover { border-color: var(--accent-border); color: var(--accent); background: var(--accent-soft); border-style: solid; }
+  .chainbtn.pop:hover { border-color: #e6b0aa; color: #c0392b; background: #fbeae7; }
+  .addrow-group { display: flex; flex-wrap: wrap; gap: 8px; }
   .adv-panel .lab .ptype { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: .04em;
     color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-border); padding: 1px 6px; border-radius: 5px; margin-right: 7px; }
 
@@ -776,10 +791,16 @@
                 <span>Field</span><span>Match</span><span>Value</span><span></span><span></span>
               </div>
               <div id="filters"></div>
-              <button class="addrow" id="addFilter">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-                Add condition
-              </button>
+              <div class="addrow-group">
+                <button class="addrow" id="addFilter">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                  Add condition
+                </button>
+                <button class="addrow" id="addHas" title="Filter by a resource that refers to this one (reverse chaining, _has)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9"/><path d="m3 3 4 4-4 4"/></svg>
+                  Add related-resource condition
+                </button>
+              </div>
             </div>
           </section>
 
@@ -1082,8 +1103,66 @@
     Location: [
       ["near", "Near (lat / long)", "special"], ["address", "Address", "string"],
       ["status", "Status", "token", ["active", "suspended", "inactive"]], ["organization", "Managing organization", "reference"]
+    ],
+    // Target/referencing resources — used for chaining & reverse chaining
+    Practitioner: [
+      ["name", "Name", "string"], ["family", "Family name", "string"], ["given", "Given name", "string"],
+      ["address-state", "Address state", "string"], ["identifier", "Identifier", "token"], ["active", "Active", "token", ["true", "false"]]
+    ],
+    Organization: [
+      ["name", "Name", "string"], ["address", "Address", "string"], ["address-state", "Address state", "string"],
+      ["identifier", "Identifier", "token"], ["type", "Type", "token"]
+    ],
+    Encounter: [
+      ["status", "Status", "token", ["planned", "in-progress", "finished", "cancelled"]], ["class", "Class", "token"],
+      ["date", "Date", "date"], ["subject", "Subject", "reference"], ["patient", "Patient", "reference"], ["type", "Type", "token"]
+    ],
+    Condition: [
+      ["code", "Code", "token"], ["clinical-status", "Clinical status", "token", ["active", "recurrence", "resolved"]],
+      ["subject", "Subject", "reference"], ["patient", "Patient", "reference"], ["onset-date", "Onset date", "date"]
+    ],
+    Group: [
+      ["type", "Type", "token", ["person", "animal", "practitioner", "device"]], ["actual", "Actual", "token", ["true", "false"]],
+      ["member", "Member", "reference"], ["managing-entity", "Managing entity", "reference"]
+    ],
+    AuditEvent: [
+      ["agent", "Agent", "reference"], ["entity", "Entity", "reference"], ["date", "Date", "date"], ["type", "Type", "token"]
+    ],
+    DiagnosticReport: [
+      ["status", "Status", "token"], ["code", "Code", "token"], ["subject", "Subject", "reference"], ["result", "Result", "reference"]
     ]
   };
+  // What each reference parameter can point to — keyed "Resource:param".
+  var REF_TARGETS = {
+    "Patient:general-practitioner": ["Practitioner", "Organization", "PractitionerRole"],
+    "Patient:organization": ["Organization"],
+    "Observation:subject": ["Patient", "Group", "Device", "Location"],
+    "Observation:patient": ["Patient"],
+    "Observation:performer": ["Practitioner", "PractitionerRole", "Organization"],
+    "Observation:encounter": ["Encounter"],
+    "Encounter:subject": ["Patient", "Group"], "Encounter:patient": ["Patient"],
+    "Condition:subject": ["Patient"], "Condition:patient": ["Patient"],
+    "Location:organization": ["Organization"],
+    "Group:member": ["Patient", "Practitioner", "Device"], "Group:managing-entity": ["Organization"],
+    "AuditEvent:agent": ["Practitioner", "Patient"], "AuditEvent:entity": ["Patient", "Observation"],
+    "DiagnosticReport:subject": ["Patient"], "DiagnosticReport:result": ["Observation"]
+  };
+  // Which resources refer back to a given resource (for _has) — [referencing resource, back-ref param].
+  var REV_TARGETS = {
+    Patient: [
+      ["Observation", "patient"], ["Observation", "subject"], ["Encounter", "patient"], ["Encounter", "subject"],
+      ["Condition", "patient"], ["Condition", "subject"], ["Group", "member"], ["AuditEvent", "agent"]
+    ],
+    Observation: [["DiagnosticReport", "result"], ["AuditEvent", "entity"]],
+    Practitioner: [["Patient", "general-practitioner"], ["Observation", "performer"]],
+    Organization: [["Patient", "organization"], ["Location", "organization"]]
+  };
+  function refTargets(res, param) { return REF_TARGETS[res + ":" + param] || []; }
+  function resourceParams(res) { return (CATALOG[res] || []).concat(COMMON); }
+  function pdesc(res, param) {
+    var row = resourceParams(res).filter(function (r) { return r[0] === param; })[0];
+    return row ? { label: row[1], type: row[2], enums: row[3] || null } : null;
+  }
   var catalog = {}, catalogGroups = [];
   function buildCatalog(type) {
     catalog = {}; catalogGroups = [];
@@ -1096,16 +1175,34 @@
   function firstParam(type) { return (CATALOG[type] && CATALOG[type][0][0]) || COMMON[0][0]; }
   function ordered(t) { return t === "date" || t === "number" || t === "quantity"; }
   function newVal(pre) { return { v: "", v2: "", unit: "", pre: pre || "eq" }; }
+  // Resolve the leaf parameter a condition actually filters on (following any chain / _has).
+  function leafContext(f) {
+    if (f.kind === "has") return { resource: f.hasRes, param: f.field };
+    var res = activeType, param = f.field, chain = f.chain || [];
+    for (var k = 0; k < chain.length; k++) { var tg = refTargets(res, param); res = chain[k].type || tg[0] || res; param = chain[k].param; }
+    return { resource: res, param: param };
+  }
+  function leafDesc(f) { var c = leafContext(f); return pdesc(c.resource, c.param) || { label: c.param, type: "string", enums: null }; }
+  function chainKey(f) {
+    var key = f.field, chain = f.chain || [];
+    for (var k = 0; k < chain.length; k++) { if (chain[k].type) key += ":" + chain[k].type; key += "." + chain[k].param; }
+    return key;
+  }
   function blankFilter(field) {
     var t = catalog[field].type;
-    return { field: field, op: PTYPE[t].comps[0][0], mods: [], adv: false, vals: [newVal("eq")] };
+    return { kind: "cond", field: field, op: PTYPE[t].comps[0][0], mods: [], adv: false, chain: [], vals: [newVal("eq")] };
+  }
+  function blankHas() {
+    var rev = (REV_TARGETS[activeType] || [["Observation", "subject"]])[0], res = rev[0], back = rev[1];
+    var first = (CATALOG[res] || [["code"]])[0][0], t = (pdesc(res, first) || { type: "token" }).type;
+    return { kind: "has", hasRes: res, hasBack: back, field: first, op: PTYPE[t].comps[0][0], mods: [], adv: false, chain: [], vals: [newVal("eq")] };
   }
 
   // A condition holds one or more OR-joined values (comma-separated in the URL).
   // Separate conditions are AND-joined (& in the URL).
   var filters = [
-    { field: "name", op: "co", mods: [], adv: false, vals: [{ v: "Smith", v2: "", unit: "", pre: "eq" }] },
-    { field: "birthdate", op: "ge", mods: [], adv: false, vals: [{ v: "1980-01-01", v2: "", unit: "", pre: "ge" }] }
+    { kind: "cond", field: "name", op: "co", mods: [], adv: false, chain: [], vals: [{ v: "Smith", v2: "", unit: "", pre: "eq" }] },
+    { kind: "cond", field: "birthdate", op: "ge", mods: [], adv: false, chain: [], vals: [{ v: "1980-01-01", v2: "", unit: "", pre: "ge" }] }
   ];
 
   var filtersEl = document.getElementById("filters");
@@ -1122,8 +1219,50 @@
     return '<div class="selwrap' + (asMatch ? "" : " sm") + '"><select class="ctl" data-i="' + i + '" data-j="' + j + '" data-k="pre" title="comparator">' +
       PREF.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sel ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") + '</select></div>';
   }
-  // Inputs for one OR value entry (no comparator — that's added separately for ordered types).
-  function entryInputs(f, i, j, t) {
+  function uniq(a) { var s = {}; return a.filter(function (x) { return s[x] ? false : (s[x] = true); }); }
+  function resetLeaf(f) { var t = leafDesc(f).type; f.op = PTYPE[t].comps[0][0]; f.mods = []; f.vals = [newVal("eq")]; }
+  function hopResource(f, h) {
+    var res = activeType, param = f.field;
+    for (var k = 0; k < h; k++) { var tg = refTargets(res, param); res = f.chain[k].type || tg[0] || res; param = f.chain[k].param; }
+    var tg2 = refTargets(res, param); return f.chain[h].type || tg2[0] || res;
+  }
+  function paramSelect(i, hop, res, sel) {
+    return '<div class="selwrap"><select class="ctl field" data-i="' + i + '" data-hop="' + hop + '" data-k="chainparam">' +
+      resourceParams(res).map(function (r) { return '<option value="' + r[0] + '"' + (r[0] === sel ? " selected" : "") + '>' + r[1] + '</option>'; }).join("") + '</select></div>';
+  }
+  function typeSelect(i, hop, targets, sel) {
+    return '<div class="selwrap sm"><select class="ctl" data-i="' + i + '" data-hop="' + hop + '" data-k="chaintype" title="restrict resource type">' +
+      '<option value="">any</option>' + targets.map(function (tp) { return '<option value="' + tp + '"' + (tp === sel ? " selected" : "") + '>:' + tp + '</option>'; }).join("") + '</select></div>';
+  }
+  // The FIELD portion of a row: plain param, a chained path, or a _has clause.
+  function pathArea(f, i) {
+    if (f.kind === "has") {
+      var resList = uniq((REV_TARGETS[activeType] || []).map(function (x) { return x[0]; }));
+      var backs = (REV_TARGETS[activeType] || []).filter(function (x) { return x[0] === f.hasRes; }).map(function (x) { return x[1]; });
+      return '<span class="hasbadge">_has</span>' +
+        '<span class="seg-lab">in</span><div class="selwrap"><select class="ctl field" data-i="' + i + '" data-k="hasres">' +
+          resList.map(function (r) { return '<option' + (r === f.hasRes ? " selected" : "") + '>' + r + '</option>'; }).join("") + '</select></div>' +
+        '<span class="seg-lab">via</span><div class="selwrap sm"><select class="ctl" data-i="' + i + '" data-k="hasback">' +
+          backs.map(function (bp) { return '<option' + (bp === f.hasBack ? " selected" : "") + '>' + bp + '</option>'; }).join("") + '</select></div>' +
+        '<span class="seg-lab">where</span><div class="selwrap"><select class="ctl field" data-i="' + i + '" data-k="hasparam">' +
+          resourceParams(f.hasRes).map(function (r) { return '<option value="' + r[0] + '"' + (r[0] === f.field ? " selected" : "") + '>' + r[1] + '</option>'; }).join("") + '</select></div>';
+    }
+    var html = '<div class="selwrap">' + fieldSelect(i, f.field) + '</div>';
+    var res = activeType, param = f.field;
+    (f.chain || []).forEach(function (hop, k) {
+      var tg = refTargets(res, param), chosen = hop.type || tg[0] || res;
+      html += '<span class="chevr">›</span>';
+      if (tg.length > 1) html += typeSelect(i, k, tg, hop.type);
+      html += paramSelect(i, k, chosen, hop.param);
+      res = chosen; param = hop.param;
+    });
+    var leafT = (pdesc(res, param) || { type: "" }).type;
+    if (leafT === "reference" && refTargets(res, param).length) html += '<button class="chainbtn" data-chainadd="' + i + '" title="Chain into the referenced resource">+ chain →</button>';
+    if ((f.chain || []).length) html += '<button class="chainbtn pop" data-chainpop="' + i + '" title="Remove last chain step">× step</button>';
+    return html;
+  }
+  // Inputs for one OR value entry (no comparator — added separately for ordered types).
+  function entryInputs(f, i, j, t, enums) {
     var e = f.vals[j], b = ' data-i="' + i + '" data-j="' + j + '"';
     if (t === "date") return '<input class="ctl" type="date" value="' + esc(e.v) + '"' + b + ' data-k="v">';
     if (t === "number") return '<input class="ctl" type="number" step="any" placeholder="e.g. 5" value="' + esc(e.v) + '"' + b + ' data-k="v">';
@@ -1131,17 +1270,17 @@
     if (t === "composite") return '<input class="ctl" type="text" placeholder="code" value="' + esc(e.v) + '"' + b + ' data-k="v"><span class="joinch">$</span><input class="ctl" type="text" placeholder="value" value="' + esc(e.v2) + '"' + b + ' data-k="v2">';
     if (t === "reference") return '<input class="ctl" type="text" placeholder="Type/id  or  name" value="' + esc(e.v) + '"' + b + ' data-k="v">';
     if (t === "special") return '<input class="ctl" type="text" placeholder="lat|long|dist|unit" value="' + esc(e.v) + '"' + b + ' data-k="v">';
-    if (t === "token" && catalog[f.field] && catalog[f.field].enums)
-      return '<div class="selwrap"><select class="ctl"' + b + ' data-k="v">' + catalog[f.field].enums.map(function (o) { return '<option' + (o === e.v ? " selected" : "") + '>' + o + '</option>'; }).join("") + '</select></div>';
+    if (t === "token" && enums)
+      return '<div class="selwrap"><select class="ctl"' + b + ' data-k="v">' + enums.map(function (o) { return '<option' + (o === e.v ? " selected" : "") + '>' + o + '</option>'; }).join("") + '</select></div>';
     if (t === "token") { var ph = (f.op === "in" || f.op === "ni") ? "value set URL" : "code  or  system|code"; return '<input class="ctl" type="text" placeholder="' + ph + '" value="' + esc(e.v) + '"' + b + ' data-k="v">'; }
     return '<input class="ctl" type="text" placeholder="value" value="' + esc(e.v) + '"' + b + ' data-k="v">';
   }
-  function orList(f, i, t) {
+  function orList(f, i, t, enums) {
     var isOrd = ordered(t), multi = f.vals.length > 1;
     var html = '<div class="orlist">';
     f.vals.forEach(function (e, j) {
       if (j > 0) html += '<span class="orsep">or</span>';
-      html += '<span class="orentry">' + (isOrd && multi ? preSelect(i, j, e.pre) : "") + entryInputs(f, i, j, t) +
+      html += '<span class="orentry">' + (isOrd && multi ? preSelect(i, j, e.pre) : "") + entryInputs(f, i, j, t, enums) +
         (multi ? '<button class="orx" data-delval="' + i + ':' + j + '" title="Remove value">×</button>' : "") + '</span>';
     });
     return html + '<button class="oradd" data-addval="' + i + '" title="Add an OR value">+ or</button></div>';
@@ -1149,19 +1288,18 @@
   function renderFilters() {
     filtersEl.innerHTML = "";
     filters.forEach(function (f, i) {
-      var d = catalog[f.field] || { label: f.field, type: "string" };
-      var t = d.type, isOrd = ordered(t), multi = f.vals.length > 1;
-      // MATCH cell: non-ordered -> shared key match; ordered single -> comparator; ordered multi -> hint (per value)
+      var d = leafDesc(f), t = d.type, isOrd = ordered(t), multi = f.vals.length > 1;
+      var complex = f.kind === "has" || (f.chain && f.chain.length > 0);
       var matchCell = isOrd
         ? (multi ? '<div class="matchhint">per value →</div>' : preSelect(i, 0, f.vals[0].pre, true))
         : '<div class="selwrap"><select class="ctl" data-i="' + i + '" data-k="op" title="' + t + ' match">' +
             PTYPE[t].comps.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === f.op ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") + '</select></div>';
       var row = document.createElement("div");
-      row.className = "frow";
+      row.className = "frow" + (complex ? " flex" : "");
       row.innerHTML =
-        '<div class="selwrap">' + fieldSelect(i, f.field) + '</div>' +
+        pathArea(f, i) +
         matchCell +
-        orList(f, i, t) +
+        orList(f, i, t, d.enums) +
         '<button class="iconbtn adv' + (f.adv ? " on" : "") + '" data-adv="' + i + '" title="Modifiers">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>' +
           (f.mods.length ? '<span class="adv-badge">' + f.mods.length + '</span>' : '') + '</button>' +
@@ -1193,11 +1331,16 @@
   }
   function wireFilters() {
     filtersEl.querySelectorAll("[data-k]").forEach(function (el) {
-      var i = +el.getAttribute("data-i"), k = el.getAttribute("data-k"), ja = el.getAttribute("data-j");
+      var i = +el.getAttribute("data-i"), k = el.getAttribute("data-k"), ja = el.getAttribute("data-j"), hop = el.getAttribute("data-hop");
       el.addEventListener("change", function () {
         if (!filters[i]) return; // element may fire on blur after the model was rebuilt
         if (k === "field") { filters[i] = blankFilter(el.value); renderFilters(); return; }
         if (k === "op") { filters[i].op = el.value; renderFilters(); return; }
+        if (k === "chaintype") { var h = +hop; filters[i].chain[h].type = el.value; filters[i].chain = filters[i].chain.slice(0, h + 1); filters[i].chain[h].param = (resourceParams(hopResource(filters[i], h))[0] || ["_id"])[0]; resetLeaf(filters[i]); renderFilters(); return; }
+        if (k === "chainparam") { var h2 = +hop; filters[i].chain[h2].param = el.value; filters[i].chain = filters[i].chain.slice(0, h2 + 1); resetLeaf(filters[i]); renderFilters(); return; }
+        if (k === "hasres") { filters[i].hasRes = el.value; var bs = (REV_TARGETS[activeType] || []).filter(function (x) { return x[0] === el.value; }); filters[i].hasBack = bs.length ? bs[0][1] : ""; filters[i].field = (CATALOG[el.value] || [["_id"]])[0][0]; resetLeaf(filters[i]); renderFilters(); return; }
+        if (k === "hasback") { filters[i].hasBack = el.value; buildQuery(); return; }
+        if (k === "hasparam") { filters[i].field = el.value; resetLeaf(filters[i]); renderFilters(); return; }
         if (ja !== null) { if (filters[i].vals[+ja]) { filters[i].vals[+ja][k] = el.value; buildQuery(); } return; }
         filters[i][k] = el.value; buildQuery();
       });
@@ -1210,9 +1353,22 @@
     });
     filtersEl.querySelectorAll("[data-addval]").forEach(function (el) {
       el.addEventListener("click", function () {
-        var i = +el.getAttribute("data-addval"), t = catalog[filters[i].field].type;
+        var i = +el.getAttribute("data-addval"), t = leafDesc(filters[i]).type;
         filters[i].vals.push(newVal(ordered(t) ? (filters[i].vals[0].pre || "eq") : "eq"));
         renderFilters();
+      });
+    });
+    filtersEl.querySelectorAll("[data-chainadd]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var i = +el.getAttribute("data-chainadd"), lc = leafContext(filters[i]), tgt = refTargets(lc.resource, lc.param)[0];
+        if (!tgt) return;
+        filters[i].chain.push({ type: "", param: (resourceParams(tgt)[0] || ["_id"])[0] });
+        resetLeaf(filters[i]); renderFilters();
+      });
+    });
+    filtersEl.querySelectorAll("[data-chainpop]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var i = +el.getAttribute("data-chainpop"); filters[i].chain.pop(); resetLeaf(filters[i]); renderFilters();
       });
     });
     filtersEl.querySelectorAll("[data-delval]").forEach(function (el) {
@@ -1241,7 +1397,7 @@
     filtersEl.querySelectorAll("[data-mop]").forEach(function (el) {
       el.addEventListener("click", function () {
         var parts = el.getAttribute("data-mop").split(":"), i = +parts[0], code = parts[1];
-        var t = catalog[filters[i].field].type;
+        var t = leafDesc(filters[i]).type;
         filters[i].op = (filters[i].op === code) ? PTYPE[t].comps[0][0] : code;
         renderFilters();
       });
@@ -1251,6 +1407,8 @@
     filters.push(blankFilter(firstParam(activeType)));
     renderFilters();
   });
+  var addHasBtn = document.getElementById("addHas");
+  if (addHasBtn) addHasBtn.addEventListener("click", function () { filters.push(blankHas()); renderFilters(); });
 
   // ---------- Includes ----------
   document.querySelectorAll(".inc").forEach(function (el) {
@@ -1327,9 +1485,12 @@
   // Serialize one condition to [key, value] honoring its FHIR parameter type.
   // key modifier applies to ALL OR values; each value may carry its own prefix (ordered types).
   function serialize(f) {
-    var d = catalog[f.field]; if (!d) return null;
-    if (f.mods.indexOf("missing") > -1) return [f.field + ":missing", "true"];
-    var t = d.type, key = f.field;
+    var d = leafDesc(f); if (!d) return null;
+    var t = d.type;
+    // key prefix: plain param, forward chain, or reverse chain (_has)
+    var key = f.kind === "has" ? ("_has:" + f.hasRes + ":" + f.hasBack + ":" + f.field)
+      : (f.chain && f.chain.length) ? chainKey(f) : f.field;
+    if (f.mods.indexOf("missing") > -1) return [key + ":missing", "true"];
     if (t === "string") { if (f.op === "co") key += ":contains"; else if (f.op === "ex") key += ":exact"; }
     else if (t === "token") { if (f.op === "in") key += ":in"; else if (f.op === "ni") key += ":not-in"; else if (f.op === "txt") key += ":text"; }
     else if (t === "reference") { if (f.op === "idized") key += ":identifier"; }
