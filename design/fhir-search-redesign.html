@@ -377,10 +377,7 @@
   .chainbtn:hover { border-color: var(--accent-border); color: var(--accent); background: var(--accent-soft); border-style: solid; }
   .chainbtn.pop:hover { border-color: #e6b0aa; color: #c0392b; background: #fbeae7; }
   .addrow-group { display: flex; flex-wrap: wrap; gap: 8px; }
-  .dirtog { flex: none; display: inline-flex; gap: 2px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 2px; }
-  .dirtog button { border: 0; background: transparent; color: var(--ink-2); font-weight: 600; font-size: 11.5px; padding: 5px 9px; border-radius: 6px; white-space: nowrap; }
-  .dirtog button.on { background: var(--surface); color: var(--accent); box-shadow: var(--shadow-sm); }
-  .dirtog button[disabled] { opacity: .4; cursor: not-allowed; }
+  .chevr + .selwrap .field, .frow.flex .field { min-width: 130px; }
   .adv-panel .lab .ptype { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: .04em;
     color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-border); padding: 1px 6px; border-radius: 5px; margin-right: 7px; }
 
@@ -800,9 +797,9 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                   Add condition
                 </button>
-                <button class="addrow" id="addHas" title="Filter through a relationship — this resource's references (chaining) or resources that point back to it (_has)">
+                <button class="addrow" id="addHas" title="Filter by another resource that links to this one (reverse chaining, _has). To filter a field on a resource this one points to, pick a reference field above and choose “drill into”.">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8"/></svg>
-                  Filter through a related resource
+                  Filter by a resource that links here
                 </button>
               </div>
             </div>
@@ -1196,22 +1193,14 @@
     var t = catalog[field].type;
     return { kind: "cond", field: field, op: PTYPE[t].comps[0][0], mods: [], adv: false, chain: [], vals: [newVal("eq")] };
   }
-  function refParamsOf(res) { return resourceParams(res).filter(function (r) { return r[2] === "reference"; }); }
-  // A "related-resource" condition — forward (this resource → target) or reverse (_has).
-  function blankRelFwd() {
-    var refs = refParamsOf(activeType);
-    if (!refs.length) return blankRelRev();
-    var base = refs[0][0], tgt = refTargets(activeType, base)[0] || "Patient";
-    var f = { kind: "rel", dir: "fwd", field: base, chain: [{ type: "", param: (resourceParams(tgt)[0] || ["_id"])[0] }], op: "", mods: [], adv: false, vals: [newVal("eq")] };
-    resetLeaf(f); return f;
-  }
-  function blankRelRev() {
+  // A related-resource condition = reverse chaining (_has). Forward chaining lives
+  // in the normal field picker (drill into a reference field), not here.
+  function blankRel() {
     var rev = (REV_TARGETS[activeType] || [["Observation", "subject"]])[0], res = rev[0], back = rev[1];
     var first = (CATALOG[res] || [["code"]])[0][0];
     var f = { kind: "rel", dir: "rev", hasRes: res, hasBack: back, field: first, chain: [], op: "", mods: [], adv: false, vals: [newVal("eq")] };
     resetLeaf(f); return f;
   }
-  function blankRel() { return refParamsOf(activeType).length ? blankRelFwd() : blankRelRev(); }
 
   // A condition holds one or more OR-joined values (comma-separated in the URL).
   // Separate conditions are AND-joined (& in the URL).
@@ -1250,33 +1239,22 @@
       '<option value="">any</option>' + targets.map(function (tp) { return '<option value="' + tp + '"' + (tp === sel ? " selected" : "") + '>:' + tp + '</option>'; }).join("") + '</select></div>';
   }
   // The FIELD portion of a row.
-  // - normal condition: just the parameter picker (no chaining clutter).
-  // - related-resource condition: a direction toggle + a forward chain or a reverse (_has) clause.
+  // - normal condition: the parameter picker, plus an optional "drill into ›" when the
+  //   chosen field is a reference (forward chaining, right where you pick the field).
+  // - related-resource condition: a plain-English reverse (_has) clause.
   function pathArea(f, i) {
-    if (f.kind !== "rel") return '<div class="selwrap">' + fieldSelect(i, f.field) + '</div>';
-
-    var hasRef = refParamsOf(activeType).length > 0;
-    var toggle = '<div class="dirtog">' +
-      '<button type="button" class="' + (f.dir === "fwd" ? "on" : "") + '" data-dir="fwd:' + i + '"' + (hasRef ? "" : " disabled") + '>' + activeType + ' refers to →</button>' +
-      '<button type="button" class="' + (f.dir === "rev" ? "on" : "") + '" data-dir="rev:' + i + '">← refers to ' + activeType + '</button>' +
-      '</div>';
-
-    if (f.dir === "rev") {
+    if (f.kind === "rel") {
       var resList = uniq((REV_TARGETS[activeType] || []).map(function (x) { return x[0]; }));
       var backs = (REV_TARGETS[activeType] || []).filter(function (x) { return x[0] === f.hasRes; }).map(function (x) { return x[1]; });
-      return toggle + '<span class="hasbadge">_has</span>' +
+      return '<span class="hasbadge">has a related</span>' +
         '<div class="selwrap"><select class="ctl field" data-i="' + i + '" data-k="hasres">' +
           resList.map(function (r) { return '<option' + (r === f.hasRes ? " selected" : "") + '>' + r + '</option>'; }).join("") + '</select></div>' +
-        '<span class="seg-lab">via</span><div class="selwrap sm"><select class="ctl" data-i="' + i + '" data-k="hasback">' +
+        '<span class="seg-lab">linked via</span><div class="selwrap sm"><select class="ctl" data-i="' + i + '" data-k="hasback">' +
           backs.map(function (bp) { return '<option' + (bp === f.hasBack ? " selected" : "") + '>' + bp + '</option>'; }).join("") + '</select></div>' +
-        '<span class="seg-lab">where</span><div class="selwrap"><select class="ctl field" data-i="' + i + '" data-k="hasparam">' +
+        '<span class="seg-lab">where its</span><div class="selwrap"><select class="ctl field" data-i="' + i + '" data-k="hasparam">' +
           resourceParams(f.hasRes).map(function (r) { return '<option value="' + r[0] + '"' + (r[0] === f.field ? " selected" : "") + '>' + r[1] + '</option>'; }).join("") + '</select></div>';
     }
-
-    // forward chain: base reference param of the current resource, then drill into the target
-    var refs = refParamsOf(activeType);
-    var html = toggle + '<div class="selwrap"><select class="ctl field" data-i="' + i + '" data-k="relbase">' +
-      refs.map(function (r) { return '<option value="' + r[0] + '"' + (r[0] === f.field ? " selected" : "") + '>' + r[1] + '</option>'; }).join("") + '</select></div>';
+    var html = '<div class="selwrap">' + fieldSelect(i, f.field) + '</div>';
     var res = activeType, param = f.field;
     (f.chain || []).forEach(function (hop, k) {
       var tg = refTargets(res, param), chosen = hop.type || tg[0] || res;
@@ -1285,9 +1263,9 @@
       html += paramSelect(i, k, chosen, hop.param);
       res = chosen; param = hop.param;
     });
-    var leafT = (pdesc(res, param) || { type: "" }).type;
-    if (leafT === "reference" && refTargets(res, param).length) html += '<button class="chainbtn" data-chainadd="' + i + '" title="Chain another step deeper">+ chain →</button>';
-    if ((f.chain || []).length > 1) html += '<button class="chainbtn pop" data-chainpop="' + i + '" title="Remove last chain step">× step</button>';
+    var leafT = (pdesc(res, param) || { type: "" }).type, canDrill = leafT === "reference" && refTargets(res, param).length;
+    if (canDrill) html += '<button class="chainbtn" data-chainadd="' + i + '" title="Filter a field on the referenced resource">' + ((f.chain && f.chain.length) ? "+ deeper →" : "drill into ›") + '</button>';
+    if (f.chain && f.chain.length) html += '<button class="chainbtn pop" data-chainpop="' + i + '" title="Remove last step">× step</button>';
     return html;
   }
   // Inputs for one OR value entry (no comparator — added separately for ordered types).
@@ -1318,7 +1296,7 @@
     filtersEl.innerHTML = "";
     filters.forEach(function (f, i) {
       var d = leafDesc(f), t = d.type, isOrd = ordered(t), multi = f.vals.length > 1;
-      var complex = f.kind === "rel";
+      var complex = f.kind === "rel" || (f.chain && f.chain.length > 0);
       var matchCell = isOrd
         ? (multi ? '<div class="matchhint">per value →</div>' : preSelect(i, 0, f.vals[0].pre, true))
         : '<div class="selwrap"><select class="ctl" data-i="' + i + '" data-k="op" title="' + t + ' match">' +
@@ -1365,7 +1343,6 @@
         if (!filters[i]) return; // element may fire on blur after the model was rebuilt
         if (k === "field") { filters[i] = blankFilter(el.value); renderFilters(); return; }
         if (k === "op") { filters[i].op = el.value; renderFilters(); return; }
-        if (k === "relbase") { filters[i].field = el.value; var tgt = refTargets(activeType, el.value)[0] || "Patient"; filters[i].chain = [{ type: "", param: (resourceParams(tgt)[0] || ["_id"])[0] }]; resetLeaf(filters[i]); renderFilters(); return; }
         if (k === "chaintype") { var h = +hop; filters[i].chain[h].type = el.value; filters[i].chain = filters[i].chain.slice(0, h + 1); filters[i].chain[h].param = (resourceParams(hopResource(filters[i], h))[0] || ["_id"])[0]; resetLeaf(filters[i]); renderFilters(); return; }
         if (k === "chainparam") { var h2 = +hop; filters[i].chain[h2].param = el.value; filters[i].chain = filters[i].chain.slice(0, h2 + 1); resetLeaf(filters[i]); renderFilters(); return; }
         if (k === "hasres") { filters[i].hasRes = el.value; var bs = (REV_TARGETS[activeType] || []).filter(function (x) { return x[0] === el.value; }); filters[i].hasBack = bs.length ? bs[0][1] : ""; filters[i].field = (CATALOG[el.value] || [["_id"]])[0][0]; resetLeaf(filters[i]); renderFilters(); return; }
@@ -1385,14 +1362,6 @@
       el.addEventListener("click", function () {
         var i = +el.getAttribute("data-addval"), t = leafDesc(filters[i]).type;
         filters[i].vals.push(newVal(ordered(t) ? (filters[i].vals[0].pre || "eq") : "eq"));
-        renderFilters();
-      });
-    });
-    filtersEl.querySelectorAll("[data-dir]").forEach(function (el) {
-      el.addEventListener("click", function () {
-        var p = el.getAttribute("data-dir").split(":"), dir = p[0], i = +p[1];
-        if (filters[i].dir === dir) return;
-        filters[i] = dir === "fwd" ? blankRelFwd() : blankRelRev();
         renderFilters();
       });
     });
