@@ -1296,7 +1296,8 @@
     filtersEl.innerHTML = "";
     filters.forEach(function (f, i) {
       var d = leafDesc(f), t = d.type, isOrd = ordered(t), multi = f.vals.length > 1;
-      var complex = f.kind === "rel" || (f.chain && f.chain.length > 0);
+      // reference-leaf rows carry a "drill into" affordance, so they need the roomier flex layout
+      var complex = f.kind === "rel" || (f.chain && f.chain.length > 0) || t === "reference";
       var matchCell = isOrd
         ? (multi ? '<div class="matchhint">per value →</div>' : preSelect(i, 0, f.vals[0].pre, true))
         : '<div class="selwrap"><select class="ctl" data-i="' + i + '" data-k="op" title="' + t + ' match">' +
