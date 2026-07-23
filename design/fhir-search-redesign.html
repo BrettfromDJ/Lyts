@@ -376,6 +376,10 @@
     font-weight: 600; font-size: 11px; letter-spacing: .03em; padding: 6px 9px; border-radius: 7px; }
   .chainbtn:hover { border-color: var(--accent-border); color: var(--accent); background: var(--accent-soft); border-style: solid; }
   .chainbtn.pop:hover { border-color: #e6b0aa; color: #c0392b; background: #fbeae7; }
+  .hopseg { display: inline-flex; align-items: center; gap: 4px; }
+  .hopx { flex: none; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--surface); color: var(--ink-3); font-size: 13px; line-height: 1; display: grid; place-items: center; padding: 0; }
+  .hopx:hover { color: #c0392b; border-color: #e6b0aa; background: #fbeae7; }
   .addrow-group { display: flex; flex-wrap: wrap; gap: 8px; }
   .chevr + .selwrap .field, .frow.flex .field { min-width: 130px; }
   .adv-panel .lab .ptype { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: .04em;
@@ -1258,14 +1262,14 @@
     var res = activeType, param = f.field;
     (f.chain || []).forEach(function (hop, k) {
       var tg = refTargets(res, param), chosen = hop.type || tg[0] || res;
-      html += '<span class="chevr">›</span>';
+      html += '<span class="chevr">›</span><span class="hopseg">';
       if (tg.length > 1) html += typeSelect(i, k, tg, hop.type);
       html += paramSelect(i, k, chosen, hop.param);
+      html += '<button class="hopx" data-delstep="' + i + ':' + k + '" title="Remove this step (and any after it)">×</button></span>';
       res = chosen; param = hop.param;
     });
     var leafT = (pdesc(res, param) || { type: "" }).type, canDrill = leafT === "reference" && refTargets(res, param).length;
     if (canDrill) html += '<button class="chainbtn" data-chainadd="' + i + '" title="Filter a field on the referenced resource">' + ((f.chain && f.chain.length) ? "+ deeper →" : "drill into ›") + '</button>';
-    if (f.chain && f.chain.length) html += '<button class="chainbtn pop" data-chainpop="' + i + '" title="Remove last step">× step</button>';
     return html;
   }
   // Inputs for one OR value entry (no comparator — added separately for ordered types).
@@ -1374,9 +1378,10 @@
         resetLeaf(filters[i]); renderFilters();
       });
     });
-    filtersEl.querySelectorAll("[data-chainpop]").forEach(function (el) {
+    filtersEl.querySelectorAll("[data-delstep]").forEach(function (el) {
       el.addEventListener("click", function () {
-        var i = +el.getAttribute("data-chainpop"); filters[i].chain.pop(); resetLeaf(filters[i]); renderFilters();
+        var p = el.getAttribute("data-delstep").split(":"), i = +p[0], k = +p[1];
+        filters[i].chain = filters[i].chain.slice(0, k); resetLeaf(filters[i]); renderFilters();
       });
     });
     filtersEl.querySelectorAll("[data-delval]").forEach(function (el) {
