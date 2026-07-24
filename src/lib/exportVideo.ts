@@ -28,9 +28,44 @@ export type VideoOptions = {
   onProgress?: (fraction: number) => void;
 };
 
-/** H.264 profiles to try for WebCodecs, most-compatible first (baseline → high). */
-const AVC_CODECS = ['avc1.42E01E', 'avc1.4D401F', 'avc1.640028', 'avc1.640032'];
+/**
+ * H.264 codec strings to try, HIGHEST level first so the declared level always
+ * covers the (already-clamped, ≤4K) frame size. Ordering by level matters:
+ * probing a low-level string (e.g. baseline 3.0) against an HD frame reports
+ * "unsupported", which is exactly what used to force the WebM fallback.
+ * high@5.2 → main@5.2 → high@5.1 → high@5.0 → high@4.0 → baseline@4.0.
+ */
+const AVC_CODECS = [
+  'avc1.640034',
+  'avc1.4d0034',
+  'avc1.640033',
+  'avc1.640032',
+  'avc1.640028',
+  'avc1.42e028',
+];
 const WEBM_CANDIDATES = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+
+// H.264 can't encode arbitrarily large frames — no level goes past ~4K, and
+// hardware encoders (VideoToolbox etc.) cap there too. Clamp the VIDEO encode
+// size into a 4K box so H.264 is always available; the High/Ultra quality tiers
+// still render the canvas at high DPR and we downscale each frame for sharpness.
+// (Still image export is unaffected and keeps full 8K.)
+const MAX_H264_SIDE = 3840;
+const MAX_H264_AREA = 3840 * 2160;
+
+/** Largest even-dimensioned frame that fits the H.264 4K box, preserving aspect. */
+function clampToH264(w: number, h: number): { width: number; height: number } {
+  const scale = Math.min(1, MAX_H264_SIDE / Math.max(w, h), Math.sqrt(MAX_H264_AREA / (w * h)));
+  return {
+    width: Math.max(2, Math.floor((w * scale) / 2) * 2),
+    height: Math.max(2, Math.floor((h * scale) / 2) * 2),
+  };
+}
+
+/** A reasonable H.264 bitrate for the given frame size / rate (8–40 Mbps). */
+function avcBitrate(width: number, height: number, fps: number): number {
+  return Math.min(40_000_000, Math.max(8_000_000, Math.round(width * height * fps * 0.07)));
+}
 
 function hasWebCodecs(): boolean {
   return (
@@ -43,15 +78,10 @@ function hasWebCodecs(): boolean {
 /** First H.264 codec string WebCodecs can actually encode at this size, or null. */
 async function pickAvcCodec(width: number, height: number, framerate: number): Promise<string | null> {
   if (!hasWebCodecs() || typeof VideoEncoder.isConfigSupported !== 'function') return null;
+  const bitrate = avcBitrate(width, height, framerate);
   for (const codec of AVC_CODECS) {
     try {
-      const support = await VideoEncoder.isConfigSupported({
-        codec,
-        width,
-        height,
-        bitrate: 12_000_000,
-        framerate,
-      });
+      const support = await VideoEncoder.isConfigSupported({ codec, width, height, bitrate, framerate });
       if (support.supported) return codec;
     } catch {
       /* try next */
@@ -76,9 +106,12 @@ export type VideoResult = { format: 'mp4' | 'webm' };
 
 export async function exportVideo(gl: THREE.WebGLRenderer, opts: VideoOptions): Promise<VideoResult> {
   const canvas = gl.domElement as HTMLCanvasElement;
-  // H.264 (and most codecs) require even dimensions.
-  const width = Math.max(2, canvas.width & ~1);
-  const height = Math.max(2, canvas.height & ~1);
+  // Clamp the encode size into H.264's 4K ceiling so MP4 is available at every
+  // quality tier (High/Ultra render the canvas larger; we downscale per frame).
+  const { width, height } = clampToH264(
+    Math.max(2, canvas.width & ~1),
+    Math.max(2, canvas.height & ~1),
+  );
 
   const avcCodec = await pickAvcCodec(width, height, opts.fps);
   if (avcCodec) {
@@ -118,13 +151,14 @@ async function exportMp4WebCodecs(
     codec,
     width,
     height,
-    bitrate: 12_000_000,
+    bitrate: avcBitrate(width, height, fps),
     framerate: fps,
     latencyMode: 'quality',
   });
 
-  // If the canvas isn't already even-sized, copy each frame through a matching
-  // 2D canvas so the VideoFrame dimensions line up with the encoder config.
+  // When the canvas differs from the encode size (odd dims, or downscaled from a
+  // High/Ultra-DPR render), copy each frame through a matching 2D canvas so the
+  // VideoFrame lines up with the encoder config.
   const needsResize = canvas.width !== width || canvas.height !== height;
   const scratch = needsResize ? document.createElement('canvas') : null;
   if (scratch) {
@@ -132,6 +166,10 @@ async function exportMp4WebCodecs(
     scratch.height = height;
   }
   const scratchCtx = scratch ? scratch.getContext('2d') : null;
+  if (scratchCtx) {
+    scratchCtx.imageSmoothingEnabled = true;
+    scratchCtx.imageSmoothingQuality = 'high';
+  }
 
   const frameDurUs = 1_000_000 / fps;
   const totalFrames = Math.max(1, Math.round(duration * fps));
