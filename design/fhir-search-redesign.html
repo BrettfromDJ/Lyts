@@ -269,6 +269,10 @@
   }
   .query .copy:hover { color: var(--accent); background: var(--accent-soft); }
   .query .copy svg { width: 15px; height: 15px; }
+  .plain { margin-top: 9px; display: flex; gap: 9px; align-items: baseline; padding: 0 2px; font-size: 14px; color: var(--ink); line-height: 1.55; }
+  .plain .plabel { flex: none; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-border); border-radius: 5px; padding: 2px 7px; }
+  .plain #plainOut { color: var(--ink-2); text-wrap: pretty; }
 
   /* Section blocks */
   .steps { margin-top: 22px; display: flex; flex-direction: column; gap: 14px; }
@@ -803,6 +807,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
           </button>
         </div>
+        <div class="plain"><span class="plabel">In plain English</span><span id="plainOut"></span></div>
 
         <!-- Steps -->
         <div class="steps">
@@ -1574,6 +1579,48 @@
     if (!parts.length) return null;
     return [key, parts.join(",")];
   }
+  // ---------- Plain-English translation ----------
+  var DATEW = { eq: "on ", ne: "not on ", gt: "after ", lt: "before ", ge: "on or after ", le: "on or before ", sa: "starting after ", eb: "ending before ", ap: "around " };
+  var NUMW = { eq: "equal to ", ne: "not equal to ", gt: "more than ", lt: "less than ", ge: "at least ", le: "at most ", sa: "starting after ", eb: "ending before ", ap: "about " };
+  function qJoin(a) { a = a.filter(Boolean); return a.length ? a.map(function (v) { return "“" + v + "”"; }).join(" or ") : "…"; }
+  function matchPhrase(f, t) {
+    if (f.mods.indexOf("missing") > -1) return "has no value";
+    var raw = f.vals.map(function (e) { return e.v; });
+    if (t === "string") return (f.op === "ex" ? "is exactly" : f.op === "sw" ? "starts with" : "contains") + " " + qJoin(raw);
+    if (t === "token") {
+      if (f.op === "in") return "is in value set " + qJoin(raw);
+      if (f.op === "ni") return "is not in value set " + qJoin(raw);
+      if (f.op === "txt") return "has display text " + qJoin(raw);
+      return (f.mods.indexOf("not") > -1 ? "is not " : "is ") + qJoin(raw);
+    }
+    if (t === "reference") return (f.op === "idized" ? "is identified by " : "is ") + qJoin(raw);
+    if (t === "uri") return (f.op === "above" ? "is at or above " : f.op === "below" ? "is at or below " : "is ") + qJoin(raw);
+    if (t === "date" || t === "number" || t === "quantity") {
+      var wm = t === "date" ? DATEW : NUMW;
+      var parts = f.vals.map(function (e) { if (!e.v) return null; return (wm[e.pre] || "") + e.v + (t === "quantity" && e.unit ? " " + e.unit : ""); }).filter(Boolean);
+      return "is " + (parts.length ? parts.join(" or ") : "…");
+    }
+    if (t === "composite") { var cv = f.vals.map(function (e) { return (e.v && e.v2) ? (e.v + " = " + e.v2) : null; }).filter(Boolean); return "matches " + (cv.length ? cv.join(" or ") : "…"); }
+    if (t === "special") { var sv = raw.filter(Boolean); return "is near " + (sv.length ? sv.join(" or ") : "…"); }
+    return "matches " + qJoin(raw);
+  }
+  function chainSubject(f) {
+    var res = activeType, param = f.field, labels = [(pdesc(res, param) || { label: param }).label.toLowerCase()];
+    (f.chain || []).forEach(function (hop) { var tg = refTargets(res, param), chosen = hop.type || tg[0] || res; labels.push((pdesc(chosen, hop.param) || { label: hop.param }).label.toLowerCase()); res = chosen; param = hop.param; });
+    return labels.join("’s ");
+  }
+  function plainCondition(f) {
+    var t = leafDesc(f).type;
+    if (f.kind === "rel") return "that have a related " + f.hasRes + " whose " + (pdesc(f.hasRes, f.field) || { label: f.field }).label.toLowerCase() + " " + matchPhrase(f, t);
+    var subj = (f.chain && f.chain.length) ? chainSubject(f) : (pdesc(activeType, f.field) || { label: f.field }).label.toLowerCase();
+    return "whose " + subj + " " + matchPhrase(f, t);
+  }
+  function plainEnglish() {
+    var noun = activeType + "s";
+    if (!filters.length) return "Find all " + noun + ".";
+    return "Find " + noun + " " + filters.map(plainCondition).join(" and ") + ".";
+  }
+
   function buildQuery() {
     var parts = [];
     filters.forEach(function (f) { var p = serialize(f); if (p) parts.push(p); });
@@ -1596,6 +1643,7 @@
     var out = document.getElementById("queryOut");
     out.innerHTML = '<span class="op">GET&nbsp;/' + activeType + (parts.length ? "?" : "") + '</span>' + qs;
     out.setAttribute("data-plain", plain);
+    var pe = document.getElementById("plainOut"); if (pe) pe.textContent = plainEnglish();
   }
 
   // ---------- Copy ----------
