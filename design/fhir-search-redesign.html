@@ -400,6 +400,9 @@
   .addstep { margin-top: 10px; border: 1px dashed var(--border-strong); background: transparent; color: var(--ink-2);
     font-weight: 600; font-size: 12.5px; padding: 8px 12px; border-radius: var(--radius-sm); }
   .addstep:hover { border-color: var(--accent-border); color: var(--accent); background: var(--accent-soft); border-style: solid; }
+  .chainleaf { margin-top: 12px; font-size: 12.5px; color: var(--ink-2); }
+  .chainleaf .lt { font-family: var(--font-mono); font-size: 11px; color: var(--good); }
+  .chainend { margin-top: 9px; font-size: 12px; color: var(--ink-3); display: flex; gap: 6px; align-items: baseline; }
   .addrow-group { display: flex; flex-wrap: wrap; gap: 8px; }
   .chevr + .selwrap .field, .frow.flex .field { min-width: 130px; }
   .adv-panel .lab .ptype { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: .04em;
@@ -1309,9 +1312,12 @@
       res = chosen; param = hop.param;
     });
     html += '</div>';
-    var leafT = (pdesc(res, param) || { type: "" }).type;
+    var leafD = pdesc(res, param) || { type: "", label: param }, leafT = leafD.type;
+    html += '<div class="chainleaf">Filtering <b>' + res + ' · ' + esc(leafD.label) + '</b> <span class="lt">' + (leafT || "?") + '</span> — set its <b>match &amp; value</b> on the condition row above.</div>';
     if (leafT === "reference" && refTargets(res, param).length)
-      html += '<button class="addstep" data-chainadd="' + i + '">+ drill into ' + esc((pdesc(res, param) || { label: param }).label) + '’s target</button>';
+      html += '<button class="addstep" data-chainadd="' + i + '">+ drill into ' + esc(leafD.label) + '’s target</button>';
+    else
+      html += '<div class="chainend">Chain ends here — you can only drill deeper through a <b>reference</b> field.</div>';
     return html + '</div>';
   }
   // Inputs for one OR value entry (no comparator — added separately for ordered types).
