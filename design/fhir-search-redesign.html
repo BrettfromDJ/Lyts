@@ -387,6 +387,7 @@
   .pathchip .depth { font-weight: 600; font-size: 11px; color: var(--ink-3); background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; }
   /* the chain builder inside the filter panel */
   .chainbox { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .chainsub { font-size: 12px; color: var(--ink-3); margin: 2px 0 10px; }
   .chainsteps { display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
   .cstep { display: flex; align-items: center; gap: 9px; }
   .cstep.sub { padding-left: 16px; position: relative; }
@@ -1298,7 +1299,8 @@
   // The chain builder — lives inside the per-condition filter panel and grows to any depth.
   function chainPanel(f, i) {
     var res = activeType, param = f.field;
-    var html = '<div class="chainbox"><div class="lab"><span class="ptype">chain</span>filter through a related resource</div><div class="chainsteps">';
+    var html = '<div class="chainbox"><div class="lab"><span class="ptype">chain</span>filter through a related resource</div>' +
+      '<div class="chainsub">Each step just <b>follows a reference</b> (a join) — only the final field takes a value.</div><div class="chainsteps">';
     html += '<div class="cstep"><span class="cnum">1</span><span class="cparam">' + esc((pdesc(res, param) || { label: param }).label) +
       '</span><span class="restag">→ ' + (refTargets(res, param).join(" / ") || "resource") + '</span></div>';
     (f.chain || []).forEach(function (hop, k) {
