@@ -505,6 +505,62 @@
   margin: 2px 0;
 }
 
+/* ---- toast (export status / errors) ---- */
+.toast {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(460px, 90vw);
+  padding: 11px 14px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--text);
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-brd);
+  border-radius: 13px;
+  box-shadow: var(--shadow), inset 0 1px 0 var(--glass-hi);
+  cursor: pointer;
+  animation: toast-in 0.22s cubic-bezier(0.3, 1.2, 0.5, 1);
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+.toast-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--text-dim);
+}
+.toast-error .toast-dot {
+  background: #ff5a52;
+  box-shadow: 0 0 8px rgba(255, 90, 82, 0.7);
+}
+.toast-info .toast-dot {
+  background: #fff;
+}
+.toast-msg {
+  flex: 1;
+}
+.toast-close {
+  color: var(--text-dim);
+  font-size: 11px;
+  flex: none;
+}
+.toast:hover .toast-close {
+  color: var(--text);
+}
+
 /* ---- export crop frame on the stage ---- */
 .aspect-frame {
   position: absolute;

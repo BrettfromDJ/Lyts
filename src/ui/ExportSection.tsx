@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMockupStore } from '../store/useMockupStore';
 import type { ExportAspect } from '../store/useMockupStore';
 import { exportStill } from '../lib/exportImage';
@@ -52,6 +52,17 @@ export function ExportSection() {
   const [format, setFormat] = useState<'png' | 'jpg'>('png');
   const [busy, setBusy] = useState(false);
   const [recording, setRecording] = useState<number | null>(null);
+  const [toast, setToast] = useState<{ kind: 'error' | 'info'; msg: string } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function showToast(kind: 'error' | 'info', msg: string) {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast({ kind, msg });
+    toastTimer.current = setTimeout(() => setToast(null), kind === 'error' ? 6000 : 4500);
+  }
+  useEffect(() => () => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+  }, []);
 
   const av = aspectValue(exportAspect, stageAspect);
   const dims = (w: number) => `${w}×${Math.round(w / av)}`;
@@ -70,6 +81,8 @@ export function ExportSection() {
         transparent,
         watermark: false,
       });
+    } catch (e) {
+      showToast('error', e instanceof Error ? e.message : 'Image export failed.');
     } finally {
       setBusy(false);
     }
@@ -90,7 +103,7 @@ export function ExportSection() {
     s.set({ recording: true, recordElapsed: 0, recordDpr: targetDpr });
     await new Promise((r) => setTimeout(r, 350));
     try {
-      await exportVideo(gl, {
+      const { format: videoFormat } = await exportVideo(gl, {
         duration: s.videoDuration,
         fps: s.videoFps,
         onProgress: (f) => {
@@ -98,8 +111,11 @@ export function ExportSection() {
           useMockupStore.getState().set({ recordElapsed: f * s.videoDuration });
         },
       });
+      if (videoFormat === 'webm') {
+        showToast('info', 'Saved as WebM — this browser can’t encode MP4 (H.264).');
+      }
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Video export failed.');
+      showToast('error', e instanceof Error ? e.message : 'Video export failed.');
     } finally {
       s.set({ recording: false, recordElapsed: 0, recordDpr: 0 });
       setRecording(null);
@@ -107,6 +123,7 @@ export function ExportSection() {
   }
 
   return (
+    <>
     <section className={`group ${open ? 'open' : ''}`}>
       <button className="group-head" onClick={() => setOpen((o) => !o)}>
         <Icon name="export" />
@@ -201,6 +218,14 @@ export function ExportSection() {
         </div>
       )}
     </section>
+    {toast && (
+      <div className={`toast toast-${toast.kind}`} role="status" onClick={() => setToast(null)}>
+        <span className="toast-dot" />
+        <span className="toast-msg">{toast.msg}</span>
+        <span className="toast-close">✕</span>
+      </div>
+    )}
+    </>
   );
 }
 

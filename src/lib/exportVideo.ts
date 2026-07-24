@@ -72,7 +72,9 @@ export function videoSupported(): boolean {
   return hasWebCodecs() || (canvasOk && pickWebmMime() !== null);
 }
 
-export async function exportVideo(gl: THREE.WebGLRenderer, opts: VideoOptions): Promise<void> {
+export type VideoResult = { format: 'mp4' | 'webm' };
+
+export async function exportVideo(gl: THREE.WebGLRenderer, opts: VideoOptions): Promise<VideoResult> {
   const canvas = gl.domElement as HTMLCanvasElement;
   // H.264 (and most codecs) require even dimensions.
   const width = Math.max(2, canvas.width & ~1);
@@ -81,9 +83,10 @@ export async function exportVideo(gl: THREE.WebGLRenderer, opts: VideoOptions): 
   const avcCodec = await pickAvcCodec(width, height, opts.fps);
   if (avcCodec) {
     await exportMp4WebCodecs(canvas, width, height, avcCodec, opts);
-  } else {
-    await exportWebmMediaRecorder(canvas, opts);
+    return { format: 'mp4' };
   }
+  await exportWebmMediaRecorder(canvas, opts);
+  return { format: 'webm' };
 }
 
 /* ---- primary: WebCodecs H.264 -> faststart MP4 --------------------------- */
