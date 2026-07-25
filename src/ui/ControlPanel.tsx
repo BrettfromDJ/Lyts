@@ -191,6 +191,7 @@ export function ControlPanel() {
       <Group title="Screen" id="screen" icon="screen" openIds={openIds} toggle={toggle}>
         <Slider field="screenBrightness" label="Brightness" min={0} max={2} />
         <Slider field="cornerRadius" label="Corner radius" min={0} max={0.5} step={0.005} />
+        <Slider field="thickness" label="Thickness" min={0} max={1} step={0.01} />
       </Group>
 
       <Group title="Focus" id="focus" icon="focus" openIds={openIds} toggle={toggle}>
@@ -208,13 +209,6 @@ export function ControlPanel() {
         <Slider field="vignette" label="Vignette" min={0} max={1} />
         <ValueSwitch field="chromaticAberration" label="Chromatic aberration" onValue={0.001} />
         <Slider field="grain" label="Grain" min={0} max={0.4} step={0.005} />
-      </Group>
-
-      <Group title="Film" id="film" icon="film" openIds={openIds} toggle={toggle}>
-        <Slider field="halation" label="Halation" min={0} max={1} />
-        <Slider field="lightLeaks" label="Light leaks" min={0} max={1} />
-        <Slider field="lensDust" label="Lens dust" min={0} max={1} />
-        <Slider field="datamosh" label="Datamosh" min={0} max={1} />
       </Group>
 
       <Group title="CRT" id="crt" icon="crt" openIds={openIds} toggle={toggle}>

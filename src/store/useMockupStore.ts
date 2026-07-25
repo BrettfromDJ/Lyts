@@ -136,7 +136,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   // Geometry
   cornerRadius: 0.015,
   bevel: 0.02,
-  thickness: 0.18,
+  thickness: 0, // 0 = flat screen; raise for a physical device slab
 
   // Screen material
   screenBrightness: 1.0,
