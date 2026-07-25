@@ -1,6 +1,5 @@
 import { useMemo, useRef, useEffect, useCallback } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
-import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import { useMockupStore } from '../store/useMockupStore';
 import type { CrtBlend, CrtMode } from '../store/useMockupStore';
@@ -173,6 +172,24 @@ const CRT_BODY = /* glsl */ `
 #endif
 `;
 
+/** Rounded-rectangle Shape centred at the origin (in the XY plane). */
+function roundedRectShape(w: number, h: number, radius: number): THREE.Shape {
+  const r = Math.max(0, Math.min(radius, Math.min(w, h) / 2));
+  const x = -w / 2;
+  const y = -h / 2;
+  const s = new THREE.Shape();
+  s.moveTo(x + r, y);
+  s.lineTo(x + w - r, y);
+  s.quadraticCurveTo(x + w, y, x + w, y + r);
+  s.lineTo(x + w, y + h - r);
+  s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  s.lineTo(x + r, y + h);
+  s.quadraticCurveTo(x, y + h, x, y + h - r);
+  s.lineTo(x, y + r);
+  s.quadraticCurveTo(x, y, x + r, y);
+  return s;
+}
+
 /**
  * The screenshot rendered as a flat surface (no device body) — laid in the XZ
  * plane and centred at the origin, so a grazing camera rakes across it with
@@ -214,6 +231,23 @@ export function DeviceMesh() {
   const datamosh = useMockupStore((s) => s.datamosh);
 
   const { w, h } = useMemo(() => surfaceMetrics(screenAspect), [screenAspect]);
+
+  // Device body: a rounded-rectangle prism whose top face has the SAME rounded
+  // outline as the screen (only the vertical edges are rounded — the top stays
+  // flat), extruded straight down by `thickness` so the screen sits flush on it.
+  const bodyGeo = useMemo(() => {
+    if (thickness <= 0.001) return null;
+    const r = Math.min(cornerRadius * h, Math.min(w, h) / 2);
+    const geo = new THREE.ExtrudeGeometry(roundedRectShape(w, h, r), {
+      depth: thickness,
+      bevelEnabled: false,
+      curveSegments: 8,
+    });
+    geo.translate(0, 0, -thickness); // top face at z=0, body extending to -thickness
+    return geo;
+  }, [w, h, cornerRadius, thickness]);
+
+  useEffect(() => () => bodyGeo?.dispose(), [bodyGeo]);
 
   const screenRef = useRef<THREE.MeshStandardMaterial>(null);
   const crtUniforms = useRef<Record<string, THREE.IUniform>>({});
@@ -308,26 +342,22 @@ export function DeviceMesh() {
   // Empty state (no upload): show nothing — keep the stage pure black.
   if (!screenshot) return null;
 
-  // Corner radius for the body slab (world units), matched to the screen's and
-  // safely bounded so it never exceeds half the slab's smallest dimension.
-  const bodyRadius = Math.max(0.001, Math.min(cornerRadius * h, thickness * 0.45));
-
   return (
     <group
       rotation={[THREE.MathUtils.degToRad(tiltX), 0, THREE.MathUtils.degToRad(tiltZ)]}
     >
-      {/* device body — gives the screen physical depth (thickness > 0) */}
-      {thickness > 0.001 && (
-        <RoundedBox
-          args={[w, thickness, h]}
-          radius={bodyRadius}
-          smoothness={3}
-          position={[0, -thickness / 2 - 0.003, 0]}
+      {/* device body — gives the screen physical depth (thickness > 0). Nudged
+          2mm below the screen plane to avoid z-fighting on the coincident face. */}
+      {bodyGeo && (
+        <mesh
+          geometry={bodyGeo}
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[0, -0.002, 0]}
           castShadow
           receiveShadow
         >
           <meshStandardMaterial color="#0c0c0e" metalness={0.35} roughness={0.42} />
-        </RoundedBox>
+        </mesh>
       )}
 
       {/* the screenshot surface */}
