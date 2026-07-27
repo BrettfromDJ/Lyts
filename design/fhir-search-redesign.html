@@ -422,24 +422,21 @@
   .addrow svg { width: 15px; height: 15px; }
 
   /* Include chips */
-  .inc-list { display: flex; flex-direction: column; gap: 8px; }
-  .inc {
-    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
-    border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface);
-  }
-  .inc .toggle {
-    width: 34px; height: 20px; border-radius: 999px; background: var(--border-strong); flex: none;
-    position: relative; transition: background .15s; border: 0;
-  }
-  .inc .toggle::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
-    border-radius: 50%; background: #fff; box-shadow: var(--shadow-sm); transition: left .15s; }
-  .inc.on .toggle { background: var(--accent); }
-  .inc.on .toggle::after { left: 16px; }
-  .inc .txt { flex: 1; }
-  .inc .txt b { font-weight: 600; }
-  .inc .txt span { display: block; font-size: 12px; color: var(--ink-3); margin-top: 1px; }
-  .inc .txt code { font-family: var(--font-mono); font-size: 11.5px; color: var(--accent); }
-
+  .inc-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+  .incrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 11px 12px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--inset); }
+  .incrow .selwrap { flex: 0 0 auto; }
+  .incrow .ctl { height: 36px; }
+  .inckw { flex: none; font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid var(--accent-border); border-radius: 6px; padding: 4px 8px; }
+  .iterbtn { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 34px; padding: 0 11px;
+    border-radius: 999px; border: 1px dashed var(--border-strong); background: transparent; color: var(--ink-2);
+    font-weight: 600; font-size: 12px; }
+  .iterbtn:hover { border-color: var(--accent-border); color: var(--accent); background: var(--accent-soft); }
+  .iterbtn.on { border-style: solid; border-color: var(--accent-border); background: var(--accent-soft); color: var(--accent); }
+  .incsay { flex-basis: 100%; font-size: 12.5px; color: var(--ink-3); }
+  .incsay code { font-family: var(--font-mono); font-size: 11.5px; color: var(--accent); }
+  .incempty { font-size: 13px; color: var(--ink-3); padding: 4px 2px; }
   /* Display controls */
   .disp { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .field-lab { display: block; font-size: 12px; font-weight: 600; color: var(--ink-2); margin-bottom: 6px; }
@@ -844,23 +841,20 @@
               <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h6M15 12h6"/><circle cx="12" cy="12" r="3"/></svg></span>
               <div class="htext">
                 <h2>Include related data</h2>
-                <p>Pull in connected resources so you don't have to run a second search.</p>
+                <p>Adds connected resources to the results — it never changes which records match.</p>
               </div>
             </header>
             <div class="content">
-              <div class="inc-list">
-                <div class="inc on" data-inc="org">
-                  <button class="toggle" aria-label="Toggle" aria-pressed="true"></button>
-                  <div class="txt"><b>Managing organization</b><span>Each patient's organization <code>_include=Patient:organization</code></span></div>
-                </div>
-                <div class="inc" data-inc="obs">
-                  <button class="toggle" aria-label="Toggle" aria-pressed="false"></button>
-                  <div class="txt"><b>Observations for each patient</b><span>Reverse link from Observation <code>_revinclude=Observation:subject</code></span></div>
-                </div>
-                <div class="inc" data-inc="gp">
-                  <button class="toggle" aria-label="Toggle" aria-pressed="false"></button>
-                  <div class="txt"><b>General practitioner</b><span>Each patient's primary care provider <code>_include=Patient:general-practitioner</code></span></div>
-                </div>
+              <div class="inc-list" id="includes"></div>
+              <div class="addrow-group">
+                <button class="addrow" id="addInc">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+                  Include a resource this one points to
+                </button>
+                <button class="addrow" id="addRevInc">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="m11 6-6 6 6 6"/></svg>
+                  Include resources that point here
+                </button>
               </div>
             </div>
           </section>
@@ -1057,7 +1051,9 @@
           var fw = document.getElementById("findWhat"); if (fw) fw.textContent = t[0];
           buildCatalog(activeType);
           filters = [blankFilter(firstParam(activeType))];
+          includes = [];
           renderTypes(document.getElementById("rfilter").value);
+          renderIncludes();
           renderFilters();
         });
         rlist.appendChild(b);
@@ -1132,6 +1128,7 @@
       ["value-string", "Value (string)", "string"], ["value-concept", "Value (coded)", "token"],
       ["date", "Effective date", "date"], ["status", "Status", "token", ["registered", "preliminary", "final", "amended", "cancelled"]],
       ["subject", "Subject", "reference"], ["patient", "Patient", "reference"],
+      ["performer", "Performer", "reference"], ["has-member", "Has member", "reference"],
       ["code-value-quantity", "Code + value", "composite"], ["component-code-value-quantity", "Component code + value", "composite"]
     ],
     Location: [
@@ -1168,7 +1165,11 @@
     MedicationRequest: [
       ["status", "Status", "token", ["active", "on-hold", "cancelled", "completed", "stopped"]],
       ["intent", "Intent", "token", ["proposal", "plan", "order", "original-order"]],
-      ["patient", "Patient", "reference"], ["subject", "Subject", "reference"], ["authoredon", "Authored on", "date"]
+      ["patient", "Patient", "reference"], ["subject", "Subject", "reference"],
+      ["requester", "Requester", "reference"], ["authoredon", "Authored on", "date"]
+    ],
+    Provenance: [
+      ["target", "Target", "reference"], ["agent", "Agent", "reference"], ["recorded", "Recorded", "date"]
     ],
     PractitionerRole: [
       ["specialty", "Specialty", "token"], ["role", "Role", "token"],
@@ -1183,6 +1184,10 @@
     "Observation:patient": ["Patient"],
     "Observation:performer": ["Practitioner", "PractitionerRole", "Organization"],
     "Observation:encounter": ["Encounter"],
+    "Observation:has-member": ["Observation"],
+    "MedicationRequest:requester": ["Practitioner", "PractitionerRole", "Organization"],
+    "MedicationRequest:patient": ["Patient"], "MedicationRequest:subject": ["Patient", "Group"],
+    "Provenance:target": ["Patient", "Observation", "MedicationRequest"], "Provenance:agent": ["Practitioner"],
     "Encounter:subject": ["Patient", "Group"], "Encounter:patient": ["Patient"],
     "Condition:subject": ["Patient"], "Condition:patient": ["Patient"],
     "Location:organization": ["Organization"],
@@ -1197,7 +1202,8 @@
       ["Condition", "patient"], ["Condition", "subject"], ["MedicationRequest", "patient"], ["MedicationRequest", "subject"],
       ["Group", "member"], ["AuditEvent", "agent"]
     ],
-    Observation: [["DiagnosticReport", "result"], ["AuditEvent", "entity"]],
+    Observation: [["DiagnosticReport", "result"], ["AuditEvent", "entity"], ["Observation", "has-member"], ["Provenance", "target"]],
+    MedicationRequest: [["Provenance", "target"]],
     Practitioner: [["Patient", "general-practitioner"], ["Observation", "performer"], ["PractitionerRole", "practitioner"]],
     Organization: [["Patient", "organization"], ["Location", "organization"], ["PractitionerRole", "organization"]]
   };
@@ -1538,15 +1544,73 @@
   var addHasBtn = document.getElementById("addHas");
   if (addHasBtn) addHasBtn.addEventListener("click", function () { filters.push(blankRel()); renderFilters(); });
 
-  // ---------- Includes ----------
-  document.querySelectorAll(".inc").forEach(function (el) {
-    el.querySelector(".toggle").addEventListener("click", function () {
-      el.classList.toggle("on");
-      var on = el.classList.contains("on");
-      el.querySelector(".toggle").setAttribute("aria-pressed", on ? "true" : "false");
-      buildQuery();
+  // ---------- Includes (_include / _revinclude, :iterate, wildcards) ----------
+  // Both share one grammar: [resource]:[parameter]:[targetType]. Only the keyword differs —
+  // _include follows a reference OUT of the resource, _revinclude follows one pointing IN.
+  function refParamsOf(res) { return resourceParams(res).filter(function (r) { return r[2] === "reference"; }); }
+  function allResources() { return Object.keys(CATALOG); }
+  var includes = [];
+  function blankInc(dir) {
+    if (dir === "fwd") {
+      var rp = refParamsOf(activeType)[0];
+      return { dir: "fwd", res: activeType, param: rp ? rp[0] : "*", target: "", iterate: false };
+    }
+    var rv = (REV_TARGETS[activeType] || [])[0];
+    return rv ? { dir: "rev", res: rv[0], param: rv[1], target: "", iterate: false }
+              : { dir: "rev", res: allResources()[0], param: "*", target: "", iterate: false };
+  }
+  function incKeyword(n) { return (n.dir === "fwd" ? "_include" : "_revinclude") + (n.iterate ? ":iterate" : ""); }
+  function incValue(n) { return n.res + ":" + n.param + (n.target ? ":" + n.target : ""); }
+  function incSentence(n) {
+    var tgt = n.target || (refTargets(n.res, n.param)[0] || "resource");
+    if (n.param === "*") return n.dir === "fwd" ? ("everything " + n.res + " points to") : ("every resource that points to " + n.res);
+    var plabel = (pdesc(n.res, n.param) || { label: n.param }).label.toLowerCase();
+    return n.dir === "fwd" ? ("the " + plabel + " (" + tgt + ") of each " + n.res)
+                           : ("every " + n.res + " whose " + plabel + " points here");
+  }
+  var incEl = document.getElementById("includes");
+  function renderIncludes() {
+    incEl.innerHTML = "";
+    includes.forEach(function (n, i) {
+      var params = refParamsOf(n.res).map(function (r) { return [r[0], r[1]]; });
+      params.push(["*", "★ any reference (wildcard)"]);
+      var targets = n.param === "*" ? [] : refTargets(n.res, n.param);
+      var row = document.createElement("div");
+      row.className = "incrow";
+      row.innerHTML =
+        '<span class="inckw">' + (n.dir === "fwd" ? "_include" : "_revinclude") + '</span>' +
+        '<div class="selwrap"><select class="ctl field" data-inc="' + i + '" data-ik="res">' +
+          allResources().map(function (r) { return '<option' + (r === n.res ? " selected" : "") + '>' + r + '</option>'; }).join("") + '</select></div>' +
+        '<span class="joinch">:</span>' +
+        '<div class="selwrap"><select class="ctl field" data-inc="' + i + '" data-ik="param">' +
+          params.map(function (r) { return '<option value="' + r[0] + '"' + (r[0] === n.param ? " selected" : "") + '>' + r[1] + '</option>'; }).join("") + '</select></div>' +
+        (targets.length > 1 ? '<span class="joinch">:</span><div class="selwrap sm"><select class="ctl" data-inc="' + i + '" data-ik="target"><option value="">any type</option>' +
+          targets.map(function (tp) { return '<option' + (tp === n.target ? " selected" : "") + '>' + tp + '</option>'; }).join("") + '</select></div>' : "") +
+        '<button class="iterbtn' + (n.iterate ? " on" : "") + '" data-iter="' + i + '" title="Apply this include again to resources that were themselves included (:iterate)">⟳ iterate</button>' +
+        '<button class="iconbtn danger" data-incdel="' + i + '" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
+        '<div class="incsay">Also returns ' + esc(incSentence(n)) + (n.iterate ? ", repeatedly on included resources" : "") +
+          ' <code>' + esc(incKeyword(n) + "=" + incValue(n)) + '</code></div>';
+      incEl.appendChild(row);
     });
-  });
+    if (!includes.length) incEl.innerHTML = '<div class="incempty">No extra resources are being returned — just the matching ' + activeType + 's.</div>';
+    incEl.querySelectorAll("[data-ik]").forEach(function (el) {
+      el.addEventListener("change", function () {
+        var i = +el.getAttribute("data-inc"), k = el.getAttribute("data-ik");
+        includes[i][k] = el.value;
+        if (k === "res") { var rp = refParamsOf(el.value)[0]; includes[i].param = rp ? rp[0] : "*"; includes[i].target = ""; }
+        if (k === "param") includes[i].target = "";
+        renderIncludes(); buildQuery();
+      });
+    });
+    incEl.querySelectorAll("[data-iter]").forEach(function (el) {
+      el.addEventListener("click", function () { var i = +el.getAttribute("data-iter"); includes[i].iterate = !includes[i].iterate; renderIncludes(); buildQuery(); });
+    });
+    incEl.querySelectorAll("[data-incdel]").forEach(function (el) {
+      el.addEventListener("click", function () { includes.splice(+el.getAttribute("data-incdel"), 1); renderIncludes(); buildQuery(); });
+    });
+  }
+  document.getElementById("addInc").addEventListener("click", function () { includes.push(blankInc("fwd")); renderIncludes(); buildQuery(); });
+  document.getElementById("addRevInc").addEventListener("click", function () { includes.push(blankInc("rev")); renderIncludes(); buildQuery(); });
 
   // ---------- Display dropdown menus ----------
   // opts: [value, full label, short button label]
@@ -1677,19 +1741,16 @@
   }
   function plainEnglish() {
     var noun = activeType + "s";
-    if (!filters.length) return "Find all " + noun + ".";
-    return "Find " + noun + " " + filters.map(plainCondition).join(" and ") + ".";
+    var s = filters.length ? ("Find " + noun + " " + filters.map(plainCondition).join(" and ") + ".") : ("Find all " + noun + ".");
+    if (includes.length) s += " Also return " + includes.map(function (n) { return incSentence(n) + (n.iterate ? " (repeatedly)" : ""); }).join(", and ") + ".";
+    return s;
   }
 
   function buildQuery() {
     var parts = [];
     filters.forEach(function (f) { var p = serialize(f); if (p) parts.push(p); });
-    document.querySelectorAll(".inc.on").forEach(function (el) {
-      var t = el.getAttribute("data-inc");
-      if (t === "org") parts.push(["_include", "Patient:organization"]);
-      if (t === "obs") parts.push(["_revinclude", "Observation:subject"]);
-      if (t === "gp") parts.push(["_include", "Patient:general-practitioner"]);
-    });
+    // _include / _revinclude repeat per criteria — never comma-joined.
+    includes.forEach(function (n) { parts.push([incKeyword(n), incValue(n)]); });
     parts.push(["_sort", DISPLAY.sort.value]);
     parts.push(["_count", DISPLAY.count.value]);
     if (DISPLAY.total.value !== "none") parts.push(["_total", DISPLAY.total.value]);
@@ -2027,6 +2088,8 @@
   document.addEventListener("keydown", function (e) { if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) { e.preventDefault(); gsInput.focus(); } });
 
   // ---------- Init ----------
+  includes = [blankInc("fwd")];
+  renderIncludes();
   renderDisplayMenus();
   renderResults();
   renderFilters();
