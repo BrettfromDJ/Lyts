@@ -356,7 +356,9 @@ export function DeviceMesh() {
           castShadow
           receiveShadow
         >
-          <meshStandardMaterial color="#0c0c0e" metalness={0.35} roughness={0.42} />
+          {/* matte, non-metallic body — avoids a bright specular rim catching
+              the key/rim light along the top edge at grazing angles */}
+          <meshStandardMaterial color="#0c0c0e" metalness={0} roughness={0.92} />
         </mesh>
       )}
 
