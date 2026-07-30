@@ -450,6 +450,33 @@
   .mc-dot { width: 15px; height: 15px; border-radius: 50%; border: 2px solid var(--border-strong); flex: none; background: var(--surface); }
   .modecard.on .mc-dot { border-color: var(--accent); background: var(--accent); box-shadow: inset 0 0 0 3px var(--surface); }
   .mc-desc { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+  .modecards.ro .modecard { cursor: default; }
+  .modecards.ro .modecard:hover { border-color: var(--border); }
+  .modecards.ro .modecard.on:hover { border-color: var(--accent); }
+  .modecards.ro .modecard.dim { opacity: .55; }
+  .mc-tag { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--accent);
+    background: var(--surface); border: 1px solid var(--accent-border); border-radius: 5px; padding: 2px 7px; }
+  .dropzone { display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 34px 20px;
+    border: 2px dashed var(--border-strong); border-radius: var(--radius); background: var(--inset);
+    color: var(--ink-2); cursor: pointer; text-align: center; }
+  .dropzone svg { width: 34px; height: 34px; color: var(--ink-3); }
+  .dropzone b { font-size: 15px; color: var(--ink); }
+  .dropzone span { font-size: 12.5px; color: var(--ink-3); }
+  .dropzone span code { font-family: var(--font-mono); color: var(--accent); }
+  .dropzone:hover, .dropzone.over { border-color: var(--accent); background: var(--accent-soft); }
+  .dropzone.over b { color: var(--accent); }
+  .bt-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .bt-toolbar .bt-file-tag { margin-left: auto; font-family: var(--font-mono); font-size: 12px; color: var(--ink-2);
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; }
+  .bt-err { margin-top: 12px; padding: 12px 14px; border: 1px solid #e6b0aa; background: #fbeae7; color: #c0392b;
+    border-radius: var(--radius-sm); font-size: 13px; }
+  :root[data-theme="dark"] .bt-err { background: #33150f; border-color: #5c2a20; color: #f1998a; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bt-err { background: #33150f; border-color: #5c2a20; color: #f1998a; } }
+  .bt-err code { font-family: var(--font-mono); }
+  .btrow-body { margin: -2px 0 10px 32px; }
+  .btrow-body pre { margin: 0; padding: 12px 14px; background: var(--inset); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 12px; line-height: 1.6;
+    color: var(--ink-2); overflow: auto; max-height: 260px; white-space: pre; }
   .btrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
   .btnum { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border);
     color: var(--ink-3); font-size: 11px; font-weight: 700; display: grid; place-items: center; }
@@ -1036,61 +1063,85 @@
             <header>
               <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7"/></svg></span>
               <div class="htext">
-                <h2>How should the actions run?</h2>
-                <p>This is the whole difference between the two modes.</p>
+                <h2>How will the actions run?</h2>
+                <p>Decided by the file — <code style="font-family:var(--font-mono)">Bundle.type</code> in the uploaded JSON, not a setting you pick here.</p>
               </div>
             </header>
             <div class="content">
-              <div class="modecards">
-                <button type="button" class="modecard" data-mode="batch">
-                  <span class="mc-top"><span class="mc-dot"></span><b>Batch</b><code>Bundle.type = batch</code></span>
+              <div class="modecards ro" id="btModeCards">
+                <div class="modecard" data-mode="batch">
+                  <span class="mc-top"><span class="mc-dot"></span><b>Batch</b><span class="mc-tag" hidden>from file</span><code>Bundle.type = batch</code></span>
                   <span class="mc-desc">Each action runs on its own — some can succeed while others fail. You get a status per action.</span>
-                </button>
-                <button type="button" class="modecard on" data-mode="transaction">
-                  <span class="mc-top"><span class="mc-dot"></span><b>Transaction</b><code>Bundle.type = transaction</code></span>
+                </div>
+                <div class="modecard" data-mode="transaction">
+                  <span class="mc-top"><span class="mc-dot"></span><b>Transaction</b><span class="mc-tag" hidden>from file</span><code>Bundle.type = transaction</code></span>
                   <span class="mc-desc">All-or-nothing — if any action fails, the server rolls back the entire set and nothing is saved.</span>
-                </button>
+                </div>
               </div>
             </div>
           </section>
 
-          <!-- 2. Actions -->
+          <!-- 2. Bundle file / actions -->
           <section class="card block">
             <header>
               <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg></span>
               <div class="htext">
                 <h2>Actions</h2>
-                <p>Each row is one HTTP request inside the Bundle. <b>POST</b> and <b>PUT</b> carry a resource body.</p>
+                <p id="btActionsSub">Upload a Bundle JSON file — its entries appear here, read-only.</p>
               </div>
+              <button class="btn-sm btn-primary" id="btExecTop" hidden style="background:var(--accent);color:var(--accent-ink)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 3 14 9-14 9V3Z"/></svg>
+                Execute
+              </button>
             </header>
             <div class="content">
-              <div id="btList"></div>
-              <div class="addrow-group" style="margin-top:4px">
-                <button class="addrow" id="btAdd">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-                  Add action
-                </button>
+              <!-- empty state: upload -->
+              <div id="btUpload">
+                <div class="dropzone" id="btDrop" tabindex="0" role="button" aria-label="Upload a Bundle JSON file">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M20 21H4a2 2 0 0 1-2-2v-4h2v4h16v-4h2v4a2 2 0 0 1-2 2Z"/></svg>
+                  <b>Drop a Bundle JSON file here</b>
+                  <span>or click to browse — it must be a <code>Bundle</code> with <code>type</code> batch or transaction</span>
+                  <input type="file" id="btFileInput" accept=".json,application/json" hidden>
+                </div>
+                <div class="ai-hint" style="margin-top:12px">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+                  No file handy? Load an example:
+                </div>
+                <div class="ai-chips" id="btExamples" style="margin-top:8px"></div>
+                <div class="bt-err" id="btFileErr" hidden></div>
               </div>
-              <div class="ai-chips" id="btChips" style="margin-top:12px"></div>
+              <!-- loaded state: tabs -->
+              <div id="btLoaded" hidden>
+                <div class="bt-toolbar">
+                  <div class="toggle2" id="btTabs">
+                    <button class="on" data-bttab="json"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/></svg> Bundle JSON</button>
+                    <button data-bttab="actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg> Actions <span class="depth" id="btTabCount"></span></button>
+                  </div>
+                  <span class="bt-file-tag" id="btFileTag"></span>
+                  <button class="btn-sm ghost" id="btReplace">Upload another</button>
+                </div>
+                <pre class="json card" id="btPre" style="margin-top:12px;min-height:auto;max-height:420px"></pre>
+                <div id="btList" hidden style="margin-top:12px"></div>
+              </div>
             </div>
           </section>
         </div>
 
         <!-- Request preview -->
-        <div class="query" style="margin-top:14px">
-          <span class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg> Request</span>
-          <code id="btSummary"></code>
-          <button class="copy" id="btJsonToggle" title="Show / hide the Bundle JSON" aria-label="Toggle Bundle JSON" style="font-family:var(--font-mono);font-size:12px;font-weight:700">{&nbsp;}</button>
-          <button class="copy" id="btCopy" title="Copy Bundle JSON" aria-label="Copy Bundle JSON">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
-          </button>
+        <div id="btReqWrap" hidden>
+          <div class="query" style="margin-top:14px">
+            <span class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg> Request</span>
+            <code id="btSummary"></code>
+            <button class="copy" id="btCopy" title="Copy Bundle JSON" aria-label="Copy Bundle JSON">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+            </button>
+          </div>
+          <div class="plain"><span class="plabel">In plain English</span><span id="btPlain"></span></div>
         </div>
-        <div class="plain"><span class="plabel">In plain English</span><span id="btPlain"></span></div>
-        <pre class="json card" id="btPre" hidden style="margin-top:12px;min-height:auto;max-height:380px"></pre>
 
         <!-- Run bar -->
-        <div class="runbar">
-          <span class="est"><b id="btCount">3</b> actions · one <code style="font-family:var(--font-mono)">POST [base]</code> · <b id="btModeWord">transaction</b></span>
+        <div class="runbar" id="btRunbar" hidden>
+          <span class="est"><b id="btCount">0</b> actions · one <code style="font-family:var(--font-mono)">POST [base]</code> · <b id="btModeWord">—</b></span>
           <span class="spacer"></span>
           <button class="btn btn-primary" id="btExec" style="height:44px">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 3 14 9-14 9V3Z"/></svg>
@@ -2175,100 +2226,122 @@
   document.getElementById("edPatch").addEventListener("click", function () { commit("Patch"); });
 
   // ---------- Batch / Transaction ----------
-  // One POST [base] carrying a Bundle of entries. batch = each entry independent;
-  // transaction = atomic, any failure rolls back the whole set.
-  var btMode = "transaction";
-  var btEntries = [
-    { method: "POST", url: "Patient", open: false, body: '{\n  "resourceType": "Patient",\n  "name": [{ "family": "Nguyen", "given": ["Mai"] }],\n  "gender": "female",\n  "birthDate": "1992-04-11"\n}' },
-    { method: "PUT", url: "Patient/a12", open: false, body: '{\n  "resourceType": "Patient",\n  "id": "a12",\n  "telecom": [{ "system": "phone", "value": "+1 415 555 0199" }]\n}' },
-    { method: "GET", url: "Patient/a63", open: false, body: "" }
+  // Upload-driven: a Bundle JSON file supplies the actions (read-only) and the
+  // mode (Bundle.type). batch = independent entries; transaction = atomic.
+  var bt = null; // { name, text, mode, entries: [{method,url,resource,missingBody,invalid}] }
+  var BT_EXAMPLES = [
+    ["Transaction (succeeds)", "transaction-ok.json", {
+      resourceType: "Bundle", type: "transaction", entry: [
+        { request: { method: "POST", url: "Patient" }, resource: { resourceType: "Patient", name: [{ family: "Nguyen", given: ["Mai"] }], gender: "female", birthDate: "1992-04-11" } },
+        { request: { method: "PUT", url: "Patient/a12" }, resource: { resourceType: "Patient", id: "a12", telecom: [{ system: "phone", value: "+1 415 555 0199" }] } },
+        { request: { method: "GET", url: "Patient/a63" } }
+      ] }],
+    ["Transaction (aborts + rollback)", "transaction-aborts.json", {
+      resourceType: "Bundle", type: "transaction", entry: [
+        { request: { method: "POST", url: "Patient" }, resource: { resourceType: "Patient", name: [{ family: "Okoye", given: ["Ada"] }], gender: "female" } },
+        { request: { method: "PUT", url: "Patient/a44" }, resource: { resourceType: "Patient", id: "a44", gender: "female" } },
+        { request: { method: "GET", url: "Patient/zz9" } }
+      ] }],
+    ["Batch (mixed results)", "batch-mixed.json", {
+      resourceType: "Bundle", type: "batch", entry: [
+        { request: { method: "GET", url: "Patient/a12" } },
+        { request: { method: "GET", url: "Patient/zz9" } },
+        { request: { method: "DELETE", url: "Patient/b23" } },
+        { request: { method: "GET", url: "Patient?name=Smith" } }
+      ] }]
   ];
-  var BT_CHIPS = [
-    ["Read Patient/a12", "GET", "Patient/a12", ""],
-    ["Search Smiths", "GET", "Patient?name=Smith", ""],
-    ["Create a Patient", "POST", "Patient", '{\n  "resourceType": "Patient",\n  "name": [{ "family": "Okoye", "given": ["Ada"] }],\n  "gender": "female"\n}'],
-    ["Update Patient/a44", "PUT", "Patient/a44", '{\n  "resourceType": "Patient",\n  "id": "a44",\n  "gender": "female"\n}'],
-    ["Delete Patient/b23", "DELETE", "Patient/b23", ""],
-    ["Read a missing record (404s)", "GET", "Patient/zz9", ""]
-  ];
-  var btEl = document.getElementById("btList");
-  function btBundleObj() {
-    return { resourceType: "Bundle", type: btMode, entry: btEntries.map(function (e) {
-      var ent = { request: { method: e.method, url: e.url } };
-      if ((e.method === "POST" || e.method === "PUT") && e.body.trim()) {
-        try { ent.resource = JSON.parse(e.body); } catch (err) { ent.resource = { INVALID_JSON: "this body does not parse" }; }
-      }
-      return ent;
-    }) };
+  function btParse(name, text) {
+    var o;
+    try { o = JSON.parse(text); } catch (err) { return { error: "That file isn’t valid JSON — " + err.message + "." }; }
+    if (!o || o.resourceType !== "Bundle") return { error: 'Expected resourceType "Bundle", found ' + JSON.stringify((o && o.resourceType) || null) + "." };
+    if (o.type !== "batch" && o.type !== "transaction") return { error: 'Bundle.type must be "batch" or "transaction" — this file says ' + JSON.stringify(o.type || null) + "." };
+    var entry = Array.isArray(o.entry) ? o.entry : [];
+    if (!entry.length) return { error: "This Bundle has no entries." };
+    var entries = entry.map(function (en) {
+      var rq = en && en.request;
+      if (!rq || !rq.method || !rq.url) return { invalid: "entry has no request.method / request.url" };
+      var e = { method: String(rq.method).toUpperCase(), url: String(rq.url), resource: en.resource || null };
+      if ((e.method === "POST" || e.method === "PUT") && !e.resource) e.missingBody = true;
+      return e;
+    });
+    return { name: name, text: text, mode: o.type, entries: entries };
   }
-  function btSummary() {
-    document.getElementById("btSummary").innerHTML =
-      '<span class="op">POST&nbsp;[base]</span><span class="op">&nbsp;·&nbsp;</span><span class="k">Bundle</span><span class="op">·</span><span class="v">' + btMode + '</span><span class="op">·</span><span class="v">' + btEntries.length + ' entr' + (btEntries.length === 1 ? "y" : "ies") + '</span>';
-    document.getElementById("btPre").textContent = JSON.stringify(btBundleObj(), null, 2);
-    document.getElementById("btCount").textContent = btEntries.length;
-    document.getElementById("btModeWord").textContent = btMode;
-    document.getElementById("btPlain").textContent = "Send " + btEntries.length + " action" + (btEntries.length === 1 ? "" : "s") + " to the server in a single request. " +
-      (btMode === "batch" ? "As a batch, each action succeeds or fails on its own." : "As a transaction, they all succeed together — or none of them are saved.");
+  function btLoad(name, text) {
+    var parsed = btParse(name, text);
+    var errEl = document.getElementById("btFileErr");
+    if (parsed.error) {
+      bt = null; errEl.hidden = false;
+      errEl.innerHTML = "<b>Couldn’t use “" + esc(name) + "”.</b> " + esc(parsed.error);
+      renderBt(); return;
+    }
+    errEl.hidden = true; bt = parsed;
+    renderBt(); btTab("actions");
+    showToast("Loaded " + name + " — " + bt.entries.length + " actions (" + bt.mode + ")");
+  }
+  function btTab(which) {
+    document.querySelectorAll("#btTabs button").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-bttab") === which); });
+    document.getElementById("btPre").hidden = which !== "json";
+    document.getElementById("btList").hidden = which !== "actions";
   }
   function renderBt() {
-    document.querySelectorAll(".modecard").forEach(function (c) { c.classList.toggle("on", c.getAttribute("data-mode") === btMode); });
-    btEl.innerHTML = "";
-    btEntries.forEach(function (e, i) {
-      var hasBody = e.method === "POST" || e.method === "PUT";
-      var row = document.createElement("div");
-      row.className = "btrow";
-      row.innerHTML =
-        '<span class="btnum">' + (i + 1) + '</span>' +
-        '<div class="selwrap sm"><select class="ctl" data-bt="' + i + '" data-bk="method" style="width:104px;font-family:var(--font-mono);font-weight:700;font-size:12px">' +
-          ["GET", "POST", "PUT", "DELETE"].map(function (m) { return '<option' + (m === e.method ? " selected" : "") + '>' + m + '</option>'; }).join("") + '</select></div>' +
-        '<input class="ctl mono" type="text" placeholder="Patient/a12   or   Patient?name=Smith" value="' + esc(e.url) + '" data-bt="' + i + '" data-bk="url">' +
-        (hasBody ? '<button class="chainbtn' + (e.open ? "" : "") + '" data-btbody="' + i + '">' + (e.body.trim() ? "body ✓" : "+ body") + '</button>' : "") +
-        '<button class="iconbtn danger" data-btdel="' + i + '" title="Remove action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>';
-      btEl.appendChild(row);
-      if (hasBody && e.open) {
-        var pan = document.createElement("div");
-        pan.className = "adv-panel open";
-        pan.innerHTML = '<div class="lab"><span class="ptype">' + e.method + '</span>resource body (JSON)</div>' +
-          '<textarea class="json" style="min-height:150px" data-bt="' + i + '" data-bk="body" spellcheck="false"></textarea>';
-        pan.querySelector("textarea").value = e.body;
-        btEl.appendChild(pan);
-      }
+    var loaded = !!bt;
+    // mode cards are read-only indicators — Bundle.type comes from the file
+    document.querySelectorAll("#btModeCards .modecard").forEach(function (c) {
+      var isOn = loaded && c.getAttribute("data-mode") === bt.mode;
+      c.classList.toggle("on", isOn);
+      c.classList.toggle("dim", loaded && !isOn);
+      c.querySelector(".mc-tag").hidden = !isOn;
     });
-    if (!btEntries.length) btEl.innerHTML = '<div class="incempty">No actions yet — add one below, or start from an example.</div>';
-    btEl.querySelectorAll("[data-bk]").forEach(function (el) {
-      var i = +el.getAttribute("data-bt"), k = el.getAttribute("data-bk");
-      el.addEventListener("change", function () {
-        if (!btEntries[i]) return;
-        btEntries[i][k] = el.value;
-        if (k === "method") renderBt(); else btDirty();
+    document.getElementById("btUpload").hidden = loaded;
+    document.getElementById("btLoaded").hidden = !loaded;
+    document.getElementById("btExecTop").hidden = !loaded;
+    document.getElementById("btReqWrap").hidden = !loaded;
+    document.getElementById("btRunbar").hidden = !loaded;
+    document.getElementById("btResults").hidden = true;
+    document.getElementById("btActionsSub").textContent = loaded
+      ? "Parsed from " + bt.name + " — read-only. Upload a different file to change them."
+      : "Upload a Bundle JSON file — its entries appear here, read-only.";
+    if (!loaded) return;
+    document.getElementById("btFileTag").textContent = bt.name;
+    document.getElementById("btTabCount").textContent = bt.entries.length;
+    document.getElementById("btPre").textContent = bt.text;
+    document.getElementById("btCount").textContent = bt.entries.length;
+    document.getElementById("btModeWord").textContent = bt.mode;
+    document.getElementById("btSummary").innerHTML =
+      '<span class="op">POST&nbsp;[base]</span><span class="op">&nbsp;·&nbsp;</span><span class="k">Bundle</span><span class="op">·</span><span class="v">' + bt.mode + '</span><span class="op">·</span><span class="v">' + bt.entries.length + ' entr' + (bt.entries.length === 1 ? "y" : "ies") + '</span>';
+    document.getElementById("btPlain").textContent = "Send " + bt.entries.length + " action" + (bt.entries.length === 1 ? "" : "s") + " to the server in a single request. " +
+      (bt.mode === "batch" ? "As a batch, each action succeeds or fails on its own." : "As a transaction, they all succeed together — or none of them are saved.");
+    var list = document.getElementById("btList");
+    list.innerHTML = bt.entries.map(function (e, i) {
+      if (e.invalid) return '<div class="btres"><span class="btnum">' + (i + 1) + '</span><span class="verb">?</span><span class="url">—</span><span class="statepill bad">invalid</span><span class="note">' + esc(e.invalid) + '</span></div>';
+      return '<div class="btres"><span class="btnum">' + (i + 1) + '</span><span class="verb">' + esc(e.method) + '</span>' +
+        '<span class="url">' + esc(e.url) + '</span>' +
+        (e.resource ? '<button class="chainbtn" data-btview="' + i + '">view body</button>' : "") +
+        (e.missingBody ? '<span class="statepill edit">no body</span>' : "") +
+        (e.resource && e.resource.resourceType ? '<span class="note">' + esc(e.resource.resourceType) + '</span>' : "") + '</div>' +
+        (e.resource ? '<div class="btrow-body" data-btbodyfor="' + i + '" hidden><pre>' + esc(JSON.stringify(e.resource, null, 2)) + '</pre></div>' : "");
+    }).join("");
+    list.querySelectorAll("[data-btview]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var pane = list.querySelector('[data-btbodyfor="' + el.getAttribute("data-btview") + '"]');
+        pane.hidden = !pane.hidden;
+        el.textContent = pane.hidden ? "view body" : "hide body";
       });
-      if (el.tagName !== "SELECT") el.addEventListener("input", function () { if (btEntries[i]) { btEntries[i][k] = el.value; btDirty(); } });
     });
-    btEl.querySelectorAll("[data-btbody]").forEach(function (el) {
-      el.addEventListener("click", function () { var i = +el.getAttribute("data-btbody"); btEntries[i].open = !btEntries[i].open; renderBt(); });
-    });
-    btEl.querySelectorAll("[data-btdel]").forEach(function (el) {
-      el.addEventListener("click", function () { btEntries.splice(+el.getAttribute("data-btdel"), 1); renderBt(); });
-    });
-    btDirty();
   }
-  function btDirty() { btSummary(); document.getElementById("btResults").hidden = true; }
   // simulate the server processing one entry
   function btTryEntry(e) {
-    var url = e.url.trim();
-    if (!url) return { txt: "400 Bad Request", ok: false, note: "missing URL" };
-    if ((e.method === "POST" || e.method === "PUT") && e.body.trim()) {
-      try { JSON.parse(e.body); } catch (err) { return { txt: "400 Bad Request", ok: false, note: "body is not valid JSON" }; }
-    }
-    var mm = url.match(/^Patient\/([A-Za-z0-9_-]+)$/);
+    if (e.invalid) return { txt: "400 Bad Request", ok: false, note: e.invalid };
+    if (e.missingBody) return { txt: "400 Bad Request", ok: false, note: e.method + " entry has no resource body" };
+    var url = e.url.trim(), mm = url.match(/^Patient\/([A-Za-z0-9_-]+)$/);
     if (e.method === "GET") {
       if (mm) return PATIENTS[mm[1]] ? { txt: "200 OK", ok: true, note: "Patient/" + mm[1] } : { txt: "404 Not Found", ok: false, note: "no resource at Patient/" + mm[1] };
       return { txt: "200 OK", ok: true, note: "searchset Bundle" };
     }
-    if (e.method === "POST") return { txt: "201 Created", ok: true, post: e.body };
+    if (e.method === "POST") return { txt: "201 Created", ok: true, post: e.resource };
     if (e.method === "PUT") {
       if (!mm) return { txt: "400 Bad Request", ok: false, note: "PUT needs a Type/id URL" };
-      return PATIENTS[mm[1]] ? { txt: "200 OK", ok: true, put: mm[1] } : { txt: "201 Created", ok: true, post: e.body, note: "created by update" };
+      return PATIENTS[mm[1]] ? { txt: "200 OK", ok: true, put: mm[1] } : { txt: "201 Created", ok: true, post: e.resource, note: "created by update" };
     }
     if (e.method === "DELETE") {
       if (mm && PATIENTS[mm[1]]) return { txt: "204 No Content", ok: true, del: mm[1] };
@@ -2276,8 +2349,8 @@
     }
     return { txt: "200 OK", ok: true };
   }
-  function btCreateFromBody(body) {
-    var o = {}; try { o = JSON.parse(body) || {}; } catch (err) {}
+  function btCreateFromResource(o) {
+    o = o || {};
     var nid = "n" + (RESULT_IDS.length + 1); while (PATIENTS[nid]) nid += "x";
     var nm = (o.name && o.name[0]) || {};
     PATIENTS[nid] = { id: nid, family: nm.family || "(new)", given: (nm.given && nm.given[0]) || "", gender: o.gender || "unknown",
@@ -2286,15 +2359,16 @@
     return nid;
   }
   function btExecute() {
-    var results = btEntries.map(btTryEntry);
+    if (!bt) return;
+    var results = bt.entries.map(btTryEntry);
     var firstFail = results.findIndex(function (r) { return !r.ok; });
-    var aborted = btMode === "transaction" && firstFail > -1;
+    var aborted = bt.mode === "transaction" && firstFail > -1;
     if (aborted) {
       results = results.map(function (r) { return r.ok ? { txt: "rolled back", ok: false, warn: true, note: "not saved — transaction aborted" } : r; });
     } else {
       results.forEach(function (r) {
         if (!r.ok) return;
-        if (r.post !== undefined) { var nid = btCreateFromBody(r.post); r.note = "Location: Patient/" + nid + "/_history/1"; }
+        if (r.post !== undefined) { var nid = btCreateFromResource(r.post); r.note = "Location: Patient/" + nid + "/_history/1"; }
         if (r.put) { PATIENTS[r.put].ver++; r.note = 'Patient/' + r.put + ' · W/"' + PATIENTS[r.put].ver + '"'; }
         if (r.del) { delete PATIENTS[r.del]; var ix = RESULT_IDS.indexOf(r.del); if (ix > -1) RESULT_IDS.splice(ix, 1); }
       });
@@ -2303,12 +2377,12 @@
     var pill = document.getElementById("btResPill"), sub = document.getElementById("btResSub");
     if (aborted) { pill.textContent = "400 — aborted"; pill.className = "statepill bad"; sub.textContent = "Bundle · transaction — the set failed as one, nothing was saved."; }
     else if (firstFail > -1) { pill.textContent = "200 OK · mixed"; pill.className = "statepill edit"; sub.textContent = "Bundle · batch-response — each entry reports its own outcome."; }
-    else { pill.textContent = "200 OK"; pill.className = "statepill good"; sub.textContent = "Bundle · " + btMode + "-response — every entry succeeded."; }
+    else { pill.textContent = "200 OK"; pill.className = "statepill good"; sub.textContent = "Bundle · " + bt.mode + "-response — every entry succeeded."; }
     var list = document.getElementById("btResList");
     list.innerHTML = results.map(function (r, i) {
       var cls = r.warn ? "edit" : (r.ok ? "good" : "bad");
-      return '<div class="btres"><span class="btnum">' + (i + 1) + '</span><span class="verb">' + btEntries[i].method + '</span>' +
-        '<span class="url">' + esc(btEntries[i].url || "—") + '</span>' +
+      return '<div class="btres"><span class="btnum">' + (i + 1) + '</span><span class="verb">' + esc(bt.entries[i].method || "?") + '</span>' +
+        '<span class="url">' + esc(bt.entries[i].url || "—") + '</span>' +
         '<span class="statepill ' + cls + '">' + r.txt + '</span>' +
         (r.note ? '<span class="note">' + esc(r.note) + '</span>' : "") + '</div>';
     }).join("");
@@ -2321,24 +2395,31 @@
     document.getElementById("btResults").scrollIntoView({ behavior: "smooth", block: "nearest" });
     showToast(aborted ? "Transaction aborted — rolled back" : "Bundle processed");
   }
-  document.querySelectorAll(".modecard").forEach(function (c) {
-    c.addEventListener("click", function () { btMode = c.getAttribute("data-mode"); renderBt(); });
-  });
-  document.getElementById("btAdd").addEventListener("click", function () { btEntries.push({ method: "GET", url: "", body: "", open: false }); renderBt(); });
-  var chipsEl = document.getElementById("btChips");
-  BT_CHIPS.forEach(function (ch) {
+  var btDrop = document.getElementById("btDrop"), btFileInput = document.getElementById("btFileInput");
+  function btReadFile(f) {
+    if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () { btLoad(f.name, String(rd.result)); };
+    rd.readAsText(f);
+  }
+  btDrop.addEventListener("click", function () { btFileInput.click(); });
+  btDrop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); btFileInput.click(); } });
+  btFileInput.addEventListener("change", function () { btReadFile(btFileInput.files && btFileInput.files[0]); btFileInput.value = ""; });
+  ["dragover", "dragenter"].forEach(function (ev) { btDrop.addEventListener(ev, function (e) { e.preventDefault(); btDrop.classList.add("over"); }); });
+  ["dragleave", "drop"].forEach(function (ev) { btDrop.addEventListener(ev, function (e) { e.preventDefault(); btDrop.classList.remove("over"); }); });
+  btDrop.addEventListener("drop", function (e) { btReadFile(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]); });
+  var btExEl = document.getElementById("btExamples");
+  BT_EXAMPLES.forEach(function (ex) {
     var b = document.createElement("button");
-    b.className = "ai-chip"; b.textContent = ch[0];
-    b.addEventListener("click", function () { btEntries.push({ method: ch[1], url: ch[2], body: ch[3], open: false }); renderBt(); });
-    chipsEl.appendChild(b);
+    b.className = "ai-chip"; b.textContent = ex[0];
+    b.addEventListener("click", function () { btLoad(ex[1], JSON.stringify(ex[2], null, 2)); });
+    btExEl.appendChild(b);
   });
-  document.getElementById("btJsonToggle").addEventListener("click", function () {
-    var pre = document.getElementById("btPre"); pre.hidden = !pre.hidden;
-  });
-  document.getElementById("btCopy").addEventListener("click", function () {
-    copyText(JSON.stringify(btBundleObj(), null, 2), "Bundle JSON copied");
-  });
+  document.querySelectorAll("#btTabs button").forEach(function (b) { b.addEventListener("click", function () { btTab(b.getAttribute("data-bttab")); }); });
+  document.getElementById("btReplace").addEventListener("click", function () { bt = null; document.getElementById("btFileErr").hidden = true; renderBt(); });
+  document.getElementById("btCopy").addEventListener("click", function () { if (bt) copyText(bt.text, "Bundle JSON copied"); });
   document.getElementById("btExec").addEventListener("click", btExecute);
+  document.getElementById("btExecTop").addEventListener("click", btExecute);
 
   // ---------- Global quick-search (top bar) ----------
   var gsInput = document.getElementById("gsInput"), gsPop = document.getElementById("gsPop"), gsWrap = document.getElementById("gsearch");
