@@ -1149,12 +1149,35 @@
           </button>
         </div>
 
-        <!-- Results -->
-        <section class="card block" id="btResults" hidden style="margin-top:22px">
+      </div>
+
+      <!-- ============ BUNDLE RESPONSE VIEW ============ -->
+      <div class="main-inner" id="view-btres" hidden>
+        <div class="breadcrumb">
+          <a href="#" id="btresCrumb">Batch / Transaction</a> <span>›</span>
+          <span class="crumb-edit">Response</span>
+        </div>
+        <div class="ed-loaded-head">
+          <div class="titles">
+            <h1>Response</h1>
+            <div class="meta" id="btResMeta"></div>
+          </div>
+          <div class="ed-actions">
+            <button class="btn-sm ghost" id="btresAgain">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 3 14 9-14 9V3Z"/></svg>
+              Execute again
+            </button>
+            <button class="btn-sm btn-primary" id="btresBack" style="background:var(--accent);color:var(--accent-ink)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="m11 6-6 6 6 6"/></svg>
+              Back to bundle
+            </button>
+          </div>
+        </div>
+        <section class="card block">
           <header>
             <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M4 12l6-6M4 12l6 6"/></svg></span>
             <div class="htext">
-              <h2>Response</h2>
+              <h2>Per-action outcomes</h2>
               <p id="btResSub"></p>
             </div>
             <span class="statepill" id="btResPill"></span>
@@ -2141,8 +2164,10 @@
     document.getElementById("view-resources").hidden = which !== "resources";
     document.getElementById("view-editor").hidden = which !== "editor";
     document.getElementById("view-batch").hidden = which !== "batch";
-    document.getElementById("nav-resources").classList.toggle("active", which !== "batch");
-    document.getElementById("nav-batch").classList.toggle("active", which === "batch");
+    document.getElementById("view-btres").hidden = which !== "btres";
+    var inBatch = which === "batch" || which === "btres";
+    document.getElementById("nav-resources").classList.toggle("active", !inBatch);
+    document.getElementById("nav-batch").classList.toggle("active", inBatch);
     document.querySelector(".main").scrollTop = 0;
   }
   function showResources() { setView("resources"); }
@@ -2297,7 +2322,6 @@
     document.getElementById("btExecTop").hidden = !loaded;
     document.getElementById("btReqWrap").hidden = !loaded;
     document.getElementById("btRunbar").hidden = !loaded;
-    document.getElementById("btResults").hidden = true;
     document.getElementById("btActionsSub").textContent = loaded
       ? "Parsed from " + bt.name + " — read-only. Upload a different file to change them."
       : "Upload a Bundle JSON file — its entries appear here, read-only.";
@@ -2391,8 +2415,8 @@
       oc.hidden = false;
       oc.innerHTML = '<span class="sev-warn">error</span> · "processing"<br>"transaction aborted — entry ' + (firstFail + 1) + ' failed (' + esc(results[firstFail].note || results[firstFail].txt) + ')"';
     } else oc.hidden = true;
-    document.getElementById("btResults").hidden = false;
-    document.getElementById("btResults").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    document.getElementById("btResMeta").textContent = bt.name + " · " + bt.mode + " · " + bt.entries.length + " action" + (bt.entries.length === 1 ? "" : "s");
+    setView("btres");
     showToast(aborted ? "Transaction aborted — rolled back" : "Bundle processed");
   }
   var btDrop = document.getElementById("btDrop"), btFileInput = document.getElementById("btFileInput");
@@ -2420,6 +2444,9 @@
   document.getElementById("btCopy").addEventListener("click", function () { if (bt) copyText(bt.text, "Bundle JSON copied"); });
   document.getElementById("btExec").addEventListener("click", btExecute);
   document.getElementById("btExecTop").addEventListener("click", btExecute);
+  document.getElementById("btresCrumb").addEventListener("click", function (e) { e.preventDefault(); setView("batch"); });
+  document.getElementById("btresBack").addEventListener("click", function () { setView("batch"); });
+  document.getElementById("btresAgain").addEventListener("click", btExecute);
 
   // ---------- Global quick-search (top bar) ----------
   var gsInput = document.getElementById("gsInput"), gsPop = document.getElementById("gsPop"), gsWrap = document.getElementById("gsearch");
