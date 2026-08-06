@@ -6,7 +6,6 @@ export type IconName =
   | 'color'
   | 'film'
   | 'crt'
-  | 'ascii'
   | 'background'
   | 'export';
 
@@ -47,11 +46,6 @@ const P: Record<IconName, React.ReactNode> = {
     <>
       <rect x="3" y="5" width="18" height="12" rx="2" />
       <path d="M8 21h8M12 17v4M7 9h10M7 12h10" />
-    </>
-  ),
-  ascii: (
-    <>
-      <path d="M6 8l3 4-3 4M18 8l-3 4 3 4M13.5 6l-3 12" />
     </>
   ),
   background: (
