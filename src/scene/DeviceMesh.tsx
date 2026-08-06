@@ -40,15 +40,15 @@ float lytsAsciiChar(int n, vec2 p){
   }
   return 0.0;
 }
-// Pick a glyph whose density tracks brightness g (0..1): space · + × □ ⊞ █.
+// Pick a glyph whose density tracks brightness g (0..1). Biased toward SOLID
+// glyphs (filled squares / block) so content reads as a dense character field
+// rather than sparse hollow outlines: space · + × ▪ █.
 int lytsAsciiGlyph(float g){
-  if(g < 0.06) return 0;
-  if(g < 0.20) return 4096;      // ·
-  if(g < 0.35) return 4357252;   // +
+  if(g < 0.05) return 0;
+  if(g < 0.18) return 4096;      // ·  dot
+  if(g < 0.34) return 4357252;   // +
   if(g < 0.52) return 18157905;  // ×
-  if(g < 0.70) return 33080895;  // □
-  if(g < 0.87) return 33226431;  // ⊞
-  return 33554431;               // █
+  return 473536;                 // ▪  filled square (3x3, always gapped)
 }
 float lytsNoise(vec2 p){
   vec2 i = floor(p), f = fract(p);

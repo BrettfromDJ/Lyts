@@ -198,7 +198,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
 
   // ASCII
   ascii: 0,
-  asciiSize: 64,
+  asciiSize: 120,
 
   // Background
   bgMode: 'gradient',
