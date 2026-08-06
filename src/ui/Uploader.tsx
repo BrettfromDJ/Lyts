@@ -1,9 +1,16 @@
 import { useCallback, useRef, useState } from 'react';
 import { useMockupStore } from '../store/useMockupStore';
-import { loadScreenTexture } from '../lib/useScreenTexture';
+import {
+  loadScreenTexture,
+  loadScreenVideoTexture,
+  disposeScreenTexture,
+} from '../lib/useScreenTexture';
+
+const ACCEPT = 'image/*,video/mp4,video/quicktime,video/webm';
 
 /**
- * Drag/drop (or click, or paste) a screenshot -> THREE.Texture in the store.
+ * Drag/drop (or click, or paste) a screenshot or MP4 -> THREE.Texture in the
+ * store. Images become a static texture, videos a looping VideoTexture.
  * Renders a full-canvas hint while empty, then collapses to a corner button.
  */
 export function Uploader() {
@@ -15,18 +22,20 @@ export function Uploader() {
 
   const handleFile = useCallback(
     async (file: File) => {
-      if (!file.type.startsWith('image/')) {
-        setError('That isn’t an image file.');
+      const isVideo = file.type.startsWith('video/');
+      if (!isVideo && !file.type.startsWith('image/')) {
+        setError('That isn’t an image or video file.');
         return;
       }
       try {
-        const { texture, aspect } = await loadScreenTexture(file);
-        const prev = useMockupStore.getState().screenshot;
-        prev?.dispose();
-        set({ screenshot: texture, screenAspect: aspect });
+        const { texture, aspect } = isVideo
+          ? await loadScreenVideoTexture(file)
+          : await loadScreenTexture(file);
+        disposeScreenTexture(useMockupStore.getState().screenshot);
+        set({ screenshot: texture, screenAspect: aspect, screenIsVideo: isVideo });
         setError(null);
       } catch {
-        setError('Couldn’t read that image.');
+        setError(isVideo ? 'Couldn’t play that video.' : 'Couldn’t read that image.');
       }
     },
     [set],
@@ -48,12 +57,12 @@ export function Uploader() {
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept={ACCEPT}
           hidden
           onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
         />
         <button className="replace-btn" onClick={() => inputRef.current?.click()}>
-          ↻ Replace screenshot
+          ↻ Replace
         </button>
       </>
     );
@@ -73,14 +82,14 @@ export function Uploader() {
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept={ACCEPT}
         hidden
         onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
       />
       <div className="dropzone-inner">
         <div className="dropzone-icon">⤓</div>
-        <h2>Drop a screenshot</h2>
-        <p>or click to browse — PNG / JPG. It renders as a cinematic device shot.</p>
+        <h2>Drop a screenshot or video</h2>
+        <p>or click to browse — PNG / JPG / MP4. It renders as a cinematic device shot.</p>
         {error && <p className="dropzone-error">{error}</p>}
       </div>
     </div>

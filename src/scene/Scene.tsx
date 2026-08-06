@@ -175,6 +175,8 @@ export function Scene() {
   const recordDpr = useMockupStore((s) => s.recordDpr);
   // animated film effects also need a live frameloop
   const filmAnim = useMockupStore((s) => s.lightLeaks + s.datamosh > 0.001);
+  // a playing video texture must render every frame to advance
+  const screenIsVideo = useMockupStore((s) => s.screenIsVideo);
   return (
     <Canvas
       gl={{
@@ -184,7 +186,9 @@ export function Scene() {
         toneMapping: THREE.ACESFilmicToneMapping,
         toneMappingExposure: useMockupStore.getState().exposure,
       }}
-      frameloop={animate || crtEnabled || recording || filmAnim ? 'always' : 'demand'}
+      frameloop={
+        animate || crtEnabled || recording || filmAnim || screenIsVideo ? 'always' : 'demand'
+      }
       dpr={recordDpr > 0 ? recordDpr : [1, 2]}
       shadows
       camera={{ fov: 28, position: [4, 4, 6] }}

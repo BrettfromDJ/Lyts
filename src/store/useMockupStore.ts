@@ -103,6 +103,7 @@ export type MockupState = {
   // --- Asset ---
   screenshot: THREE.Texture | null;
   screenAspect: number; // width / height of the uploaded screenshot
+  screenIsVideo: boolean; // the screen texture is a playing VideoTexture
 
   // --- Export framing ---
   exportAspect: ExportAspect; // crop aspect for export (+ on-canvas frame)
@@ -208,6 +209,7 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   // Asset
   screenshot: null,
   screenAspect: 16 / 10,
+  screenIsVideo: false,
   exportAspect: 'fullscreen',
   recording: false,
   recordElapsed: 0,
@@ -231,6 +233,7 @@ export const SERIALIZABLE_KEYS = (
   (k) =>
     k !== 'screenshot' &&
     k !== 'screenAspect' &&
+    k !== 'screenIsVideo' &&
     k !== 'isPro' &&
     k !== 'animate' &&
     k !== 'recording' &&
