@@ -135,8 +135,13 @@ const CRT_BODY = /* glsl */ `
     vec2 cellCenter = (floor(vEmissiveMapUv * grid) + 0.5) / grid;
     vec3 cellCol = texture2D(emissiveMap, cellCenter).rgb * emissive;
     float g = clamp(dot(cellCol, vec3(0.299, 0.587, 0.114)), 0.0, 1.0);
-    float ch = lytsAsciiChar(lytsAsciiGlyph(g), fract(vEmissiveMapUv * grid));
-    styled = mix(styled, cellCol * ch, uAscii);
+    // Lift midtones so dim UI text/elements still map to visible, denser glyphs.
+    float gv = pow(g, 0.55);
+    float ch = lytsAsciiChar(lytsAsciiGlyph(gv), fract(vEmissiveMapUv * grid));
+    // Brighten lit glyphs to compensate for their partial cell coverage, and
+    // give each a small colour floor so faint cells still read.
+    vec3 aCol = (cellCol + max(gv - 0.15, 0.0) * 0.25) * ch * 1.7;
+    styled = mix(styled, aCol, uAscii);
   }
 
   // halation — warm glow bleeding from the screen's highlights
