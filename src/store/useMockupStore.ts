@@ -87,6 +87,10 @@ export type MockupState = {
   lensDust: number; // dust specks / motes
   datamosh: number; // block displacement / chroma tear
 
+  // --- ASCII (screen-surface glyph render) ---
+  ascii: number; // 0 = off, 1 = fully rendered as ASCII glyphs
+  asciiSize: number; // glyph grid density (cells across the screen height)
+
   // --- Background ---
   bgMode: BgMode;
   bgColorA: string;
@@ -191,6 +195,10 @@ export const DEFAULTS: Omit<MockupState, 'set' | 'loadPreset'> = {
   lightLeaks: 0,
   lensDust: 0,
   datamosh: 0,
+
+  // ASCII
+  ascii: 0,
+  asciiSize: 64,
 
   // Background
   bgMode: 'gradient',

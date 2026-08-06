@@ -211,6 +211,12 @@ export function ControlPanel() {
         <Slider field="grain" label="Grain" min={0} max={0.4} step={0.005} />
       </Group>
 
+      <Group title="ASCII" id="ascii" icon="ascii" openIds={openIds} toggle={toggle}>
+        <ValueSwitch field="ascii" label="Enable ASCII" onValue={1} />
+        <Slider field="ascii" label="Amount" min={0} max={1} />
+        <Slider field="asciiSize" label="Density" min={16} max={160} step={1} />
+      </Group>
+
       <Group title="CRT" id="crt" icon="crt" openIds={openIds} toggle={toggle}>
         <Switch field="crtEnabled" label="Enable CRT" />
         {crtEnabled && (

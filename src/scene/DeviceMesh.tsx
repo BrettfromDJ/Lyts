@@ -28,9 +28,28 @@ const CRT_MODE_ID: Record<CrtMode, number> = {
 const CRT_HEAD = /* glsl */ `
 uniform float uCrtEnabled, uCrtOpacity, uCrtBlend, uCrtScanline, uCrtScanCount,
   uCrtGrille, uCrtFlicker, uCrtRoll, uCrtSpeed, uCrtCurve, uCrtTime, uCrtAspect, uCrtMode,
-  uCornerRadius, uHalation, uLeaks, uDust, uDatamosh;
+  uCornerRadius, uHalation, uLeaks, uDust, uDatamosh, uAscii, uAsciiSize;
 uniform vec3 uCrtTint;
 float lytsHash(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+// 5x5 bitmap glyph: returns 1 inside a lit cell of glyph n at local coord p (0..1).
+float lytsAsciiChar(int n, vec2 p){
+  p = floor(p * vec2(-4.0, 4.0) + 2.5);
+  if (clamp(p.x, 0.0, 4.0) == p.x && clamp(p.y, 0.0, 4.0) == p.y){
+    int a = int(p.x) + 5 * int(p.y);
+    if (((n >> a) & 1) == 1) return 1.0;
+  }
+  return 0.0;
+}
+// Pick a glyph whose density tracks brightness g (0..1): space · + × □ ⊞ █.
+int lytsAsciiGlyph(float g){
+  if(g < 0.06) return 0;
+  if(g < 0.20) return 4096;      // ·
+  if(g < 0.35) return 4357252;   // +
+  if(g < 0.52) return 18157905;  // ×
+  if(g < 0.70) return 33080895;  // □
+  if(g < 0.87) return 33226431;  // ⊞
+  return 33554431;               // █
+}
 float lytsNoise(vec2 p){
   vec2 i = floor(p), f = fract(p);
   float a = lytsHash(i), b = lytsHash(i + vec2(1,0)), c = lytsHash(i + vec2(0,1)), d = lytsHash(i + vec2(1,1));
@@ -108,6 +127,17 @@ const CRT_BODY = /* glsl */ `
     }
   }
   vec3 styled = base;
+
+  // ASCII — render the screen as a grid of glyphs, density tracking brightness,
+  // each glyph tinted by its cell's colour (classic ASCII-art look).
+  if(uAscii > 0.001){
+    vec2 grid = vec2(uAsciiSize * uCrtAspect, uAsciiSize);
+    vec2 cellCenter = (floor(vEmissiveMapUv * grid) + 0.5) / grid;
+    vec3 cellCol = texture2D(emissiveMap, cellCenter).rgb * emissive;
+    float g = clamp(dot(cellCol, vec3(0.299, 0.587, 0.114)), 0.0, 1.0);
+    float ch = lytsAsciiChar(lytsAsciiGlyph(g), fract(vEmissiveMapUv * grid));
+    styled = mix(styled, cellCol * ch, uAscii);
+  }
 
   // halation — warm glow bleeding from the screen's highlights
   if(uHalation > 0.001){
@@ -229,6 +259,8 @@ export function DeviceMesh() {
   const lightLeaks = useMockupStore((s) => s.lightLeaks);
   const lensDust = useMockupStore((s) => s.lensDust);
   const datamosh = useMockupStore((s) => s.datamosh);
+  const ascii = useMockupStore((s) => s.ascii);
+  const asciiSize = useMockupStore((s) => s.asciiSize);
 
   const { w, h } = useMemo(() => surfaceMetrics(screenAspect), [screenAspect]);
 
@@ -276,6 +308,8 @@ export function DeviceMesh() {
       uLeaks: { value: s.lightLeaks },
       uDust: { value: s.lensDust },
       uDatamosh: { value: s.datamosh },
+      uAscii: { value: s.ascii },
+      uAsciiSize: { value: s.asciiSize },
     };
     Object.assign(shader.uniforms, u);
     crtUniforms.current = shader.uniforms;
@@ -320,11 +354,13 @@ export function DeviceMesh() {
     if (u.uLeaks) u.uLeaks.value = lightLeaks;
     if (u.uDust) u.uDust.value = lensDust;
     if (u.uDatamosh) u.uDatamosh.value = datamosh;
+    if (u.uAscii) u.uAscii.value = ascii;
+    if (u.uAsciiSize) u.uAsciiSize.value = asciiSize;
     invalidate();
   }, [
     crtEnabled, crtBlend, crtOpacity, crtScanline, crtScanCount, crtGrille,
     crtFlicker, crtRoll, crtSpeed, crtCurve, crtMode, crtTint, cornerRadius,
-    halation, lightLeaks, lensDust, datamosh, screenAspect, invalidate,
+    halation, lightLeaks, lensDust, datamosh, ascii, asciiSize, screenAspect, invalidate,
   ]);
 
   // Redraw the body slab on thickness change (geometry, demand frameloop).
