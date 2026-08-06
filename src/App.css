@@ -583,7 +583,7 @@
 .rec-timer {
   position: absolute;
   top: 18px;
-  right: 18px;
+  right: 64px;
   z-index: 7;
   display: flex;
   align-items: center;
@@ -719,4 +719,59 @@
   .replace-btn {
     top: 14px;
   }
+}
+
+/* ---- hide-UI (eye) toggle ---- */
+.eye-toggle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  color: var(--text-dim);
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-brd);
+  border-radius: 12px;
+  box-shadow: var(--shadow), inset 0 1px 0 var(--glass-hi);
+  transition: color 0.15s, opacity 0.2s, background 0.2s, border-color 0.15s;
+}
+.eye-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+.eye-toggle:hover {
+  color: var(--text);
+  border-color: var(--glass-hi);
+}
+/* when the UI is hidden, keep the eye but make it recede until hovered */
+.app.ui-hidden .eye-toggle {
+  opacity: 0.3;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+.app.ui-hidden .eye-toggle:hover {
+  opacity: 1;
+}
+
+/* elements that fade out when the interface is hidden */
+.panel,
+.replace-btn,
+.shortcuts,
+.frame-toggle,
+.aspect-frame {
+  transition: opacity 0.22s ease;
+}
+.app.ui-hidden .panel,
+.app.ui-hidden .replace-btn,
+.app.ui-hidden .shortcuts,
+.app.ui-hidden .frame-toggle,
+.app.ui-hidden .aspect-frame {
+  opacity: 0;
+  pointer-events: none;
 }
