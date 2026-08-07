@@ -98,8 +98,8 @@ function PointerCamera() {
       if (e.altKey) {
         // Perspective: tilt the screen plane (one edge away from the camera).
         s.set({
-          tiltZ: clamp(s.tiltZ + dx * 0.12, -45, 45),
-          tiltX: clamp(s.tiltX + dy * 0.12, -45, 45),
+          tiltZ: clamp(s.tiltZ + dx * 0.12, -90, 90),
+          tiltX: clamp(s.tiltX + dy * 0.12, -90, 90),
         });
         el.style.cursor = 'cell';
         return;

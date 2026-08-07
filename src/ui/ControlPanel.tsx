@@ -166,8 +166,8 @@ export function ControlPanel() {
       <Group title="Camera" id="camera" icon="camera" openIds={openIds} toggle={toggle}>
         <AnglePresets />
         <Slider field="roll" label="Roll" min={-45} max={45} step={0.5} />
-        <Slider field="tiltX" label="Tilt ↕" min={-45} max={45} step={0.5} />
-        <Slider field="tiltZ" label="Tilt ↔" min={-45} max={45} step={0.5} />
+        <Slider field="tiltX" label="Tilt ↕" min={-90} max={90} step={0.5} />
+        <Slider field="tiltZ" label="Tilt ↔" min={-90} max={90} step={0.5} />
         <Slider field="zoom" label="Zoom" min={0.2} max={10} step={0.01} />
         <button
           className="ghost reset-view"
