@@ -205,7 +205,7 @@ export function ControlPanel() {
       <Group title="Color" id="post" icon="color" openIds={openIds} toggle={toggle}>
         <Slider field="exposure" label="Exposure" min={0.2} max={3} />
         <Slider field="contrast" label="Contrast" min={0.6} max={1.6} />
-        <Slider field="bloom" label="Bloom" min={0} max={3} />
+        <Slider field="bloom" label="Bloom" min={0} max={8} />
         <Slider field="vignette" label="Vignette" min={0} max={1} />
         <ValueSwitch field="chromaticAberration" label="Chromatic aberration" onValue={0.001} />
         <Slider field="grain" label="Grain" min={0} max={0.4} step={0.005} />
