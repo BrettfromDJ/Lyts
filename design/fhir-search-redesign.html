@@ -474,6 +474,70 @@
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bt-err { background: #33150f; border-color: #5c2a20; color: #f1998a; } }
   .bt-err code { font-family: var(--font-mono); }
   .btrow-body { margin: -2px 0 10px 32px; }
+  /* ---------- Bulk export ---------- */
+  .modecards { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .exscope-extra { margin-top: 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .exscope-extra .selwrap { flex: 1 1 320px; max-width: 420px; }
+  .fl { font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+  .htext .opt { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--ink-3); background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px;
+    padding: 2px 7px; margin-left: 7px; vertical-align: 2px; }
+  .exbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .exsearch { flex: 1 1 200px; max-width: 280px; display: flex; align-items: center; gap: 8px;
+    height: 36px; padding: 0 11px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--surface); color: var(--ink-3); }
+  .exsearch:focus-within { border-color: var(--accent-border); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .exsearch > svg { width: 15px; height: 15px; flex: none; }
+  .exsearch input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink); font-size: 13px; }
+  .exsearch input:focus { outline: none; }
+  .exsearch input::placeholder { color: var(--ink-3); }
+  .exbar .presets { display: flex; gap: 6px; flex-wrap: wrap; }
+  .exbar .ai-chip { padding: 6px 11px; font-size: 12px; }
+  .exgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 2px 10px; }
+  .extype { display: flex; align-items: center; gap: 9px; padding: 7px 9px; border-radius: 8px;
+    border: 1px solid transparent; background: transparent; text-align: left; cursor: pointer; }
+  .extype:hover { background: var(--surface-2); }
+  .extype .box { flex: none; width: 17px; height: 17px; border-radius: 5px; border: 1.5px solid var(--border-strong);
+    background: var(--surface); display: grid; place-items: center; }
+  .extype .box svg { width: 12px; height: 12px; color: #fff; opacity: 0; }
+  .extype.on { background: var(--accent-soft); border-color: var(--accent-border); }
+  .extype.on .box { background: var(--accent); border-color: var(--accent); }
+  .extype.on .box svg { opacity: 1; }
+  .extype .nm { font-size: 13.5px; color: var(--ink); }
+  .extype.on .nm { font-weight: 600; color: var(--accent); }
+  .exempty { font-size: 13px; color: var(--ink-3); padding: 10px 2px; }
+  .exfields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 18px; }
+  .exfield { display: flex; flex-direction: column; gap: 6px; }
+  .exfield.wide { grid-column: 1 / -1; }
+  .exhint { font-size: 12px; color: var(--ink-3); }
+  .exhint code, .exwarn code { font-family: var(--font-mono); font-size: 11.5px; color: var(--accent); }
+  .excustom { margin-top: 4px; }
+  .exwarn { font-size: 12px; color: #c0392b; background: #fbeae7; border: 1px solid #e6b0aa;
+    border-radius: 7px; padding: 7px 10px; }
+  :root[data-theme="dark"] .exwarn { background: #33150f; border-color: #5c2a20; color: #f1998a; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .exwarn { background: #33150f; border-color: #5c2a20; color: #f1998a; } }
+  .jobcount { font-size: 11px; font-weight: 700; background: var(--accent-soft); color: var(--accent);
+    border: 1px solid var(--accent-border); border-radius: 999px; padding: 1px 7px; margin-left: 2px; }
+  /* job cards */
+  .job { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+    box-shadow: var(--shadow-sm); margin-bottom: 12px; overflow: hidden; }
+  .job-head { display: flex; align-items: center; gap: 12px; padding: 14px 16px; flex-wrap: wrap; }
+  .job-head .jt { font-weight: 650; font-size: 14.5px; }
+  .job-head .jsub { font-size: 12.5px; color: var(--ink-3); }
+  .job-head .spacer { flex: 1; }
+  .job-body { padding: 0 16px 14px; }
+  .bar { height: 7px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 999px; background: var(--accent); transition: width .5s ease; }
+  .job.done .bar i { background: var(--good); }
+  .job.err .bar i { background: #c0392b; }
+  .job-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 9px; font-size: 12.5px; color: var(--ink-3); }
+  .job-meta b { color: var(--ink-2); font-weight: 600; }
+  .job-files { margin-top: 12px; border-top: 1px solid var(--border); }
+  .job-file { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .job-file:last-child { border-bottom: 0; }
+  .job-file .fn { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink); }
+  .job-file .fc { margin-left: auto; color: var(--ink-3); font-size: 12px; }
+  .job-file .dl { flex: none; }
   .btrow-body pre { margin: 0; padding: 12px 14px; background: var(--inset); border: 1px solid var(--border);
     border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 12px; line-height: 1.6;
     color: var(--ink-2); overflow: auto; max-height: 260px; white-space: pre; }
@@ -751,6 +815,7 @@
     .chooser { grid-template-columns: 1fr; }
     .ed-grid { grid-template-columns: 1fr; }
     .modecards { grid-template-columns: 1fr; }
+    .exfields { grid-template-columns: 1fr; }
     .drawer { width: 100%; }
   }
   @media (prefers-reduced-motion: reduce) { *, .drawer { transition: none !important; } }
@@ -786,7 +851,7 @@
       <a href="#" class="active" id="nav-resources" title="Resources"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg></a>
       <a href="#" id="nav-batch" title="Batch / Transaction"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg></a>
       <a href="#" title="History & versions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 8v4l3 2"/></svg></a>
-      <a href="#" title="Bulk export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg></a>
+      <a href="#" id="nav-export" title="Bulk export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg></a>
       <a href="#" title="Terminology"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></a>
       <span class="gap"></span>
       <a href="#" title="Admin / Ops"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.2.61.79 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></a>
@@ -1187,6 +1252,165 @@
             <div class="outcome" id="btResOutcome" hidden style="margin-top:10px;border:1px solid var(--border);border-radius:var(--radius-sm)"></div>
           </div>
         </section>
+      </div>
+
+      <!-- ============ BULK EXPORT VIEW ============ -->
+      <div class="main-inner" id="view-export" hidden>
+        <div class="pagehead">
+          <h1>Bulk Export</h1>
+          <span class="sub">Ask the server for a bulk copy of your data as newline-delimited JSON.</span>
+        </div>
+
+        <div class="steps" style="margin-top:18px">
+          <!-- 1. Scope -->
+          <section class="card block">
+            <header>
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a15 15 0 0 0 0 18M3 12h18"/></svg></span>
+              <div class="htext">
+                <h2>What are you exporting?</h2>
+                <p>Picks the endpoint the export runs against.</p>
+              </div>
+            </header>
+            <div class="content">
+              <div class="modecards" id="exScopeCards">
+                <div class="modecard on" data-scope="system" tabindex="0" role="button">
+                  <span class="mc-top"><span class="mc-dot"></span><b>Everything</b><code>/$export</code></span>
+                  <span class="mc-desc">The whole server — every resource type you select below.</span>
+                </div>
+                <div class="modecard" data-scope="patient" tabindex="0" role="button">
+                  <span class="mc-top"><span class="mc-dot"></span><b>All patients</b><code>/Patient/$export</code></span>
+                  <span class="mc-desc">Every patient and the records that belong to them. Nothing patient-unrelated.</span>
+                </div>
+                <div class="modecard" data-scope="group" tabindex="0" role="button">
+                  <span class="mc-top"><span class="mc-dot"></span><b>One group</b><code>/Group/[id]/$export</code></span>
+                  <span class="mc-desc">Just the members of a cohort you've already defined.</span>
+                </div>
+              </div>
+              <div class="exscope-extra" id="exGroupPick" hidden>
+                <label class="fl" for="exGroup">Which group?</label>
+                <div class="selwrap"><select class="ctl" id="exGroup">
+                  <option value="">Select a group…</option>
+                  <option value="diabetes-2024">Diabetes registry 2024 · 1,284 patients</option>
+                  <option value="chf-cohort">Heart failure cohort · 412 patients</option>
+                  <option value="peds-asthma">Pediatric asthma · 903 patients</option>
+                </select></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 2. Resource types -->
+          <section class="card block">
+            <header>
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+              <div class="htext">
+                <h2>Which resource types?</h2>
+                <p id="exTypesSub">Leave everything off to let the server return all types it supports.</p>
+              </div>
+              <span class="statepill" id="exTypePill"></span>
+            </header>
+            <div class="content">
+              <div class="exbar">
+                <div class="exsearch">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                  <input type="text" id="exFilter" placeholder="Filter types…" aria-label="Filter resource types">
+                </div>
+                <span class="spacer"></span>
+                <div class="presets" id="exPresets">
+                  <button class="ai-chip" data-preset="uscore">US Core clinical</button>
+                  <button class="ai-chip" data-preset="claims">Claims &amp; coverage</button>
+                  <button class="ai-chip" data-preset="admin">Administrative</button>
+                </div>
+                <button class="btn-sm ghost" id="exClear">Clear</button>
+              </div>
+              <div class="exgrid" id="exTypeGrid"></div>
+              <div class="exempty" id="exNoMatch" hidden>No resource types match that filter.</div>
+            </div>
+          </section>
+
+          <!-- 3. Narrow it down -->
+          <section class="card block">
+            <header>
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></span>
+              <div class="htext">
+                <h2>Narrow it down <span class="opt">optional</span></h2>
+                <p>Skip this and you'll get complete records for all time.</p>
+              </div>
+            </header>
+            <div class="content">
+              <div class="exfields">
+                <div class="exfield">
+                  <label class="fl" for="exSince">Only records changed…</label>
+                  <div class="selwrap"><select class="ctl" id="exSince">
+                    <option value="">Any time — everything</option>
+                    <option value="24h">In the last 24 hours</option>
+                    <option value="7d">In the last 7 days</option>
+                    <option value="30d">In the last 30 days</option>
+                    <option value="custom">Since a specific date…</option>
+                  </select></div>
+                  <div class="exhint" id="exSinceHint">Full export — no <code>_since</code> filter.</div>
+                  <div class="excustom" id="exSinceCustom" hidden>
+                    <input class="ctl" type="datetime-local" id="exSinceDate" aria-label="Changed since">
+                  </div>
+                </div>
+                <div class="exfield">
+                  <label class="fl" for="exElements">Trim each record to…</label>
+                  <input class="ctl" type="text" id="exElements" placeholder="e.g. id, status, subject">
+                  <div class="exhint">Comma-separated fields (<code>_elements</code>). Leave blank for whole resources.</div>
+                </div>
+                <div class="exfield wide">
+                  <label class="fl" for="exTypeFilter">Only rows matching…</label>
+                  <input class="ctl mono" type="text" id="exTypeFilter" placeholder="Observation?status=final,Condition?clinical-status=active">
+                  <div class="exhint">Per-type search filters (<code>_typeFilter</code>), comma-separated. Each must name a type you selected above.</div>
+                  <div class="exwarn" id="exTfWarn" hidden></div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Request preview -->
+        <div class="query" style="margin-top:14px">
+          <span class="label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/></svg> Request</span>
+          <code id="exQuery"></code>
+          <button class="copy" id="exCopy" title="Copy request URL" aria-label="Copy request URL">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+          </button>
+        </div>
+        <div class="plain"><span class="plabel">In plain English</span><span id="exPlain"></span></div>
+
+        <div class="runbar">
+          <span class="est" id="exEst"></span>
+          <span class="spacer"></span>
+          <button class="btn ghost" id="exJobsLink" style="height:44px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            Active exports <span class="jobcount" id="exJobBadge">3</span>
+          </button>
+          <button class="btn btn-primary" id="exStart" style="height:44px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
+            Start export
+          </button>
+        </div>
+      </div>
+
+      <!-- ============ ACTIVE EXPORTS VIEW ============ -->
+      <div class="main-inner" id="view-jobs" hidden>
+        <div class="breadcrumb">
+          <a href="#" id="jobsCrumb">Bulk Export</a> <span>›</span>
+          <span class="crumb-edit">Active exports</span>
+        </div>
+        <div class="ed-loaded-head">
+          <div class="titles">
+            <h1>Active exports</h1>
+            <div class="meta" id="jobsMeta"></div>
+          </div>
+          <div class="ed-actions">
+            <button class="btn-sm ghost" id="jobsBack">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="m11 6-6 6 6 6"/></svg>
+              New export
+            </button>
+          </div>
+        </div>
+        <div id="jobsList"></div>
       </div>
     </main>
   </div>
@@ -2165,9 +2389,13 @@
     document.getElementById("view-editor").hidden = which !== "editor";
     document.getElementById("view-batch").hidden = which !== "batch";
     document.getElementById("view-btres").hidden = which !== "btres";
+    document.getElementById("view-export").hidden = which !== "export";
+    document.getElementById("view-jobs").hidden = which !== "jobs";
     var inBatch = which === "batch" || which === "btres";
-    document.getElementById("nav-resources").classList.toggle("active", !inBatch);
+    var inExport = which === "export" || which === "jobs";
+    document.getElementById("nav-resources").classList.toggle("active", !inBatch && !inExport);
     document.getElementById("nav-batch").classList.toggle("active", inBatch);
+    document.getElementById("nav-export").classList.toggle("active", inExport);
     document.querySelector(".main").scrollTop = 0;
   }
   function showResources() { setView("resources"); }
@@ -2448,6 +2676,238 @@
   document.getElementById("btresBack").addEventListener("click", function () { setView("batch"); });
   document.getElementById("btresAgain").addEventListener("click", btExecute);
 
+  // ---------- Bulk export ----------
+  // Scope picks the endpoint; selected types become _type; the rest are optional filters.
+  var EX_TYPES = [
+    ["AllergyIntolerance", "Allergy Intolerance"], ["AuditEvent", "Audit Event"], ["Bundle", "Bundle"],
+    ["CapabilityStatement", "Capability Statement"], ["CarePlan", "Care Plan"], ["CareTeam", "Care Team"],
+    ["Claim", "Claim"], ["CodeSystem", "Code System"], ["CompartmentDefinition", "Compartment Definition"],
+    ["Condition", "Condition"], ["Coverage", "Coverage"], ["Device", "Device"],
+    ["DiagnosticReport", "Diagnostic Report"], ["DocumentReference", "Document Reference"], ["Encounter", "Encounter"],
+    ["Endpoint", "Endpoint"], ["ExplanationOfBenefit", "Explanation Of Benefit"], ["Group", "Group"],
+    ["HealthcareService", "Healthcare Service"], ["ImagingStudy", "Imaging Study"], ["Immunization", "Immunization"],
+    ["Location", "Location"], ["Medication", "Medication"], ["MedicationAdministration", "Medication Administration"],
+    ["MedicationRequest", "Medication Request"], ["Observation", "Observation"], ["OperationDefinition", "Operation Definition"],
+    ["Organization", "Organization"], ["Patient", "Patient"], ["Practitioner", "Practitioner"],
+    ["PractitionerRole", "Practitioner Role"], ["Procedure", "Procedure"], ["Provenance", "Provenance"],
+    ["RelatedPerson", "Related Person"], ["ServiceRequest", "Service Request"], ["StructureDefinition", "Structure Definition"],
+    ["SupplyDelivery", "Supply Delivery"], ["ValueSet", "Value Set"], ["ViewDefinition", "View Definition"]
+  ];
+  var EX_PRESETS = {
+    uscore: ["Patient", "Condition", "Observation", "MedicationRequest", "AllergyIntolerance", "Immunization", "Procedure", "Encounter", "DiagnosticReport", "DocumentReference", "CarePlan", "CareTeam"],
+    claims: ["Claim", "ExplanationOfBenefit", "Coverage", "Organization", "Patient"],
+    admin: ["Organization", "Practitioner", "PractitionerRole", "Location", "HealthcareService", "Endpoint"]
+  };
+  var exScope = "system", exSel = {}, exFilterTxt = "";
+  var exTypeGrid = document.getElementById("exTypeGrid");
+  function exSelected() { return EX_TYPES.filter(function (t) { return exSel[t[0]]; }).map(function (t) { return t[0]; }); }
+  function renderExTypes() {
+    var q = exFilterTxt.trim().toLowerCase();
+    var shown = EX_TYPES.filter(function (t) { return !q || t[1].toLowerCase().indexOf(q) > -1 || t[0].toLowerCase().indexOf(q) > -1; });
+    exTypeGrid.innerHTML = shown.map(function (t) {
+      return '<button type="button" class="extype' + (exSel[t[0]] ? " on" : "") + '" data-extype="' + t[0] + '" aria-pressed="' + (exSel[t[0]] ? "true" : "false") + '">' +
+        '<span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span>' +
+        '<span class="nm">' + esc(t[1]) + '</span></button>';
+    }).join("");
+    document.getElementById("exNoMatch").hidden = shown.length > 0;
+    exTypeGrid.querySelectorAll("[data-extype]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var k = el.getAttribute("data-extype");
+        if (exSel[k]) delete exSel[k]; else exSel[k] = true;
+        renderExTypes(); exBuild();
+      });
+    });
+  }
+  function exSinceIso() {
+    var v = document.getElementById("exSince").value;
+    if (!v) return "";
+    if (v === "custom") { var d = document.getElementById("exSinceDate").value; return d ? d + ":00Z" : ""; }
+    var days = v === "24h" ? 1 : v === "7d" ? 7 : 30;
+    return "(" + days + " day" + (days === 1 ? "" : "s") + " ago)";
+  }
+  function exSinceWords() {
+    var v = document.getElementById("exSince").value;
+    if (!v) return "";
+    if (v === "custom") { var d = document.getElementById("exSinceDate").value; return d ? "changed since " + d.replace("T", " ") : "changed since a date you haven’t picked yet"; }
+    return v === "24h" ? "changed in the last 24 hours" : v === "7d" ? "changed in the last 7 days" : "changed in the last 30 days";
+  }
+  function exBuild() {
+    var sel = exSelected(), parts = [];
+    if (sel.length) parts.push(["_type", sel.join(",")]);
+    var since = exSinceIso();
+    if (since) parts.push(["_since", since]);
+    var els = document.getElementById("exElements").value.trim();
+    if (els) parts.push(["_elements", els.split(",").map(function (s) { return s.trim(); }).filter(Boolean).join(",")]);
+    var tf = document.getElementById("exTypeFilter").value.trim();
+    if (tf) parts.push(["_typeFilter", tf]);
+    var path = exScope === "system" ? "/$export"
+      : exScope === "patient" ? "/Patient/$export"
+      : "/Group/" + (document.getElementById("exGroup").value || "[id]") + "/$export";
+    var qs = parts.map(function (p, i) {
+      return '<span class="op">' + (i ? "&" : "?") + '</span><span class="k">' + esc(p[0]) + '</span><span class="op">=</span><span class="v">' + esc(p[1]) + '</span>';
+    }).join("");
+    var out = document.getElementById("exQuery");
+    out.innerHTML = '<span class="op">GET&nbsp;' + path + '</span>' + qs;
+    out.setAttribute("data-plain", "GET " + path + parts.map(function (p, i) { return (i ? "&" : "?") + p[0] + "=" + p[1]; }).join(""));
+    // type pill + sub
+    var pill = document.getElementById("exTypePill");
+    pill.textContent = sel.length ? sel.length + " selected" : "all types";
+    pill.className = "statepill " + (sel.length ? "edit" : "p1");
+    document.getElementById("exTypesSub").textContent = sel.length
+      ? "Only these " + sel.length + " type" + (sel.length === 1 ? "" : "s") + " will be exported."
+      : "Nothing selected — the server returns every type it supports.";
+    // _typeFilter sanity: each clause's type should be selected
+    var warn = document.getElementById("exTfWarn"), bad = [];
+    if (tf && sel.length) {
+      tf.split(",").forEach(function (c) {
+        var ty = c.trim().split("?")[0];
+        if (ty && sel.indexOf(ty) === -1) bad.push(ty);
+      });
+    }
+    if (bad.length) { warn.hidden = false; warn.innerHTML = "<b>" + esc(uniq(bad).join(", ")) + "</b> " + (bad.length > 1 ? "aren’t" : "isn’t") + " selected above, so " + (bad.length > 1 ? "those filters" : "that filter") + " won’t match anything."; }
+    else warn.hidden = true;
+    // plain english + estimate
+    var who = exScope === "system" ? "every record on the server"
+      : exScope === "patient" ? "every patient and their records"
+      : (document.getElementById("exGroup").value ? "the members of the selected group" : "the members of a group (none picked yet)");
+    var bits = [];
+    if (sel.length) bits.push("limited to " + sel.length + " resource type" + (sel.length === 1 ? "" : "s"));
+    var sw = exSinceWords(); if (sw) bits.push(sw);
+    if (els) bits.push("trimmed to just " + els.split(",").length + " field" + (els.split(",").length === 1 ? "" : "s"));
+    if (tf) bits.push("filtered per type");
+    document.getElementById("exPlain").textContent = "Export " + who + (bits.length ? ", " + bits.join(", ") : "") + ", as newline-delimited JSON files you download when the job finishes.";
+    // rough estimate
+    var nTypes = sel.length || EX_TYPES.length;
+    var base = exScope === "system" ? 42000 : exScope === "patient" ? 26000 : 4200;
+    if (document.getElementById("exSince").value) base = Math.round(base * 0.18);
+    var est = Math.round(base * Math.min(1, nTypes / 12));
+    document.getElementById("exEst").innerHTML = "~<b>" + est.toLocaleString() + "</b> resources · " + nTypes + " type" + (nTypes === 1 ? "" : "s") +
+      " · est. <b>" + (est > 20000 ? "8–15 min" : est > 5000 ? "2–4 min" : "under a minute") + "</b>";
+  }
+  // ---- jobs ----
+  var JOB_SEQ = 3;
+  var exJobs = [
+    { id: 2, scope: "All patients", types: 12, pct: 64, state: "run", started: "10:47 AM", files: [] },
+    { id: 1, scope: "Everything", types: 39, pct: 100, state: "done", started: "10:41 AM", took: "6m 12s",
+      files: [["Patient.ndjson", "12,481 rows", "38 MB"], ["Observation.ndjson", "402,119 rows", "1.2 GB"], ["Condition.ndjson", "31,004 rows", "92 MB"]] },
+    { id: 0, scope: "Diabetes registry 2024", types: 5, pct: 100, state: "err", started: "10:41 AM",
+      err: "The server ran out of time building Observation.ndjson (504). Try a narrower date range." }
+  ];
+  function renderJobs() {
+    var badge = document.getElementById("exJobBadge"), running = exJobs.filter(function (j) { return j.state === "run"; }).length;
+    badge.textContent = exJobs.length;
+    document.getElementById("jobsMeta").textContent = exJobs.length + " export" + (exJobs.length === 1 ? "" : "s") + " · " + running + " running";
+    document.getElementById("jobsList").innerHTML = exJobs.map(function (j) {
+      var pillCls = j.state === "run" ? "edit" : j.state === "done" ? "good" : "bad";
+      var pillTxt = j.state === "run" ? "In progress" : j.state === "done" ? "Complete" : "Failed";
+      return '<div class="job ' + (j.state === "done" ? "done" : j.state === "err" ? "err" : "") + '">' +
+        '<div class="job-head"><span class="jt">' + esc(j.scope) + '</span>' +
+        '<span class="jsub">' + j.types + ' types · started ' + esc(j.started) + '</span>' +
+        '<span class="spacer"></span>' +
+        (j.state === "done" ? '<button class="btn-sm btn-primary" data-jobdl="' + j.id + '" style="background:var(--accent);color:var(--accent-ink)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg> Download all</button>' : "") +
+        (j.state === "run" ? '<button class="btn-sm ghost" data-jobcancel="' + j.id + '">Cancel</button>' : "") +
+        (j.state === "err" ? '<button class="btn-sm ghost" data-jobretry="' + j.id + '">Retry</button>' : "") +
+        '<span class="statepill ' + pillCls + '">' + pillTxt + '</span></div>' +
+        '<div class="job-body">' +
+          '<div class="bar"><i style="width:' + j.pct + '%"></i></div>' +
+          '<div class="job-meta">' +
+            (j.state === "run" ? '<span><b>' + j.pct + '%</b> complete</span><span>about <b>' + Math.max(1, Math.round((100 - j.pct) / 12)) + ' min</b> left</span>' : "") +
+            (j.state === "done" ? '<span><b>' + j.files.length + '</b> files</span><span>finished in <b>' + esc(j.took) + '</b></span><span>links expire in <b>22 h</b></span>' : "") +
+            (j.state === "err" ? '<span>' + esc(j.err) + '</span>' : "") +
+          '</div>' +
+          (j.files && j.files.length ? '<div class="job-files">' + j.files.map(function (f) {
+            return '<div class="job-file"><svg class="dl" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink-3)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>' +
+              '<span class="fn">' + esc(f[0]) + '</span><span class="fc">' + esc(f[1]) + ' · ' + esc(f[2]) + '</span>' +
+              '<button class="btn-sm ghost" data-filedl="' + esc(f[0]) + '">Download</button></div>';
+          }).join("") + '</div>' : "") +
+        '</div></div>';
+    }).join("");
+    var list = document.getElementById("jobsList");
+    list.querySelectorAll("[data-jobcancel]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var id = +el.getAttribute("data-jobcancel");
+        exJobs = exJobs.filter(function (j) { return j.id !== id; });
+        renderJobs(); showToast("Export cancelled");
+      });
+    });
+    list.querySelectorAll("[data-jobretry]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var j = exJobs.filter(function (x) { return x.id === +el.getAttribute("data-jobretry"); })[0];
+        j.state = "run"; j.pct = 4; delete j.err; renderJobs(); showToast("Retrying export…");
+      });
+    });
+    list.querySelectorAll("[data-jobdl]").forEach(function (el) {
+      el.addEventListener("click", function () { showToast("Downloading all files…"); });
+    });
+    list.querySelectorAll("[data-filedl]").forEach(function (el) {
+      el.addEventListener("click", function () { showToast("Downloading " + el.getAttribute("data-filedl")); });
+    });
+  }
+  // wiring
+  document.querySelectorAll("#exScopeCards .modecard").forEach(function (c) {
+    function pick() {
+      exScope = c.getAttribute("data-scope");
+      document.querySelectorAll("#exScopeCards .modecard").forEach(function (x) { x.classList.toggle("on", x === c); });
+      document.getElementById("exGroupPick").hidden = exScope !== "group";
+      exBuild();
+    }
+    c.addEventListener("click", pick);
+    c.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+  });
+  document.getElementById("exGroup").addEventListener("change", exBuild);
+  document.getElementById("exFilter").addEventListener("input", function () { exFilterTxt = this.value; renderExTypes(); });
+  document.getElementById("exClear").addEventListener("click", function () { exSel = {}; renderExTypes(); exBuild(); showToast("Selection cleared — all types"); });
+  document.querySelectorAll("#exPresets .ai-chip").forEach(function (b) {
+    b.addEventListener("click", function () {
+      exSel = {}; (EX_PRESETS[b.getAttribute("data-preset")] || []).forEach(function (t) { exSel[t] = true; });
+      renderExTypes(); exBuild(); showToast(b.textContent + " selected");
+    });
+  });
+  document.getElementById("exSince").addEventListener("change", function () {
+    var custom = this.value === "custom";
+    document.getElementById("exSinceCustom").hidden = !custom;
+    document.getElementById("exSinceHint").textContent = this.value
+      ? "Adds a _since filter — only records changed after that point."
+      : "Full export — no _since filter.";
+    exBuild();
+  });
+  ["exSinceDate", "exElements", "exTypeFilter"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", exBuild);
+    document.getElementById(id).addEventListener("change", exBuild);
+  });
+  document.getElementById("exCopy").addEventListener("click", function () {
+    copyText(document.getElementById("exQuery").getAttribute("data-plain"), "Request URL copied");
+  });
+  document.getElementById("exStart").addEventListener("click", function () {
+    if (exScope === "group" && !document.getElementById("exGroup").value) { showToast("Pick a group first"); return; }
+    var sel = exSelected();
+    JOB_SEQ++;
+    exJobs.unshift({ id: JOB_SEQ, scope: exScope === "system" ? "Everything" : exScope === "patient" ? "All patients"
+      : (document.getElementById("exGroup").selectedOptions[0].textContent.split(" · ")[0]),
+      types: sel.length || EX_TYPES.length, pct: 2, state: "run", started: "now", files: [] });
+    renderJobs(); setView("jobs");
+    showToast("Export queued — you can leave this page");
+  });
+  document.getElementById("exJobsLink").addEventListener("click", function () { setView("jobs"); });
+  document.getElementById("jobsCrumb").addEventListener("click", function (e) { e.preventDefault(); setView("export"); });
+  document.getElementById("jobsBack").addEventListener("click", function () { setView("export"); });
+  document.getElementById("nav-export").addEventListener("click", function (e) { e.preventDefault(); closeDrawer(); setView("export"); });
+  // progress ticks for running jobs
+  setInterval(function () {
+    var moved = false;
+    exJobs.forEach(function (j) {
+      if (j.state !== "run") return;
+      j.pct = Math.min(100, j.pct + 3 + Math.round(j.id % 3));
+      moved = true;
+      if (j.pct >= 100) {
+        j.state = "done"; j.took = "4m 08s";
+        j.files = [["Patient.ndjson", "8,204 rows", "24 MB"], ["Observation.ndjson", "196,551 rows", "612 MB"]];
+      }
+    });
+    if (moved && !document.getElementById("view-jobs").hidden) renderJobs();
+    if (moved) document.getElementById("exJobBadge").textContent = exJobs.length;
+  }, 2500);
+
   // ---------- Global quick-search (top bar) ----------
   var gsInput = document.getElementById("gsInput"), gsPop = document.getElementById("gsPop"), gsWrap = document.getElementById("gsearch");
   function gsAdvanced() {
@@ -2491,6 +2951,9 @@
   includes = [blankInc("fwd")];
   renderIncludes();
   renderBt();
+  renderExTypes();
+  exBuild();
+  renderJobs();
   renderDisplayMenus();
   renderResults();
   renderFilters();
