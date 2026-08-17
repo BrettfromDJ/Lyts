@@ -1,0 +1,130 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root {
+      --ground: #f6f7f9; --surface: #ffffff; --surface-2: #eff2f6; --inset: #f3f5f8;
+      --border: #e4e8ef; --border-strong: #d0d7e2;
+      --ink: #101828; --ink-2: #4a5568; --ink-3: #808b9d;
+      --accent: #5457d6; --accent-soft: #eef0ff; --accent-border: #cdd1f7; --accent-ink: #ffffff;
+      --good: #12805c; --good-soft: #ddf2ea;
+      --warn: #a75d08; --warn-soft: #fbeed7;
+      --bad: #c0392b; --bad-soft: #fbeae7; --bad-border: #e6b0aa;
+      --shadow-sm: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.04);
+      --radius: 12px; --radius-sm: 8px;
+      --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    }
+    body { margin: 0; font-family: var(--font-ui); background: var(--surface); color: var(--ink);
+      -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); } a:hover { color: #4144bd; }
+    button { font-family: inherit; cursor: pointer; }
+  </style>
+</helmet>
+
+<div style="width: 560px; box-sizing: border-box; border-left: 1px solid var(--border); display: flex; flex-direction: column">
+
+  <!-- Drawer head -->
+  <div style="display: flex; align-items: flex-start; gap: 12px; padding: 20px 22px 16px; border-bottom: 1px solid var(--border)">
+    <div style="display: flex; flex-direction: column; gap: 7px; min-width: 0">
+      <span style="display: flex; align-items: center; gap: 9px">
+        <span style="font-size: 18px; font-weight: 660; letter-spacing: -.015em">encounter-admissions-dr</span>
+        <span style="font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px; padding: 2px 6px">rest-hook</span>
+      </span>
+      <span style="display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; padding: 3px 10px 3px 8px; border-radius: 999px; background: var(--bad-soft); color: var(--bad); border: 1px solid var(--bad-border)">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--bad)"></span>
+        <span style="font-size: 12px; font-weight: 650">Failing · retries paused</span>
+      </span>
+    </div>
+    <span style="flex-grow: 1"></span>
+    <button title="Close" style="width: 32px; height: 32px; display: grid; place-items: center; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--ink-2)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <!-- The fix, first -->
+  <div style="margin: 18px 22px 0; padding: 14px 15px; border: 1px solid var(--bad-border); background: var(--bad-soft); border-radius: var(--radius)">
+    <div style="display: flex; align-items: flex-start; gap: 11px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--bad)" stroke-width="2" style="flex: none; margin-top: 1px"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+      <div style="display: flex; flex-direction: column; gap: 5px">
+        <span style="font-size: 13.5px; font-weight: 650; color: var(--bad)">The endpoint has refused 7 deliveries in a row</span>
+        <span style="font-size: 12.5px; color: var(--ink-2); line-height: 1.55">After 5 failures this server stopped retrying automatically. 41 events are queued and will be sent once a retry succeeds.</span>
+      </div>
+    </div>
+    <div style="display: flex; gap: 8px; margin-top: 13px">
+      <button style="display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 13px; border-radius: var(--radius-sm); border: 1px solid var(--bad); background: var(--bad); color: #fff; font-size: 13px; font-weight: 640">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        Retry 41 queued events
+      </button>
+      <button style="height: 34px; padding: 0 13px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink-2); font-size: 13px; font-weight: 620">Send a test event</button>
+    </div>
+  </div>
+
+  <!-- Definition -->
+  <div style="padding: 20px 22px 0; display: flex; flex-direction: column; gap: 11px">
+    <span style="font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3)">Definition</span>
+    <sc-for list="{{meta}}" as="m" hint-placeholder-count="4">
+      <div style="display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 12px; align-items: baseline">
+        <span style="font-size: 12.5px; color: var(--ink-3)">{{m.k}}</span>
+        <span style="font-family: var(--font-mono); font-size: 12px; color: var(--ink); overflow-wrap: anywhere">{{m.v}}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- Attempts -->
+  <div style="padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 11px">
+    <div style="display: flex; align-items: baseline; gap: 10px">
+      <span style="font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3)">Recent delivery attempts</span>
+      <span style="flex-grow: 1"></span>
+      <a href="#" style="font-size: 12.5px; font-weight: 600; text-decoration: none">View all 4,500</a>
+    </div>
+
+    <div style="border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden">
+      <sc-for list="{{attempts}}" as="a" hint-placeholder-count="6">
+        <div style="display: grid; grid-template-columns: 62px 1fr auto; gap: 11px; padding: 10px 13px; align-items: center; border-bottom: 1px solid var(--border); background: {{a.bg}}">
+          <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3)">{{a.time}}</span>
+          <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+            <span style="display: flex; align-items: center; gap: 7px">
+              <span style="font-family: var(--font-mono); font-size: 11.5px; font-weight: 650; color: {{a.fg}}">{{a.code}}</span>
+              <span style="font-size: 12px; color: var(--ink-2)">{{a.msg}}</span>
+            </span>
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{a.event}}</span>
+          </div>
+          <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); text-align: right">{{a.ms}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      meta: [
+        { k: 'Endpoint', v: 'https://hooks.northside.example/fhir/encounter' },
+        { k: 'Criteria', v: 'Encounter?status=in-progress' },
+        { k: 'Payload', v: 'id-only · application/fhir+json' },
+        { k: 'Heartbeat', v: 'every 60 s · last 41 min ago' }
+      ],
+      attempts: [
+        { time: '14:22:07', code: '502', msg: 'Bad Gateway', event: 'Encounter/e-8841 · attempt 7 of 7', ms: '30,004 ms', fg: '#c0392b', bg: '#fffbfa' },
+        { time: '14:07:51', code: '502', msg: 'Bad Gateway', event: 'Encounter/e-8840 · attempt 6 of 7', ms: '30,001 ms', fg: '#c0392b', bg: '#fffbfa' },
+        { time: '13:54:12', code: '504', msg: 'Gateway Timeout', event: 'Encounter/e-8839 · attempt 5 of 7', ms: '30,000 ms', fg: '#c0392b', bg: '#fffbfa' },
+        { time: '13:41:38', code: '502', msg: 'Bad Gateway', event: 'Encounter/e-8838 · attempt 4 of 7', ms: '29,988 ms', fg: '#c0392b', bg: '#fffbfa' },
+        { time: '13:40:02', code: '200', msg: 'OK', event: 'Encounter/e-8837', ms: '212 ms', fg: '#12805c', bg: 'var(--surface)' },
+        { time: '13:38:44', code: '200', msg: 'OK', event: 'Encounter/e-8836', ms: '196 ms', fg: '#12805c', bg: 'var(--surface)' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

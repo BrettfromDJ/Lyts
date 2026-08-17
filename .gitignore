@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Seeded design-canvas payloads (regenerable from design/*/ sources; ~2MB each)
+subscriptions-monitoring.html

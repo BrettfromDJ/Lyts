@@ -1,0 +1,44 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "title": "Subscriptions — list", "x": 0, "y": 0, "w": 1240, "h": 880 },
+    { "file": "Detail.dc.html", "title": "Detail drawer", "x": 1320, "y": 0, "w": 560, "h": 880 }
+  ],
+  "annotations": [
+    {
+      "id": "triage",
+      "x": 0,
+      "y": -150,
+      "w": 300,
+      "text": "Triage first.\n\nThe old screen made you read all five rows to notice two were broken. Status now leads, and each tile filters the table."
+    },
+    {
+      "id": "identity",
+      "x": 330,
+      "y": -150,
+      "w": 300,
+      "text": "Rows that identify themselves.\n\nFive rows called \"encounter-start\" were indistinguishable. Each row now carries its destination endpoint and its criteria — the things that actually differ."
+    },
+    {
+      "id": "failure",
+      "x": 660,
+      "y": -150,
+      "w": 300,
+      "text": "Failure states earn their weight.\n\n\"7\" in a plain cell read the same as \"0\". A failing row now explains what broke, when, whether retries stopped, and offers the fix inline."
+    },
+    {
+      "id": "spark",
+      "x": 990,
+      "y": -150,
+      "w": 250,
+      "text": "Sparklines with a scale.\n\nUnlabelled lines were decoration. These are hourly buckets, red where delivery was failing, with the peak spelled out."
+    },
+    {
+      "id": "drawer",
+      "x": 1320,
+      "y": -150,
+      "w": 560,
+      "text": "The old table was a dead end — no way to see why something failed. Opening a row shows the remedy first, then the definition, then the actual delivery attempts with status codes and durations."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

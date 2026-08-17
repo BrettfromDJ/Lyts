@@ -1,0 +1,269 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root {
+      --ground: #f6f7f9; --surface: #ffffff; --surface-2: #eff2f6; --inset: #f3f5f8;
+      --border: #e4e8ef; --border-strong: #d0d7e2;
+      --ink: #101828; --ink-2: #4a5568; --ink-3: #808b9d;
+      --accent: #5457d6; --accent-soft: #eef0ff; --accent-border: #cdd1f7; --accent-ink: #ffffff;
+      --good: #12805c; --good-soft: #ddf2ea;
+      --warn: #a75d08; --warn-soft: #fbeed7;
+      --bad: #c0392b; --bad-soft: #fbeae7; --bad-border: #e6b0aa;
+      --shadow-sm: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.04);
+      --radius: 12px; --radius-sm: 8px;
+      --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    }
+    body { margin: 0; font-family: var(--font-ui); background: var(--ground); color: var(--ink);
+      -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); } a:hover { color: #4144bd; }
+    button { font-family: inherit; cursor: pointer; }
+  </style>
+</helmet>
+
+<div style="width: 1240px; padding: 30px 34px 40px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+
+  <!-- Page head -->
+  <div style="display: flex; align-items: flex-end; gap: 16px">
+    <div style="display: flex; flex-direction: column; gap: 5px">
+      <h1 style="margin: 0; font-size: 27px; font-weight: 680; letter-spacing: -.022em">Subscriptions</h1>
+      <span style="font-size: 13.5px; color: var(--ink-2)">Push notifications this server sends when matching data changes.</span>
+    </div>
+    <span style="flex-grow: 1"></span>
+    <button style="display: flex; align-items: center; gap: 7px; height: 38px; padding: 0 15px; border-radius: var(--radius-sm); border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); font-size: 13.5px; font-weight: 620">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+      New subscription
+    </button>
+  </div>
+
+  <!-- Triage: status is the entry point, and each tile filters -->
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+    <sc-for list="{{tiles}}" as="t" hint-placeholder-count="4">
+      <button style="text-align: left; display: flex; flex-direction: column; gap: 7px; padding: 14px 16px; border-radius: var(--radius); border: 1px solid {{t.bd}}; background: {{t.bg}}; box-shadow: var(--shadow-sm)">
+        <span style="display: flex; align-items: center; gap: 8px">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: {{t.dot}}"></span>
+          <span style="font-size: 11.5px; font-weight: 680; letter-spacing: .07em; text-transform: uppercase; color: {{t.fg}}">{{t.label}}</span>
+        </span>
+        <span style="display: flex; align-items: baseline; gap: 8px">
+          <span style="font-size: 26px; font-weight: 660; letter-spacing: -.02em; color: {{t.fg}}">{{t.n}}</span>
+          <span style="font-size: 12.5px; color: var(--ink-3)">{{t.note}}</span>
+        </span>
+      </button>
+    </sc-for>
+  </div>
+
+  <!-- Toolbar -->
+  <div style="display: flex; align-items: center; gap: 10px">
+    <div style="display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; flex-grow: 1; max-width: 340px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink-3)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span style="font-size: 13px">Search name, endpoint or criteria…</span>
+    </div>
+    <span style="flex-grow: 1"></span>
+    <div style="display: flex; align-items: center; gap: 7px; height: 38px; padding: 0 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface)">
+      <span style="font-size: 11px; font-weight: 660; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3)">Channel</span>
+      <span style="font-size: 13px; font-weight: 600">All</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
+    <div style="display: flex; align-items: center; gap: 7px; height: 38px; padding: 0 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface)">
+      <span style="font-size: 11px; font-weight: 660; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3)">Sort</span>
+      <span style="font-size: 13px; font-weight: 600">{{sortLabel}}</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div style="border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-sm); overflow: hidden">
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 126px 176px 118px 104px; gap: 14px; padding: 11px 18px; background: var(--inset); border-bottom: 1px solid var(--border)">
+      <span style="font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3)">Subscription</span>
+      <span style="font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3)">Status</span>
+      <span style="font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3)">Deliveries / hour · 24 h</span>
+      <span style="font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); text-align: right">Sent 24 h</span>
+      <span></span>
+    </div>
+
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+      <div style="border-bottom: 1px solid var(--border); border-left: 3px solid {{r.edge}}; background: {{r.rowBg}}">
+
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 126px 176px 118px 104px; gap: 14px; padding: 14px 18px; align-items: center">
+
+          <!-- identity: name + what it points at + what it listens for -->
+          <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+            <span style="display: flex; align-items: center; gap: 8px">
+              <span style="font-size: 14.5px; font-weight: 640; letter-spacing: -.01em">{{r.name}}</span>
+              <span style="font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px; padding: 2px 6px">{{r.channel}}</span>
+            </span>
+            <span style="display: flex; align-items: center; gap: 7px; min-width: 0">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2" style="flex: none"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+              <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.endpoint}}</span>
+            </span>
+            <span style="display: flex; align-items: center; gap: 7px; min-width: 0">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2" style="flex: none"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
+              <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.criteria}}</span>
+            </span>
+          </div>
+
+          <!-- status: says what it means, not just a colour -->
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <span style="display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; padding: 3px 9px 3px 7px; border-radius: 999px; background: {{r.pillBg}}; color: {{r.pillFg}}; border: 1px solid {{r.pillBd}}">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: {{r.pillFg}}"></span>
+              <span style="font-size: 12px; font-weight: 650">{{r.statusText}}</span>
+            </span>
+            <span style="font-size: 11.5px; color: var(--ink-3)">{{r.statusNote}}</span>
+          </div>
+
+          <!-- sparkline with a scale you can actually read -->
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <span style="display: flex; align-items: flex-end; gap: 1.5px; height: 30px">
+              <sc-for list="{{r.bars}}" as="b" hint-placeholder-count="24">
+                <span style="width: 5px; height: {{b.h}}px; border-radius: 1.5px; background: {{b.c}}"></span>
+              </sc-for>
+            </span>
+            <span style="display: flex; align-items: baseline; gap: 6px">
+              <span style="font-size: 11px; color: var(--ink-3)">peak <b style="color: var(--ink-2); font-weight: 620">{{r.peak}}</b>/h</span>
+              <sc-if value="{{r.hasFails}}" hint-placeholder-val="{{true}}">
+                <span style="font-size: 11px; color: var(--bad); font-weight: 620">{{r.failHours}} h failing</span>
+              </sc-if>
+            </span>
+          </div>
+
+          <!-- volume -->
+          <div style="display: flex; flex-direction: column; gap: 3px; text-align: right">
+            <span style="font-size: 16px; font-weight: 640; letter-spacing: -.015em; font-variant-numeric: tabular-nums">{{r.sent}}</span>
+            <span style="font-size: 11.5px; color: {{r.deltaFg}}">{{r.delta}}</span>
+          </div>
+
+          <!-- per-row actions -->
+          <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px">
+            <button title="View deliveries" style="width: 32px; height: 32px; display: grid; place-items: center; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--ink-2)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="2.6"/></svg>
+            </button>
+            <button title="{{r.pauseTitle}}" style="width: 32px; height: 32px; display: grid; place-items: center; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--ink-2)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 5v14M17 5v14"/></svg>
+            </button>
+            <button title="More" style="width: 32px; height: 32px; display: grid; place-items: center; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--ink-2)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="5" cy="12" r="1.1"/><circle cx="12" cy="12" r="1.1"/><circle cx="19" cy="12" r="1.1"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- failure promoted into the row: what broke, when, and the fix -->
+        <sc-if value="{{r.failing}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; align-items: center; gap: 11px; margin: 0 18px 14px; padding: 10px 13px; border: 1px solid var(--bad-border); background: var(--bad-soft); border-radius: var(--radius-sm)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bad)" stroke-width="2" style="flex: none"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <span style="font-size: 13px; font-weight: 620; color: var(--bad)">{{r.failHeadline}}</span>
+              <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-2)">{{r.failDetail}}</span>
+            </div>
+            <span style="flex-grow: 1"></span>
+            <button style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--radius-sm); border: 1px solid var(--bad-border); background: var(--surface); color: var(--bad); font-size: 12.5px; font-weight: 650; white-space: nowrap">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+              Retry now
+            </button>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"failingFirst":{"editor":"boolean","default":true,"section":"Triage"}}'>
+class Component extends DCLogic {
+  bars(peak, failFrom) {
+    // 24 hourly buckets; red where deliveries were failing
+    var seq = [0.42,0.51,0.38,0.44,0.61,0.72,0.66,0.79,0.88,0.94,1,0.91,0.83,0.77,0.86,0.72,0.68,0.59,0.63,0.55,0.47,0.4,0.36,0.44];
+    var out = [];
+    for (var i = 0; i < 24; i++) {
+      var failing = failFrom !== null && i >= failFrom;
+      var frac = failing ? 0.1 : seq[i];
+      out.push({ h: Math.max(2, Math.round(frac * 30)), c: failing ? '#c0392b' : (peak === 0 ? '#d0d7e2' : '#12805c') });
+    }
+    if (peak === 0) out = out.map(function (b) { return { h: 2, c: '#d0d7e2' }; });
+    return out;
+  }
+  renderVals() {
+    var ACT = { pillBg: '#ddf2ea', pillFg: '#12805c', pillBd: '#b6e0d1' };
+    var BAD = { pillBg: '#fbeae7', pillFg: '#c0392b', pillBd: '#e6b0aa' };
+    var IDLE = { pillBg: '#fbeed7', pillFg: '#a75d08', pillBd: '#eed6a8' };
+
+    var rows = [
+      { name: 'encounter-admissions', channel: 'rest-hook',
+        endpoint: 'https://api.acme-ehr.com/hooks/encounter',
+        criteria: 'Encounter?status=in-progress',
+        statusText: 'Healthy', statusNote: 'last 4 s ago', pill: ACT,
+        sent: '4,182', delta: '+6% vs yesterday', deltaFg: 'var(--ink-3)',
+        peak: '412', failFrom: null, failing: false, edge: 'transparent', rowBg: 'var(--surface)' },
+
+      { name: 'encounter-admissions-dr', channel: 'rest-hook',
+        endpoint: 'https://hooks.northside.example/fhir/encounter',
+        criteria: 'Encounter?status=in-progress',
+        statusText: 'Failing', statusNote: '7 in a row', pill: BAD,
+        sent: '318', delta: 'stalled 41 min', deltaFg: 'var(--bad)',
+        peak: '96', failFrom: 16, failing: true, edge: '#c0392b', rowBg: '#fffbfa',
+        failHeadline: '7 consecutive failures — retries paused after the 5th',
+        failDetail: '502 Bad Gateway · 41 min ago · next auto-retry in 19 min' },
+
+      { name: 'vitals-stream', channel: 'websocket',
+        endpoint: 'wss://stream.acme-ehr.com/subscribe',
+        criteria: 'Observation?category=vital-signs',
+        statusText: 'Idle', statusNote: 'no clients connected', pill: IDLE,
+        sent: '0', delta: 'nothing to send', deltaFg: 'var(--ink-3)',
+        peak: '0', failFrom: null, failing: false, edge: 'transparent', rowBg: 'var(--surface)' },
+
+      { name: 'lab-result-final', channel: 'rest-hook',
+        endpoint: 'https://integrations.harborhealth.io/v2/labs',
+        criteria: 'DiagnosticReport?status=final',
+        statusText: 'Healthy', statusNote: 'last 22 s ago', pill: ACT,
+        sent: '2,904', delta: '−3% vs yesterday', deltaFg: 'var(--ink-3)',
+        peak: '287', failFrom: null, failing: false, edge: 'transparent', rowBg: 'var(--surface)' },
+
+      { name: 'med-request-new', channel: 'rest-hook',
+        endpoint: 'https://rx-gateway.internal/fhir/notify',
+        criteria: 'MedicationRequest?status=active&intent=order',
+        statusText: 'Failing', statusNote: '2 in a row', pill: BAD,
+        sent: '1,278', delta: 'stalled 6 min', deltaFg: 'var(--bad)',
+        peak: '164', failFrom: 22, failing: true, edge: '#c0392b', rowBg: '#fffbfa',
+        failHeadline: '2 consecutive failures — still retrying',
+        failDetail: '401 Unauthorized · 6 min ago · bearer token may have expired' }
+    ];
+
+    var self = this;
+    rows = rows.map(function (r) {
+      var failHours = r.failFrom === null ? 0 : 24 - r.failFrom;
+      return Object.assign({}, r, r.pill, {
+        bars: self.bars(r.peak === '0' ? 0 : 1, r.failFrom),
+        hasFails: failHours > 0,
+        failHours: String(failHours),
+        pauseTitle: r.statusText === 'Idle' ? 'Resume' : 'Pause'
+      });
+    });
+
+    var failingFirst = this.props.failingFirst ?? true;
+    if (failingFirst) {
+      var rank = { Failing: 0, Idle: 1, Healthy: 2 };
+      rows = rows.slice().sort(function (a, b) { return rank[a.statusText] - rank[b.statusText]; });
+    }
+
+    return {
+      rows: rows,
+      sortLabel: failingFirst ? 'Problems first' : 'Most recent',
+      tiles: [
+        { label: 'Failing', n: '2', note: 'need attention', dot: '#c0392b', fg: '#c0392b', bg: '#fbeae7', bd: '#e6b0aa' },
+        { label: 'Idle', n: '1', note: 'no clients', dot: '#a75d08', fg: '#a75d08', bg: '#fbeed7', bd: '#eed6a8' },
+        { label: 'Healthy', n: '2', note: 'delivering', dot: '#12805c', fg: '#12805c', bg: '#ddf2ea', bd: '#b6e0d1' },
+        { label: 'Delivered 24 h', n: '8,682', note: '96.4% first try', dot: '#5457d6', fg: 'var(--ink)', bg: 'var(--surface)', bd: 'var(--border)' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
