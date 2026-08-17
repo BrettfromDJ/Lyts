@@ -121,11 +121,10 @@
 
           <!-- sparkline with a scale you can actually read -->
           <div style="display: flex; flex-direction: column; gap: 5px">
-            <span style="display: flex; align-items: flex-end; gap: 1.5px; height: 30px">
-              <sc-for list="{{r.bars}}" as="b" hint-placeholder-count="24">
-                <span style="width: 5px; height: {{b.h}}px; border-radius: 1.5px; background: {{b.c}}"></span>
-              </sc-for>
-            </span>
+            <svg width="156" height="30" viewBox="0 0 156 30" fill="none" style="display: block">
+              <path d="{{r.okPath}}" stroke="{{r.okColor}}" stroke-width="5" stroke-linecap="round"></path>
+              <path d="{{r.failPath}}" stroke="#c0392b" stroke-width="5" stroke-linecap="round"></path>
+            </svg>
             <span style="display: flex; align-items: baseline; gap: 6px">
               <span style="font-size: 11px; color: var(--ink-3)">peak <b style="color: var(--ink-2); font-weight: 620">{{r.peak}}</b>/h</span>
               <sc-if value="{{r.hasFails}}" hint-placeholder-val="{{true}}">
@@ -177,17 +176,24 @@
 
 <script data-dc-script data-props='{"failingFirst":{"editor":"boolean","default":true,"section":"Triage"}}'>
 class Component extends DCLogic {
-  bars(peak, failFrom) {
-    // 24 hourly buckets; red where deliveries were failing
+  // 24 hourly buckets drawn as one stroked path per state, so each cell is two
+  // SVG nodes instead of 24 divs and stays crisp at any zoom or export size.
+  spark(idle, failFrom) {
     var seq = [0.42,0.51,0.38,0.44,0.61,0.72,0.66,0.79,0.88,0.94,1,0.91,0.83,0.77,0.86,0.72,0.68,0.59,0.63,0.55,0.47,0.4,0.36,0.44];
-    var out = [];
+    var ok = [], bad = [];
     for (var i = 0; i < 24; i++) {
+      var x = 2.5 + i * 6.5;                       // 5px stroke on a 6.5px pitch
       var failing = failFrom !== null && i >= failFrom;
-      var frac = failing ? 0.1 : seq[i];
-      out.push({ h: Math.max(2, Math.round(frac * 30)), c: failing ? '#c0392b' : (peak === 0 ? '#d0d7e2' : '#12805c') });
+      var frac = idle ? 0 : (failing ? 0.1 : seq[i]);
+      var h = Math.max(0.4, frac * 25);            // 0.4 keeps a round cap visible at zero
+      var seg = 'M' + x + ' 27.5V' + (27.5 - h).toFixed(1);
+      (failing && !idle ? bad : ok).push(seg);
     }
-    if (peak === 0) out = out.map(function (b) { return { h: 2, c: '#d0d7e2' }; });
-    return out;
+    return {
+      okPath: ok.join(''),
+      failPath: bad.join(''),
+      okColor: idle ? '#d0d7e2' : '#12805c'
+    };
   }
   renderVals() {
     var ACT = { pillBg: '#ddf2ea', pillFg: '#12805c', pillBd: '#b6e0d1' };
@@ -238,8 +244,7 @@ class Component extends DCLogic {
     var self = this;
     rows = rows.map(function (r) {
       var failHours = r.failFrom === null ? 0 : 24 - r.failFrom;
-      return Object.assign({}, r, r.pill, {
-        bars: self.bars(r.peak === '0' ? 0 : 1, r.failFrom),
+      return Object.assign({}, r, r.pill, self.spark(r.peak === '0', r.failFrom), {
         hasFails: failHours > 0,
         failHours: String(failHours),
         pauseTitle: r.statusText === 'Idle' ? 'Resume' : 'Pause'
