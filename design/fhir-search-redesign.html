@@ -180,6 +180,8 @@
   }
   .ritem:hover { background: var(--surface-2); color: var(--ink); }
   .ritem.active { background: var(--accent-soft); color: var(--accent); font-weight: 650; }
+  .rgrouphead { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-3); padding: 12px 10px 5px; }
   .ritem .count { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3);
     font-variant-numeric: tabular-nums; }
   .ritem.active .count { color: var(--accent); }
@@ -437,6 +439,52 @@
   .incsay { flex-basis: 100%; font-size: 12.5px; color: var(--ink-3); }
   .incsay code { font-family: var(--font-mono); font-size: 11.5px; color: var(--accent); }
   .incempty { font-size: 13px; color: var(--ink-3); padding: 4px 2px; }
+
+  /* ---------- SQL on FHIR — view definitions ---------- */
+  .vdbar { display: flex; align-items: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .vdbar .spacer { flex: 1; }
+  .vdcolcount { font-size: 12.5px; color: var(--ink-3); }
+  .vdsel { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); margin-bottom: 10px; }
+  .vdsel.nested { margin-left: 22px; border-left: 3px solid var(--accent-border); }
+  .vdsel-head { display: flex; align-items: center; gap: 9px; padding: 10px 12px; background: var(--inset);
+    border-bottom: 1px solid var(--border); border-radius: var(--radius-sm) var(--radius-sm) 0 0; flex-wrap: wrap; }
+  .vdsel.nested .vdsel-head { border-radius: 0; }
+  .vdsel-head .spacer { flex: 1; }
+  .iterpill { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px;
+    font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+  .iterpill.root { background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--border); }
+  .iterpill.each { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-border); }
+  .iterpill.ornull { background: var(--warn-soft); color: var(--warn); border: 1px solid #eed6a8; }
+  .iterpill.union { background: #ede7fb; color: #6f43c0; border: 1px solid #d6c9f2; }
+  .vdsel-note { font-size: 12px; color: var(--ink-2); }
+  .vdsel-note b { font-weight: 640; }
+  .vdsel-body { padding: 10px 12px; }
+  .vdcol { display: grid; grid-template-columns: 168px minmax(0, 1fr) 128px 34px 32px; gap: 8px; align-items: center; margin-bottom: 7px; }
+  .vdcol .ctl { height: 34px; }
+  .vdcol-h { display: grid; grid-template-columns: 168px minmax(0, 1fr) 128px 34px 32px; gap: 8px; margin-bottom: 6px; }
+  .vdcol-h span { font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); }
+  .collbox { width: 34px; height: 34px; display: grid; place-items: center; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--surface); color: var(--ink-3); font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
+  .collbox.on { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); }
+  .vdbadname { border-color: #e6b0aa !important; background: #fffbfa; }
+  .vdwarn { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .vdwarn div { font-size: 12.5px; color: #c0392b; background: #fbeae7; border: 1px solid #e6b0aa;
+    border-radius: var(--radius-sm); padding: 8px 11px; }
+  :root[data-theme="dark"] .vdwarn div { background: #33150f; border-color: #5c2a20; color: #f1998a; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .vdwarn div { background: #33150f; border-color: #5c2a20; color: #f1998a; } }
+  .vdwarn code { font-family: var(--font-mono); }
+  .vdtblwrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+  .vdtbl { border-collapse: collapse; width: 100%; font-size: 13px; }
+  .vdtbl th { text-align: left; padding: 9px 13px; background: var(--inset); border-bottom: 1px solid var(--border);
+    font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); white-space: nowrap; }
+  .vdtbl th .ty { display: block; font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+    letter-spacing: 0; text-transform: none; color: var(--mono-key); margin-top: 2px; }
+  .vdtbl td { padding: 8px 13px; border-bottom: 1px solid var(--border); font-family: var(--font-mono);
+    font-size: 12.5px; color: var(--ink); white-space: nowrap; }
+  .vdtbl tr:last-child td { border-bottom: 0; }
+  .vdtbl td.null { color: var(--ink-3); font-style: italic; }
+  .vdtbl tbody tr:hover td { background: var(--inset); }
+  .vdrowsep td { border-top: 2px solid var(--border-strong); }
 
   /* ---------- Batch / Transaction ---------- */
   .modecards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -851,6 +899,7 @@
       <a href="#" class="active" id="nav-resources" title="Resources"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg></a>
       <a href="#" id="nav-batch" title="Batch / Transaction"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg></a>
       <a href="#" title="History & versions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 8v4l3 2"/></svg></a>
+      <a href="#" id="nav-sql" title="SQL on FHIR — view definitions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10M15 10v10"/></svg></a>
       <a href="#" id="nav-export" title="Bulk export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg></a>
       <a href="#" title="Terminology"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></a>
       <span class="gap"></span>
@@ -858,7 +907,7 @@
     </nav>
 
     <!-- Resource types -->
-    <aside class="resources">
+    <aside class="resources" id="aside-types">
       <header>
         <p class="rtitle">Resource types</p>
         <div class="rsearch">
@@ -867,6 +916,18 @@
         </div>
       </header>
       <div class="rlist" id="rlist"></div>
+    </aside>
+
+    <!-- View definitions -->
+    <aside class="resources" id="aside-views" hidden>
+      <header>
+        <p class="rtitle">View definitions</p>
+        <div class="rsearch">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="vdfilter" placeholder="Filter views…" aria-label="Filter view definitions">
+        </div>
+      </header>
+      <div class="rlist" id="vdlist"></div>
     </aside>
 
     <!-- Main -->
@@ -1250,6 +1311,140 @@
           <div class="content">
             <div id="btResList"></div>
             <div class="outcome" id="btResOutcome" hidden style="margin-top:10px;border:1px solid var(--border);border-radius:var(--radius-sm)"></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ============ SQL ON FHIR — VIEW DEFINITION ============ -->
+      <div class="main-inner" id="view-sql" hidden>
+        <div class="pagehead">
+          <h1 id="vdTitle">patient_demographics</h1>
+          <span class="sub">A tabular projection of <b id="vdResource">Patient</b> — columns are FHIRPath expressions.</span>
+          <span style="flex:1"></span>
+          <button class="btn-sm ghost" id="vdSave" style="align-self:center">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+            Save
+          </button>
+        </div>
+
+        <div class="vdbar">
+          <div class="toggle2" id="vdTabs">
+            <button class="on" data-vdtab="builder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg> Builder</button>
+            <button data-vdtab="json"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/></svg> JSON</button>
+          </div>
+          <span class="statepill" id="vdStatusPill">draft</span>
+          <span class="spacer"></span>
+          <span class="vdcolcount" id="vdColCount"></span>
+        </div>
+
+        <!-- Builder -->
+        <div id="vdBuilder" class="steps" style="margin-top:14px">
+
+          <section class="card block">
+            <header>
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg></span>
+              <div class="htext">
+                <h2>Source</h2>
+                <p>Every view is tied to one resource type and produces zero or more rows per instance.</p>
+              </div>
+            </header>
+            <div class="content">
+              <div class="exfields">
+                <div class="exfield">
+                  <label class="fl" for="vdResourceSel">Resource</label>
+                  <div class="selwrap"><select class="ctl" id="vdResourceSel"></select></div>
+                </div>
+                <div class="exfield">
+                  <label class="fl" for="vdName">View name</label>
+                  <input class="ctl mono" type="text" id="vdName" value="patient_demographics">
+                  <div class="exhint" id="vdNameHint">Used as the table name — letters, digits and underscores, not starting with one.</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card block">
+            <header>
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10M15 10v10"/></svg></span>
+              <div class="htext">
+                <h2>Columns &amp; structure</h2>
+                <p>Each <code style="font-family:var(--font-mono)">select</code> block contributes columns. Nesting a block with an iterator is how one resource becomes many rows.</p>
+              </div>
+            </header>
+            <div class="content">
+              <div id="vdTree"></div>
+            </div>
+          </section>
+
+          <section class="card block">
+            <header>
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></span>
+              <div class="htext">
+                <h2>Filters <span class="opt">where</span></h2>
+                <p>FHIRPath conditions a resource must satisfy to appear at all. All must pass.</p>
+              </div>
+            </header>
+            <div class="content">
+              <div id="vdWhere"></div>
+              <div class="addrow-group" style="margin-top:8px">
+                <button class="addrow" id="vdAddWhere">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                  Add filter
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section class="card block">
+            <header>
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V5h16v2M9 20h6M12 5v15"/></svg></span>
+              <div class="htext">
+                <h2>Constants <span class="opt">optional</span></h2>
+                <p>Reusable values — reference one as <code style="font-family:var(--font-mono)">%name</code> inside any expression.</p>
+              </div>
+            </header>
+            <div class="content">
+              <div id="vdConst"></div>
+              <div class="addrow-group" style="margin-top:8px">
+                <button class="addrow" id="vdAddConst">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                  Add constant
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- JSON -->
+        <pre class="json card" id="vdJson" hidden style="margin-top:14px;min-height:auto;max-height:520px;padding:16px 18px;overflow:auto;white-space:pre;font-family:var(--font-mono);font-size:12.5px;line-height:1.6;color:var(--ink-2)"></pre>
+
+        <div class="plain"><span class="plabel">In plain English</span><span id="vdPlain"></span></div>
+        <div class="vdwarn" id="vdWarn" hidden></div>
+
+        <div class="runbar">
+          <span class="est" id="vdEst"></span>
+          <span class="spacer"></span>
+          <button class="btn ghost" id="vdSql" style="height:44px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/></svg>
+            Show CREATE VIEW
+          </button>
+          <button class="btn btn-primary" id="vdRun" style="height:44px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 3 14 9-14 9V3Z"/></svg>
+            Run
+          </button>
+        </div>
+
+        <section class="card block" id="vdResults" hidden style="margin-top:22px">
+          <header>
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg></span>
+            <div class="htext">
+              <h2>Result</h2>
+              <p id="vdResSub"></p>
+            </div>
+            <span class="statepill good" id="vdResPill"></span>
+          </header>
+          <div class="content">
+            <div class="vdtblwrap"><table class="vdtbl" id="vdTbl"></table></div>
           </div>
         </section>
       </div>
@@ -2391,11 +2586,16 @@
     document.getElementById("view-btres").hidden = which !== "btres";
     document.getElementById("view-export").hidden = which !== "export";
     document.getElementById("view-jobs").hidden = which !== "jobs";
+    document.getElementById("view-sql").hidden = which !== "sql";
     var inBatch = which === "batch" || which === "btres";
     var inExport = which === "export" || which === "jobs";
-    document.getElementById("nav-resources").classList.toggle("active", !inBatch && !inExport);
+    var inSql = which === "sql";
+    document.getElementById("aside-types").hidden = inSql;
+    document.getElementById("aside-views").hidden = !inSql;
+    document.getElementById("nav-resources").classList.toggle("active", !inBatch && !inExport && !inSql);
     document.getElementById("nav-batch").classList.toggle("active", inBatch);
     document.getElementById("nav-export").classList.toggle("active", inExport);
+    document.getElementById("nav-sql").classList.toggle("active", inSql);
     document.querySelector(".main").scrollTop = 0;
   }
   function showResources() { setView("resources"); }
@@ -2477,6 +2677,683 @@
   document.getElementById("edSave").addEventListener("click", function () { commit("Update"); });
   document.getElementById("edCreate").addEventListener("click", function () { commit("Create"); });
   document.getElementById("edPatch").addEventListener("click", function () { commit("Patch"); });
+
+  // ---------- SQL on FHIR — ViewDefinition ----------
+  // A ViewDefinition is a tabular projection of one resource type. Columns are
+  // FHIRPath; forEach/forEachOrNull/repeat turn one resource into many rows.
+  var SQL_NAME = /^[A-Za-z][A-Za-z0-9_]*$/;
+
+  // --- sample resources the preview runs against ---
+  var VD_DATA = {
+    Patient: [
+      { resourceType: "Patient", id: "pt1", active: true, gender: "male", birthDate: "1979-03-02",
+        name: [{ use: "official", family: "Smith", given: ["John", "Robert"] }, { use: "nickname", family: "Smith", given: ["Jack"] }],
+        telecom: [{ system: "phone", value: "+1 415 555 0132" }, { system: "email", value: "j.smith@example.com" }],
+        address: [{ city: "San Francisco", state: "CA", postalCode: "94110" }] },
+      { resourceType: "Patient", id: "pt2", active: true, gender: "female", birthDate: "1992-04-11",
+        name: [{ use: "official", family: "Nguyen", given: ["Mai"] }],
+        telecom: [],
+        address: [{ city: "Oakland", state: "CA", postalCode: "94607" }, { city: "Berkeley", state: "CA", postalCode: "94704" }] },
+      { resourceType: "Patient", id: "pt3", active: false, gender: "female", birthDate: "1986-07-22",
+        name: [{ use: "official", family: "Okafor", given: ["Ada"] }],
+        telecom: [{ system: "phone", value: "+1 510 555 0043" }],
+        address: [] },
+      { resourceType: "Patient", id: "pt4", active: true, gender: "male", birthDate: "2004-06-15",
+        name: [{ use: "official", family: "García", given: ["Luis"] }],
+        telecom: [{ system: "email", value: "luis@example.com" }],
+        address: [{ city: "Palo Alto", state: "CA", postalCode: "94301" }] }
+    ],
+    Observation: [
+      { resourceType: "Observation", id: "ob1", status: "final", effectiveDateTime: "2026-08-02",
+        code: { coding: [{ system: "http://loinc.org", code: "8480-6", display: "Systolic BP" }] },
+        subject: { reference: "Patient/pt1" }, valueQuantity: { value: 128, unit: "mm[Hg]" } },
+      { resourceType: "Observation", id: "ob2", status: "final", effectiveDateTime: "2026-08-02",
+        code: { coding: [{ system: "http://loinc.org", code: "8462-4", display: "Diastolic BP" }] },
+        subject: { reference: "Patient/pt1" }, valueQuantity: { value: 82, unit: "mm[Hg]" } },
+      { resourceType: "Observation", id: "ob3", status: "amended", effectiveDateTime: "2026-08-05",
+        code: { coding: [{ system: "http://loinc.org", code: "8480-6", display: "Systolic BP" }] },
+        subject: { reference: "Patient/pt2" }, valueQuantity: { value: 141, unit: "mm[Hg]" } },
+      { resourceType: "Observation", id: "ob4", status: "final", effectiveDateTime: "2026-08-06",
+        code: { coding: [{ system: "http://loinc.org", code: "29463-7", display: "Body weight" }] },
+        subject: { reference: "Patient/pt3" }, valueQuantity: { value: 71.2, unit: "kg" } }
+    ]
+  };
+
+  // --- a practical FHIRPath subset: navigation, literals, %vars and the
+  //     functions these views actually use. Enough to run the shipped samples. ---
+  function fpSplit(expr) {
+    var parts = [], depth = 0, q = null, cur = "";
+    for (var i = 0; i < expr.length; i++) {
+      var ch = expr[i];
+      if (q) { cur += ch; if (ch === q) q = null; continue; }
+      if (ch === "'" || ch === '"') { q = ch; cur += ch; continue; }
+      if (ch === "(") { depth++; cur += ch; continue; }
+      if (ch === ")") { depth--; cur += ch; continue; }
+      if (ch === "." && depth === 0) { parts.push(cur); cur = ""; continue; }
+      cur += ch;
+    }
+    if (cur !== "") parts.push(cur);
+    return parts;
+  }
+  function fpLit(tok) {
+    tok = tok.trim();
+    if (/^'.*'$/.test(tok)) return [tok.slice(1, -1)];
+    if (/^".*"$/.test(tok)) return [tok.slice(1, -1)];
+    if (tok === "true") return [true];
+    if (tok === "false") return [false];
+    if (/^-?\d+(\.\d+)?$/.test(tok)) return [Number(tok)];
+    return null;
+  }
+  function fpStep(seg, coll, env) {
+    var m = seg.match(/^([A-Za-z_][A-Za-z0-9_]*)\((.*)\)$/);
+    if (m) {
+      var fn = m[1], arg = m[2].trim();
+      if (fn === "getResourceKey") return coll.map(function (x) { return x && x.id; }).filter(function (x) { return x != null; });
+      if (fn === "getReferenceKey") {
+        return coll.map(function (x) {
+          var ref = x && x.reference; if (!ref) return null;
+          var bits = String(ref).split("/");
+          if (arg && bits[0] !== arg) return null;
+          return bits[1] || null;
+        }).filter(function (x) { return x != null; });
+      }
+      if (fn === "join") { var sep = (fpLit(arg) || [""])[0]; return coll.length ? [coll.join(sep)] : []; }
+      if (fn === "first") return coll.slice(0, 1);
+      if (fn === "last") return coll.slice(-1);
+      // exists(criteria) is where(criteria).exists()
+      if (fn === "exists") return [(arg ? coll.filter(function (x) { return fpBool(arg, x, env); }) : coll).length > 0];
+      if (fn === "all") return [(arg ? coll.filter(function (x) { return fpBool(arg, x, env); }) : coll).length === coll.length];
+      if (fn === "empty") return [coll.length === 0];
+      if (fn === "not") return [!coll[0]];
+      if (fn === "count") return [coll.length];
+      if (fn === "toString") return coll.map(String);
+      if (fn === "ofType") return coll;
+      if (fn === "where") return coll.filter(function (x) { return fpBool(arg, x, env); });
+      return coll; // unsupported function — pass through rather than fail the row
+    }
+    var out = [];
+    coll.forEach(function (x) {
+      if (x == null || typeof x !== "object") return;
+      var v = x[seg];
+      if (v == null) return;
+      if (Array.isArray(v)) out = out.concat(v); else out.push(v);
+    });
+    return out;
+  }
+  function fpEval(expr, node, env) {
+    expr = String(expr == null ? "" : expr).trim();
+    if (!expr) return [];
+    var segs = fpSplit(expr), cur, first = (segs[0] || "").trim();
+    var lit = fpLit(first);
+    if (lit) { cur = lit; segs = segs.slice(1); }
+    else if (first.charAt(0) === "%") {
+      var vn = first.slice(1);
+      if (vn === "rowIndex") cur = [env.rowIndex || 0];
+      else cur = env.constants && vn in env.constants ? [env.constants[vn]] : [];
+      segs = segs.slice(1);
+    }
+    else if (first === "$this") { cur = [node]; segs = segs.slice(1); }
+    else cur = [node];
+    for (var i = 0; i < segs.length; i++) cur = fpStep(segs[i].trim(), cur, env);
+    return cur;
+  }
+  function fpBool(expr, node, env) {
+    expr = String(expr || "").trim();
+
+    var andAt = fpTopIndex(expr, " and ");
+    if (andAt > -1) return fpBool(expr.slice(0, andAt), node, env) && fpBool(expr.slice(andAt + 5), node, env);
+    var orAt = fpTopIndex(expr, " or ");
+    if (orAt > -1) return fpBool(expr.slice(0, orAt), node, env) || fpBool(expr.slice(orAt + 4), node, env);
+    var ops = ["!=", ">=", "<=", "=", ">", "<"];
+    for (var i = 0; i < ops.length; i++) {
+      var at = fpTopIndex(expr, ops[i]);
+      if (at > -1) {
+        var l = fpEval(expr.slice(0, at).trim(), node, env);
+        var rTok = expr.slice(at + ops[i].length).trim();
+        var r = fpLit(rTok) || fpEval(rTok, node, env);
+        var lv = l[0], rv = r[0];
+        switch (ops[i]) {
+          case "!=": return lv !== rv;
+          case ">=": return lv >= rv;
+          case "<=": return lv <= rv;
+          case ">": return lv > rv;
+          case "<": return lv < rv;
+          default: return lv === rv;
+        }
+      }
+    }
+    var v = fpEval(expr, node, env);
+    return v.length > 0 && v[0] !== false;
+  }
+  function fpTopIndex(expr, needle) {
+    var depth = 0, q = null;
+    for (var i = 0; i < expr.length; i++) {
+      var ch = expr[i];
+      if (q) { if (ch === q) q = null; continue; }
+      if (ch === "'" || ch === '"') { q = ch; continue; }
+      if (ch === "(") { depth++; continue; }
+      if (ch === ")") { depth--; continue; }
+      if (depth === 0 && expr.substr(i, needle.length) === needle) {
+        if (needle === "=" && (expr[i - 1] === "!" || expr[i - 1] === "<" || expr[i - 1] === ">")) continue;
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  // --- column order per spec: own columns, then nested selects, then unionAll last ---
+  function vdCols(sel, acc) {
+    (sel.column || []).forEach(function (c) { acc.push(c); });
+    (sel.select || []).forEach(function (s) { vdCols(s, acc); });
+    if (sel.unionAll && sel.unionAll.length) vdCols(sel.unionAll[0], acc);
+    return acc;
+  }
+  function vdAllCols(view) {
+    var acc = []; (view.select || []).forEach(function (s) { vdCols(s, acc); }); return acc;
+  }
+
+  // --- the spec's Process algorithm ---
+  function vdProcess(sel, node, env) {
+    var foci;
+    if (sel.forEach) foci = fpEval(sel.forEach, node, env);
+    else if (sel.forEachOrNull) foci = fpEval(sel.forEachOrNull, node, env);
+    else if (sel.repeat && sel.repeat.length) foci = vdRepeat(sel.repeat, node, env);
+    else foci = [node];
+    var rows = [];
+    foci.forEach(function (f, idx) {
+      var env2 = { constants: env.constants, rowIndex: idx };
+      var parts = [];
+      if (sel.column && sel.column.length) {
+        var b = {};
+        sel.column.forEach(function (c) {
+          var val = fpEval(c.path, f, env2);
+          if (val.length === 0) b[c.name] = null;
+          else if (val.length === 1) b[c.name] = val[0];
+          else if (c.collection) b[c.name] = val;
+          else b[c.name] = { __many: val.length };
+        });
+        parts.push([b]);
+      }
+      (sel.select || []).forEach(function (s) { parts.push(vdProcess(s, f, env2)); });
+      if (sel.unionAll && sel.unionAll.length) {
+        var u = [];
+        sel.unionAll.forEach(function (s) { u = u.concat(vdProcess(s, f, env2)); });
+        parts.push(u);
+      }
+      var cart = parts.reduce(function (acc, list) {
+        var next = [];
+        acc.forEach(function (a) { list.forEach(function (bb) { next.push(Object.assign({}, a, bb)); }); });
+        return next;
+      }, [{}]);
+      rows = rows.concat(cart);
+    });
+    if (foci.length === 0 && sel.forEachOrNull) {
+      var blank = {};
+      vdCols(sel, []).forEach(function (c) { blank[c.name] = c.path === "%rowIndex" ? 0 : null; });
+      rows.push(blank);
+    }
+    return rows;
+  }
+  function vdRepeat(paths, node, env) {
+    var out = [];
+    (function walk(n, isRoot) {
+      if (!isRoot) out.push(n);
+      paths.forEach(function (p) { fpEval(p, n, env).forEach(function (c) { walk(c, false); }); });
+    })(node, true);
+    return out;
+  }
+  function vdRun(view) {
+    var env = { constants: {}, rowIndex: 0 };
+    (view.constant || []).forEach(function (c) { env.constants[c.name] = c.value; });
+    var src = VD_DATA[view.resource] || [];
+    var rows = [];
+    src.forEach(function (res) {
+      var pass = (view.where || []).every(function (w) { return fpBool(w.path, res, env); });
+      if (!pass) return;
+      // top-level selects are siblings, so they cross join — not concatenate.
+      // Wrapping them in a synthetic root reuses the same cartesian step.
+      rows = rows.concat(vdProcess({ select: view.select || [] }, res, env));
+    });
+    return rows;
+  }
+
+  // --- validation against the spec's constraints ---
+  function vdValidate(view) {
+    var errs = [];
+    if (view.name && !SQL_NAME.test(view.name)) errs.push('View name <code>' + esc(view.name) + '</code> breaks <b>sql-name</b> — letters, digits and underscores only, and it cannot start with one.');
+    (view.constant || []).forEach(function (c) {
+      if (c.name && !SQL_NAME.test(c.name)) errs.push('Constant <code>' + esc(c.name) + '</code> breaks <b>sql-name</b>.');
+    });
+    var seen = {};
+    vdAllCols(view).forEach(function (c) {
+      if (c.name && !SQL_NAME.test(c.name)) errs.push('Column <code>' + esc(c.name) + '</code> breaks <b>sql-name</b>.');
+      if (c.name) { if (seen[c.name]) errs.push('Column <code>' + esc(c.name) + '</code> is defined more than once.'); seen[c.name] = 1; }
+      if (!String(c.path || "").trim()) errs.push('Column <code>' + esc(c.name || "(unnamed)") + '</code> has no path.');
+    });
+    (view.select || []).forEach(function (s) {
+      (function walk(sel) {
+        var n = (sel.forEach ? 1 : 0) + (sel.forEachOrNull ? 1 : 0) + ((sel.repeat && sel.repeat.length) ? 1 : 0);
+        if (n > 1) errs.push('A select uses more than one of <code>forEach</code> / <code>forEachOrNull</code> / <code>repeat</code> — <b>sql-expressions</b> allows at most one.');
+        if (sel.unionAll && sel.unionAll.length) {
+          var base = vdCols(sel.unionAll[0], []).map(function (c) { return c.name; }).join(",");
+          sel.unionAll.forEach(function (u, i) {
+            if (i && vdCols(u, []).map(function (c) { return c.name; }).join(",") !== base)
+              errs.push('Branches of a <code>unionAll</code> must produce the same columns in the same order.');
+          });
+        }
+        (sel.select || []).forEach(walk);
+        (sel.unionAll || []).forEach(walk);
+      })(s);
+    });
+    return uniq(errs);
+  }
+
+  // --- plain English ---
+  function vdPlain(view) {
+    var res = view.resource, bits = [], iters = [];
+    (view.select || []).forEach(function (s) {
+      (function walk(sel) {
+        if (sel.forEach) iters.push({ path: sel.forEach, drop: true });
+        if (sel.forEachOrNull) iters.push({ path: sel.forEachOrNull, drop: false });
+        if (sel.repeat && sel.repeat.length) iters.push({ path: sel.repeat.join(" / "), repeat: true });
+        (sel.select || []).forEach(walk);
+        (sel.unionAll || []).forEach(walk);
+      })(s);
+    });
+    var lead;
+    if (!iters.length) lead = "One row per " + res + ".";
+    else if (iters.length === 1) {
+      var it = iters[0];
+      if (it.repeat) lead = "One row for every " + it.path + " found at any depth inside each " + res + ".";
+      else lead = "One row per " + it.path + " — a " + res + " with three would produce three rows"
+        + (it.drop ? ", and one with none is dropped entirely." : ", and one with none still appears with those columns blank.");
+    } else lead = iters.length + " nested iterators — rows multiply across " + iters.map(function (i) { return i.path; }).join(" × ") + ".";
+    bits.push(lead);
+    var cols = vdAllCols(view).length;
+    bits.push(cols + " column" + (cols === 1 ? "" : "s") + ".");
+    if ((view.where || []).length) {
+      var ws = view.where.map(function (w) { return w.description || w.path; });
+      bits.push("Only " + res + "s where " + ws.join(" and ") + ".");
+    }
+    return bits.join(" ");
+  }
+
+  // --- sample views ---
+  function vdSamples() {
+    return [
+      { group: "Your views", name: "patient_demographics", status: "active", resource: "Patient",
+        description: "Flat one-row-per-patient view.",
+        select: [{ column: [
+          { name: "id", path: "getResourceKey()", type: "string" },
+          { name: "gender", path: "gender", type: "code" },
+          { name: "birth_date", path: "birthDate", type: "date" },
+          { name: "family", path: "name.where(use = 'official').first().family", type: "string" },
+          { name: "given", path: "name.where(use = 'official').first().given.join(' ')", type: "string" }
+        ] }], where: [], constant: [] },
+
+      { group: "Your views", name: "patient_addresses", status: "draft", resource: "Patient",
+        description: "Unrolls addresses — the spec's own worked example.",
+        select: [
+          { column: [{ name: "patient_id", path: "getResourceKey()", type: "string" }] },
+          { forEach: "address", column: [
+            { name: "city", path: "city", type: "string" },
+            { name: "state", path: "state", type: "string" },
+            { name: "zip", path: "postalCode", type: "string" }
+          ] }
+        ], where: [], constant: [] },
+
+      { group: "Your views", name: "patient_contacts", status: "draft", resource: "Patient",
+        description: "forEachOrNull — patients with no telecom still appear.",
+        select: [
+          { column: [
+            { name: "patient_id", path: "getResourceKey()", type: "string" },
+            { name: "family", path: "name.first().family", type: "string" }
+          ] },
+          { forEachOrNull: "telecom", column: [
+            { name: "contact_system", path: "system", type: "code" },
+            { name: "contact_value", path: "value", type: "string" }
+          ] }
+        ], where: [], constant: [] },
+
+      { group: "Samples", name: "patient_names_indexed", status: "draft", resource: "Patient",
+        description: "Uses %rowIndex to keep FHIR ordering.",
+        select: [
+          { column: [{ name: "id", path: "id", type: "id" }] },
+          { forEach: "name", column: [
+            { name: "name_index", path: "%rowIndex", type: "integer" },
+            { name: "use", path: "use", type: "code" },
+            { name: "family", path: "family", type: "string" }
+          ] }
+        ], where: [], constant: [] },
+
+      { group: "Samples", name: "blood_pressure", status: "draft", resource: "Observation",
+        description: "where + a constant referenced as %bp_code.",
+        constant: [{ name: "bp_code", value: "8480-6", type: "valueCode" }],
+        select: [{ column: [
+          { name: "id", path: "getResourceKey()", type: "string" },
+          { name: "patient_id", path: "subject.getReferenceKey(Patient)", type: "string" },
+          { name: "effective", path: "effectiveDateTime", type: "dateTime" },
+          { name: "systolic", path: "valueQuantity.value", type: "decimal" }
+        ] }],
+        where: [{ path: "code.coding.exists(system = 'http://loinc.org' and code = %bp_code)", description: "the code is LOINC systolic blood pressure" }] },
+
+      { group: "Samples", name: "active_patients", status: "draft", resource: "Patient",
+        description: "A where clause on a plain boolean element.",
+        select: [{ column: [
+          { name: "id", path: "getResourceKey()", type: "string" },
+          { name: "family", path: "name.first().family", type: "string" }
+        ] }],
+        where: [{ path: "active = true", description: "the patient is active" }], constant: [] }
+    ];
+  }
+  var vdViews = vdSamples(), vdCur = 0, vdTab = "builder", vdFilterTxt = "";
+
+  // --- aside list ---
+  function renderVdList() {
+    var q = vdFilterTxt.trim().toLowerCase(), el = document.getElementById("vdlist");
+    var groups = {};
+    vdViews.forEach(function (v, i) {
+      if (q && v.name.toLowerCase().indexOf(q) === -1 && v.resource.toLowerCase().indexOf(q) === -1) return;
+      (groups[v.group] = groups[v.group] || []).push(i);
+    });
+    var html = "";
+    Object.keys(groups).forEach(function (g) {
+      html += '<div class="rgrouphead">' + esc(g) + '</div>';
+      groups[g].forEach(function (i) {
+        var v = vdViews[i];
+        html += '<button class="ritem' + (i === vdCur ? " active" : "") + '" data-vdpick="' + i + '">' +
+          esc(v.name) + '<span class="count">' + esc(v.resource) + '</span></button>';
+      });
+    });
+    if (!html) html = '<div class="incempty" style="padding:10px">No views match.</div>';
+    el.innerHTML = html;
+    el.querySelectorAll("[data-vdpick]").forEach(function (b) {
+      b.addEventListener("click", function () { vdCur = +b.getAttribute("data-vdpick"); renderVdList(); renderVd(); });
+    });
+  }
+
+  // --- structure tree ---
+  function vdIterPill(sel) {
+    if (sel.forEach) return '<span class="iterpill each">forEach ' + esc(sel.forEach) + '</span>';
+    if (sel.forEachOrNull) return '<span class="iterpill ornull">forEachOrNull ' + esc(sel.forEachOrNull) + '</span>';
+    if (sel.repeat && sel.repeat.length) return '<span class="iterpill each">repeat ' + esc(sel.repeat.join(", ")) + '</span>';
+    return '<span class="iterpill root">$this</span>';
+  }
+  function vdIterNote(sel, res) {
+    if (sel.forEach) return 'Rows multiply — one per <b>' + esc(sel.forEach) + '</b>. A ' + res + ' with none is <b>dropped</b> (inner join).';
+    if (sel.forEachOrNull) return 'Rows multiply — one per <b>' + esc(sel.forEachOrNull) + '</b>. A ' + res + ' with none still appears, columns <b>null</b> (left join).';
+    if (sel.repeat && sel.repeat.length) return 'Walks <b>' + esc(sel.repeat.join(", ")) + '</b> recursively to any depth.';
+    return 'One row per ' + res + ' — no iteration.';
+  }
+  function vdRenderSel(sel, path, res, nested) {
+    var html = '<div class="vdsel' + (nested ? " nested" : "") + '">' +
+      '<div class="vdsel-head">' + vdIterPill(sel) +
+      '<span class="vdsel-note">' + vdIterNote(sel, res) + '</span><span class="spacer"></span>' +
+      '<div class="selwrap sm"><select class="ctl" data-vditer="' + path + '" title="iteration mode">' +
+        ['none', 'forEach', 'forEachOrNull'].map(function (m) {
+          var on = m === "forEach" ? !!sel.forEach : m === "forEachOrNull" ? !!sel.forEachOrNull : !(sel.forEach || sel.forEachOrNull);
+          return '<option value="' + m + '"' + (on ? " selected" : "") + '>' + (m === "none" ? "no iterator" : m) + '</option>';
+        }).join("") + '</select></div>' +
+      ((sel.forEach || sel.forEachOrNull) ? '<input class="ctl mono" style="height:32px;max-width:190px" data-vditerpath="' + path + '" value="' + esc(sel.forEach || sel.forEachOrNull) + '" placeholder="address">' : "") +
+      '</div><div class="vdsel-body">';
+    if (sel.column && sel.column.length) {
+      html += '<div class="vdcol-h"><span>Column name</span><span>FHIRPath</span><span>Type</span><span>Coll.</span><span></span></div>';
+      sel.column.forEach(function (c, ci) {
+        var bad = c.name && !SQL_NAME.test(c.name);
+        html += '<div class="vdcol">' +
+          '<input class="ctl mono' + (bad ? " vdbadname" : "") + '" value="' + esc(c.name) + '" data-vdcol="' + path + ':' + ci + ':name">' +
+          '<input class="ctl mono" value="' + esc(c.path) + '" data-vdcol="' + path + ':' + ci + ':path">' +
+          '<input class="ctl mono" value="' + esc(c.type || "") + '" placeholder="(inferred)" data-vdcol="' + path + ':' + ci + ':type">' +
+          '<button class="collbox' + (c.collection ? " on" : "") + '" data-vdcoll="' + path + ':' + ci + '" title="collection — allow multiple values">[ ]</button>' +
+          '<button class="iconbtn danger" data-vdcoldel="' + path + ':' + ci + '" title="Remove column"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
+          '</div>';
+      });
+    }
+    html += '<div class="addrow-group" style="margin-top:6px">' +
+      '<button class="addrow" data-vdaddcol="' + path + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Add column</button>' +
+      '<button class="addrow" data-vdaddsel="' + path + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h8M3 12h13M3 19h18"/></svg> Add nested select</button>' +
+      (nested ? '<button class="addrow" data-vdseldel="' + path + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg> Remove block</button>' : "") +
+      '</div>';
+    (sel.select || []).forEach(function (s, si) { html += vdRenderSel(s, path + ".s" + si, res, true); });
+    html += "</div></div>";
+    return html;
+  }
+  function vdSelAt(view, path) {
+    var bits = path.split("."), node = view.select[+bits[0].slice(1)];
+    for (var i = 1; i < bits.length; i++) node = node.select[+bits[i].slice(1)];
+    return node;
+  }
+  function vdSelParent(view, path) {
+    var bits = path.split(".");
+    if (bits.length === 1) return { list: view.select, idx: +bits[0].slice(1) };
+    var node = view.select[+bits[0].slice(1)];
+    for (var i = 1; i < bits.length - 1; i++) node = node.select[+bits[i].slice(1)];
+    return { list: node.select, idx: +bits[bits.length - 1].slice(1) };
+  }
+
+  function renderVd() {
+    var v = vdViews[vdCur];
+    document.getElementById("vdTitle").textContent = v.name;
+    document.getElementById("vdResource").textContent = v.resource;
+    document.getElementById("vdName").value = v.name;
+    document.getElementById("vdName").classList.toggle("vdbadname", !!v.name && !SQL_NAME.test(v.name));
+    var pill = document.getElementById("vdStatusPill");
+    pill.textContent = v.status;
+    pill.className = "statepill " + (v.status === "active" ? "good" : v.status === "retired" ? "bad" : "edit");
+    var rsel = document.getElementById("vdResourceSel");
+    rsel.innerHTML = Object.keys(VD_DATA).concat(Object.keys(CATALOG).filter(function (k) { return !VD_DATA[k]; }))
+      .map(function (r) { return '<option' + (r === v.resource ? " selected" : "") + '>' + r + '</option>'; }).join("");
+    var cols = vdAllCols(v);
+    document.getElementById("vdColCount").textContent = cols.length + " column" + (cols.length === 1 ? "" : "s") + " · " + v.resource;
+
+    // structure
+    document.getElementById("vdTree").innerHTML = (v.select || []).map(function (s, i) { return vdRenderSel(s, "s" + i, v.resource, false); }).join("") +
+      '<div class="addrow-group"><button class="addrow" id="vdAddTop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Add select block</button></div>';
+
+    // where
+    document.getElementById("vdWhere").innerHTML = (v.where || []).length
+      ? v.where.map(function (w, i) {
+          return '<div class="vdcol" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr) 32px">' +
+            '<input class="ctl mono" value="' + esc(w.path) + '" data-vdwhere="' + i + ':path" placeholder="active = true">' +
+            '<input class="ctl" value="' + esc(w.description || "") + '" data-vdwhere="' + i + ':description" placeholder="plain-English description">' +
+            '<button class="iconbtn danger" data-vdwheredel="' + i + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>';
+        }).join("")
+      : '<div class="incempty">No filters — every ' + esc(v.resource) + ' is included.</div>';
+
+    // constants
+    document.getElementById("vdConst").innerHTML = (v.constant || []).length
+      ? v.constant.map(function (c, i) {
+          return '<div class="vdcol" style="grid-template-columns:180px minmax(0,1fr) 150px 32px">' +
+            '<input class="ctl mono' + (c.name && !SQL_NAME.test(c.name) ? " vdbadname" : "") + '" value="' + esc(c.name) + '" data-vdconst="' + i + ':name">' +
+            '<input class="ctl mono" value="' + esc(c.value) + '" data-vdconst="' + i + ':value">' +
+            '<div class="selwrap"><select class="ctl" data-vdconst="' + i + ':type">' +
+              ["valueString", "valueCode", "valueBoolean", "valueInteger", "valueDate", "valueDateTime", "valueDecimal", "valueUri"]
+                .map(function (t) { return '<option' + (t === (c.type || "valueString") ? " selected" : "") + '>' + t + '</option>'; }).join("") + '</select></div>' +
+            '<button class="iconbtn danger" data-vdconstdel="' + i + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>';
+        }).join("")
+      : '<div class="incempty">No constants.</div>';
+
+    document.getElementById("vdJson").textContent = JSON.stringify(vdToJson(v), null, 2);
+    document.getElementById("vdPlain").textContent = vdPlain(v);
+
+    var errs = vdValidate(v), warnEl = document.getElementById("vdWarn");
+    warnEl.hidden = !errs.length;
+    warnEl.innerHTML = errs.map(function (e) { return "<div>" + e + "</div>"; }).join("");
+    document.getElementById("vdEst").innerHTML = (VD_DATA[v.resource] || []).length
+      ? "<b>" + (VD_DATA[v.resource] || []).length + "</b> sample " + esc(v.resource) + " resources loaded"
+      : "No sample data for " + esc(v.resource) + " — Run will return no rows";
+    document.getElementById("vdResults").hidden = true;
+    vdWire();
+  }
+  function vdToJson(v) {
+    var o = { resourceType: "ViewDefinition", name: v.name, status: v.status, resource: v.resource };
+    if (v.description) o.description = v.description;
+    if ((v.constant || []).length) o.constant = v.constant.map(function (c) {
+      var e = { name: c.name }; e[c.type || "valueString"] = c.value; return e;
+    });
+    o.select = (v.select || []).map(function stripSel(s) {
+      var e = {};
+      if (s.forEach) e.forEach = s.forEach;
+      if (s.forEachOrNull) e.forEachOrNull = s.forEachOrNull;
+      if (s.repeat && s.repeat.length) e.repeat = s.repeat;
+      if ((s.column || []).length) e.column = s.column.map(function (c) {
+        var q = { name: c.name, path: c.path };
+        if (c.type) q.type = c.type;
+        if (c.collection) q.collection = true;
+        return q;
+      });
+      if ((s.select || []).length) e.select = s.select.map(stripSel);
+      if ((s.unionAll || []).length) e.unionAll = s.unionAll.map(stripSel);
+      return e;
+    });
+    if ((v.where || []).length) o.where = v.where.map(function (w) {
+      var e = { path: w.path }; if (w.description) e.description = w.description; return e;
+    });
+    return o;
+  }
+
+  function vdWire() {
+    var v = vdViews[vdCur];
+    document.querySelectorAll("[data-vdcol]").forEach(function (el) {
+      el.addEventListener("change", function () {
+        var b = el.getAttribute("data-vdcol").split(":");
+        vdSelAt(v, b[0]).column[+b[1]][b[2]] = el.value;
+        renderVd();
+      });
+    });
+    document.querySelectorAll("[data-vdcoll]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var b = el.getAttribute("data-vdcoll").split(":"), c = vdSelAt(v, b[0]).column[+b[1]];
+        c.collection = !c.collection; renderVd();
+      });
+    });
+    document.querySelectorAll("[data-vdcoldel]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var b = el.getAttribute("data-vdcoldel").split(":");
+        vdSelAt(v, b[0]).column.splice(+b[1], 1); renderVd();
+      });
+    });
+    document.querySelectorAll("[data-vdaddcol]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var s = vdSelAt(v, el.getAttribute("data-vdaddcol"));
+        s.column = s.column || []; s.column.push({ name: "new_column", path: "", type: "" }); renderVd();
+      });
+    });
+    document.querySelectorAll("[data-vdaddsel]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var s = vdSelAt(v, el.getAttribute("data-vdaddsel"));
+        s.select = s.select || []; s.select.push({ forEach: "address", column: [{ name: "zip", path: "postalCode", type: "string" }] }); renderVd();
+      });
+    });
+    document.querySelectorAll("[data-vdseldel]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var p = vdSelParent(v, el.getAttribute("data-vdseldel"));
+        p.list.splice(p.idx, 1); renderVd();
+      });
+    });
+    document.querySelectorAll("[data-vditer]").forEach(function (el) {
+      el.addEventListener("change", function () {
+        var s = vdSelAt(v, el.getAttribute("data-vditer")), prev = s.forEach || s.forEachOrNull || "address";
+        delete s.forEach; delete s.forEachOrNull; delete s.repeat;
+        if (el.value === "forEach") s.forEach = prev;
+        if (el.value === "forEachOrNull") s.forEachOrNull = prev;
+        renderVd();
+      });
+    });
+    document.querySelectorAll("[data-vditerpath]").forEach(function (el) {
+      el.addEventListener("change", function () {
+        var s = vdSelAt(v, el.getAttribute("data-vditerpath"));
+        if (s.forEach) s.forEach = el.value; else if (s.forEachOrNull) s.forEachOrNull = el.value;
+        renderVd();
+      });
+    });
+    document.querySelectorAll("[data-vdwhere]").forEach(function (el) {
+      el.addEventListener("change", function () {
+        var b = el.getAttribute("data-vdwhere").split(":"); v.where[+b[0]][b[1]] = el.value; renderVd();
+      });
+    });
+    document.querySelectorAll("[data-vdwheredel]").forEach(function (el) {
+      el.addEventListener("click", function () { v.where.splice(+el.getAttribute("data-vdwheredel"), 1); renderVd(); });
+    });
+    document.querySelectorAll("[data-vdconst]").forEach(function (el) {
+      el.addEventListener("change", function () {
+        var b = el.getAttribute("data-vdconst").split(":"); v.constant[+b[0]][b[1]] = el.value; renderVd();
+      });
+    });
+    document.querySelectorAll("[data-vdconstdel]").forEach(function (el) {
+      el.addEventListener("click", function () { v.constant.splice(+el.getAttribute("data-vdconstdel"), 1); renderVd(); });
+    });
+    var addTop = document.getElementById("vdAddTop");
+    if (addTop) addTop.addEventListener("click", function () {
+      v.select.push({ column: [{ name: "new_column", path: "", type: "" }] }); renderVd();
+    });
+  }
+
+  function vdShowResults() {
+    var v = vdViews[vdCur], cols = vdAllCols(v), t0 = performance.now();
+    var rows = vdRun(v), ms = Math.max(1, Math.round(performance.now() - t0));
+    var html = "<thead><tr>" + cols.map(function (c) {
+      return "<th>" + esc(c.name) + (c.type ? '<span class="ty">' + esc(c.type) + "</span>" : "") + "</th>";
+    }).join("") + "</tr></thead><tbody>";
+    if (!rows.length) html += '<tr><td colspan="' + cols.length + '" class="null">No rows — every ' + esc(v.resource) + " was filtered out.</td></tr>";
+    rows.forEach(function (r) {
+      html += "<tr>" + cols.map(function (c) {
+        var val = r[c.name];
+        if (val == null) return '<td class="null">null</td>';
+        if (val && val.__many) return '<td class="null">' + val.__many + " values — set collection</td>";
+        if (Array.isArray(val)) return "<td>[" + val.map(esc).join(", ") + "]</td>";
+        return "<td>" + esc(val) + "</td>";
+      }).join("") + "</tr>";
+    });
+    document.getElementById("vdTbl").innerHTML = html + "</tbody>";
+    document.getElementById("vdResPill").textContent = rows.length + " row" + (rows.length === 1 ? "" : "s");
+    document.getElementById("vdResPill").className = "statepill " + (rows.length ? "good" : "edit");
+    document.getElementById("vdResSub").textContent = "From " + (VD_DATA[v.resource] || []).length + " sample " + v.resource +
+      " resources · " + cols.length + " columns · " + ms + " ms";
+    document.getElementById("vdResults").hidden = false;
+    document.getElementById("vdResults").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  function vdCreateView(v) {
+    var cols = vdAllCols(v);
+    var TYPES = { string: "VARCHAR", code: "VARCHAR", id: "VARCHAR", date: "VARCHAR", dateTime: "VARCHAR",
+      decimal: "VARCHAR", integer: "INT", boolean: "BOOLEAN", instant: "TIMESTAMP WITH TIME ZONE" };
+    return "CREATE VIEW " + (v.name || "unnamed") + " AS SELECT\n" +
+      cols.map(function (c) { return "  " + c.name + "  -- " + (TYPES[c.type] || "VARCHAR"); }).join(",\n") +
+      "\nFROM " + v.resource.toLowerCase() + ";";
+  }
+
+  document.getElementById("vdfilter").addEventListener("input", function () { vdFilterTxt = this.value; renderVdList(); });
+  document.querySelectorAll("#vdTabs button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      vdTab = b.getAttribute("data-vdtab");
+      document.querySelectorAll("#vdTabs button").forEach(function (x) { x.classList.toggle("on", x === b); });
+      document.getElementById("vdBuilder").hidden = vdTab !== "builder";
+      document.getElementById("vdJson").hidden = vdTab !== "json";
+    });
+  });
+  document.getElementById("vdResourceSel").addEventListener("change", function () {
+    vdViews[vdCur].resource = this.value; renderVd(); renderVdList();
+  });
+  document.getElementById("vdName").addEventListener("change", function () {
+    vdViews[vdCur].name = this.value; renderVd(); renderVdList();
+  });
+  document.getElementById("vdAddWhere").addEventListener("click", function () {
+    var v = vdViews[vdCur]; v.where = v.where || []; v.where.push({ path: "", description: "" }); renderVd();
+  });
+  document.getElementById("vdAddConst").addEventListener("click", function () {
+    var v = vdViews[vdCur]; v.constant = v.constant || []; v.constant.push({ name: "new_constant", value: "", type: "valueString" }); renderVd();
+  });
+  document.getElementById("vdRun").addEventListener("click", vdShowResults);
+  document.getElementById("vdSql").addEventListener("click", function () {
+    copyText(vdCreateView(vdViews[vdCur]), "CREATE VIEW copied");
+  });
+  document.getElementById("vdSave").addEventListener("click", function () {
+    var errs = vdValidate(vdViews[vdCur]);
+    showToast(errs.length ? "Fix " + errs.length + " problem" + (errs.length === 1 ? "" : "s") + " first" : "View definition saved");
+  });
+  document.getElementById("nav-sql").addEventListener("click", function (e) {
+    e.preventDefault(); closeDrawer(); setView("sql");
+  });
 
   // ---------- Batch / Transaction ----------
   // Upload-driven: a Bundle JSON file supplies the actions (read-only) and the
@@ -2951,6 +3828,8 @@
   includes = [blankInc("fwd")];
   renderIncludes();
   renderBt();
+  renderVdList();
+  renderVd();
   renderExTypes();
   exBuild();
   renderJobs();
