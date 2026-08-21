@@ -1325,6 +1325,14 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
             Save
           </button>
+          <button class="btn-sm ghost" id="vdDup" style="align-self:center" title="Start a new view from this one">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+            Duplicate
+          </button>
+          <button class="btn-sm btn-primary" id="vdNew" style="align-self:center;background:var(--accent);color:var(--accent-ink)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            New view
+          </button>
         </div>
 
         <div class="vdbar">
@@ -3342,6 +3350,27 @@
   });
   document.getElementById("vdAddConst").addEventListener("click", function () {
     var v = vdViews[vdCur]; v.constant = v.constant || []; v.constant.push({ name: "new_constant", value: "", type: "valueString" }); renderVd();
+  });
+  function vdUniqueName(base) {
+    var n = base, i = 2;
+    while (vdViews.some(function (v) { return v.name === n; })) n = base + "_" + (i++);
+    return n;
+  }
+  document.getElementById("vdNew").addEventListener("click", function () {
+    // start from a key column — every useful view needs one, and it shows getResourceKey()
+    vdViews.unshift({ group: "Your views", name: vdUniqueName("new_view"), status: "draft",
+      resource: vdViews[vdCur] ? vdViews[vdCur].resource : "Patient", description: "",
+      select: [{ column: [{ name: "id", path: "getResourceKey()", type: "string" }] }],
+      where: [], constant: [] });
+    vdCur = 0; renderVdList(); renderVd();
+    showToast("New view created — add columns, then Run");
+  });
+  document.getElementById("vdDup").addEventListener("click", function () {
+    var copy = JSON.parse(JSON.stringify(vdViews[vdCur]));
+    copy.name = vdUniqueName(copy.name + "_copy");
+    copy.group = "Your views"; copy.status = "draft";
+    vdViews.unshift(copy); vdCur = 0; renderVdList(); renderVd();
+    showToast("Duplicated as " + copy.name);
   });
   document.getElementById("vdRun").addEventListener("click", vdShowResults);
   document.getElementById("vdSql").addEventListener("click", function () {
